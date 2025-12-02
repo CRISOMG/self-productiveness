@@ -70,13 +70,6 @@ watch(currPomodoro, () => {
   localStorage.setItem("currPomodoro", JSON.stringify(currPomodoro.value));
 });
 
-watch(pomodorosListToday, () => {
-  console.log(
-    "pomodorosListToday",
-    JSON.stringify(pomodorosListToday.value, null, 2)
-  );
-});
-
 onMounted(() => {
   getCurrentPomodoro();
 

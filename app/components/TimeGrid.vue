@@ -19,7 +19,6 @@ onMounted(() => {
   // 3. Esperar hasta que el DOM esté completamente renderizado
   nextTick(() => {
     if (elementToScrollRef.value) {
-      console.log("Haciendo scroll a la hora actual:", currHour.value);
       elementToScrollRef.value.scrollIntoView({
         behavior: "smooth",
         block: "center",
@@ -79,7 +78,7 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
   const height = (selectedMinutes / totalGridMinutes) * 100;
 
   return {
-    top: `${top}%`,
+    top: `calc(${top}% - 10px)`,
     height: `2rem 1rem`,
   };
 };
@@ -109,7 +108,7 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
         }"
       >
         <span
-          class="text-xs text-gray-400 ml-2 mt-1 bg-white dark:bg-gray-900 px-1"
+          class="text-xs text-gray-400 ml-2 -mt-[10px] bg-white dark:bg-gray-900 px-1"
         >
           {{ formatHour(hour) }}
         </span>

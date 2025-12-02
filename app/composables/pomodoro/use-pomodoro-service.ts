@@ -105,11 +105,24 @@ export const usePomodoroService = () => {
     });
   }
 
+  async function finishCurrentPomodoro({ timelapse }: { timelapse: number }) {
+    const pomodoro = await pomodoroRepository.getCurrentPomodoro();
+    if (!pomodoro) {
+      return;
+    }
+    await pomodoroRepository.update(pomodoro.id, {
+      timelapse,
+      state: "finished",
+      finished_at: new Date().toISOString(),
+    });
+  }
+
   return {
     checkIsCurrentCycleEnd,
     finishCurrentCycle,
     registToggleTimelinePomodoro,
     startPomodoro,
     getOrCreateCurrentCycleId,
+    finishCurrentPomodoro,
   };
 };

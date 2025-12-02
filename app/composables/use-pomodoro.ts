@@ -52,6 +52,8 @@ export const usePomodoroUtils = () => {
         user_id,
         tagId: TagIdByType.FOCUS,
       });
+      await handleListPomodoros();
+
       currPomodoro.value = result;
       localStorage.setItem("currPomodoro", JSON.stringify(result));
     } else {
@@ -92,10 +94,8 @@ export const usePomodoroUtils = () => {
       return;
     }
 
-    const result = await pomodoroRepository.update(currPomodoro.value.id, {
+    const result = await pomodoroService.finishCurrentPomodoro({
       timelapse: currPomodoro.value.timelapse,
-      state: "finished",
-      finished_at: new Date().toISOString(),
     });
 
     const isCurrentCycleEnd = await pomodoroService.checkIsCurrentCycleEnd();
@@ -106,11 +106,19 @@ export const usePomodoroUtils = () => {
     currPomodoro.value = null;
   }
   async function handleResetPomodoro() {
-    if (!currPomodoro.value) {
+    if (
+      !confirm(
+        "Are you sure you want to reset the pomodoro? this will finish the current cycle."
+      )
+    ) {
       return;
     }
-    currPomodoro.value = null;
+
+    if (timer.value) clearInterval(timer.value);
+    await handleFinishPomodoro();
+    await pomodoroService.finishCurrentCycle();
     localStorage.removeItem("currPomodoro");
+    currPomodoro.value = null;
   }
 
   async function handleListPomodoros() {

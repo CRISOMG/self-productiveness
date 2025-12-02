@@ -1,65 +1,80 @@
 <script setup lang="ts">
-import type { FormError, FormSubmitEvent } from '@nuxt/ui'
-const supabase = useSupabaseClient()
+import type { FormError, FormSubmitEvent } from "@nuxt/ui";
+import { useAuthStore } from "~/stores/auth";
+const supabase = useSupabaseClient();
 
-const user = useSupabaseUser()
-const config = useRuntimeConfig()
+const authStore = useAuthStore();
+const authStoreRefs = storeToRefs(authStore);
+const config = useRuntimeConfig();
 const state = reactive({
   email: config.public.test_email,
-  password: undefined
-})
+  password: undefined,
+});
 async function signInWithEmail({ email }: { email: string }) {
   const { data, error } = await supabase.auth.signInWithOtp({
     email,
-  })
+  });
 
-  return { data, error }
+  return { data, error };
 }
-async function signInWithEmailPassword({ email, password }: { email: string, password: string }) {
+async function signInWithEmailPassword({
+  email,
+  password,
+}: {
+  email: string;
+  password: string;
+}) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
-  })
+  });
 
-  return { data, error }
-
+  return { data, error };
 }
 
 onMounted(() => {
   supabase.auth.onAuthStateChange((event, session) => {
-    console.log('event', event)
-    console.log('session', session)
-  })
-  if (user.value) {
-    console.log('user', user.value)
-  }
-})
+    authStoreRefs.eventSessionLogs.value[event] = session;
+    authStoreRefs.user.value = session?.user;
+  });
+});
 
-type Schema = typeof state
+type Schema = typeof state;
 
 function validate(state: Partial<Schema>): FormError[] {
-  const errors = []
-  if (!state.email) errors.push({ name: 'email', message: 'Required' })
-  if (!state.password) errors.push({ name: 'password', message: 'Required' })
-  return errors
+  const errors = [];
+  if (!state.email) errors.push({ name: "email", message: "Required" });
+  if (!state.password) errors.push({ name: "password", message: "Required" });
+  return errors;
 }
 
-const toast = useSuccessErrorToast()
+const toast = useSuccessErrorToast();
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  const { data, error } = await signInWithEmailPassword({ email: event.data.email as unknown as string, password: event.data.password as unknown as string })
+  const { data, error } = await signInWithEmailPassword({
+    email: event.data.email as unknown as string,
+    password: event.data.password as unknown as string,
+  });
   if (error) {
-    toast.addErrorToast({ title: 'Error', description: error.message })
-    return
+    toast.addErrorToast({ title: "Error", description: error.message });
+    return;
   } else {
-    toast.addSuccessToast({ title: 'Success', description: 'The form has been submitted.' })
-    navigateTo('/')
+    toast.addSuccessToast({
+      title: "Success",
+      description: "The form has been submitted.",
+    });
+    navigateTo("/");
   }
 }
 </script>
 
 <template>
   <div class="flex items-center justify-center h-screen">
-    <UForm :validate="validate" :state="state" class="space-y-4" @submit="onSubmit">
+    <UForm
+      :validate="validate"
+      :state="state"
+      class="space-y-4"
+      @submit="onSubmit"
+    >
       <UFormField label="Email" name="email">
         <UInput v-model="state.email" />
       </UFormField>
@@ -71,9 +86,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <ULink to="/request-reset-password">reset password</ULink>
       </UFormField>
 
-      <UButton type="submit">
-        Submit
-      </UButton>
+      <UButton type="submit"> Submit </UButton>
     </UForm>
   </div>
 </template>

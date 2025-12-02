@@ -131,7 +131,6 @@ export const usePomodoroCycleRepository = () => {
       )
       .filter("state", "eq", "current")
       .single();
-    // Si el error es "No rows found", retornamos null limpiamente
     if (error && error.code !== "PGRST116") {
       throw error;
     }
