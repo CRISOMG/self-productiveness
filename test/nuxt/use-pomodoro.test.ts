@@ -1,13 +1,13 @@
-// tests/integration/pomodoro.test.ts
 import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
 import { setup } from "@nuxt/test-utils";
-// Asegúrate de que useSupabaseClient esté importado si lo usas fuera de un composable/componente
+import { usePomodoroCycleRepository } from "~/composables/pomodoro/use-pomodoro-repository";
+import { usePomodoroService } from "~/composables/pomodoro/use-pomodoro-service";
+import type { AuthTokenResponsePassword } from "@supabase/supabase-js";
 
 describe("Pomodoro Supabase Integration", () => {
-  // Variables globales para el setup/teardown
   let supabase: ReturnType<typeof useSupabaseClient>;
-  let testUserId: string;
-  let cycleIdToClean: number;
+  let mainUserSession: AuthTokenResponsePassword["data"];
+  let userWithoutFinishedCycleSession: AuthTokenResponsePassword["data"];
 
   beforeAll(async () => {
     supabase = useSupabaseClient();
@@ -21,34 +21,44 @@ describe("Pomodoro Supabase Integration", () => {
     if (authError || !sessionData?.user) {
       throw new Error(`Fallo de autenticación: ${authError?.message}`);
     }
-    testUserId = sessionData.user.id;
+    mainUserSession = sessionData;
+
+    const { data: sessionData2, error: authError2 } =
+      await supabase.auth.signInWithPassword({
+        email: "userwithoutfinishedcycle@yopmail.com",
+        password: process.env.SUPABASE_TEST_USER_PASSWORD || "",
+      });
+
+    if (authError2 || !sessionData2?.user) {
+      throw new Error(`Fallo de autenticación: ${authError2?.message}`);
+    }
+    userWithoutFinishedCycleSession = sessionData2;
   });
 
   afterAll(async () => {
     await supabase.auth.signOut();
   });
 
-  it("cycleRepository.getCurrentCycle", async () => {
+  it("[cycleRepository.getCurrent] debe retornar el ciclo actual", async () => {
+    supabase.auth.setSession(mainUserSession.session);
     const cycleRepository = usePomodoroCycleRepository();
     const cycle = await cycleRepository.getCurrent();
-    console.log("cycle", cycle);
+    expect(cycle).toBeDefined();
   });
-  it("debe retornar TRUE si el ciclo tiene todos los tags requeridos", async () => {
+  it("[pomodoroService.checkIsCurrentCycleEnd] debe retornar TRUE si el ciclo tiene todos los tags requeridos para finalizar", async () => {
+    supabase.auth.setSession(mainUserSession.session);
     const { checkIsCurrentCycleEnd } = usePomodoroService();
     const result = await checkIsCurrentCycleEnd();
-
-    expect(result).toBeTypeOf("boolean");
+    expect(result).toBe(true);
   });
 
-  it("debe retornar FALSE si el ciclo está incompleto", async () => {
-    // ... Lógica similar, pero creando datos que GARANTICEN FALSE ...
+  it("[pomodoroService.checkIsCurrentCycleEnd] debe retornar FALSE si el ciclo está incompleto", async () => {
+    supabase.auth.setSession(userWithoutFinishedCycleSession.session);
+
+    const { checkIsCurrentCycleEnd } = usePomodoroService();
+    const result = await checkIsCurrentCycleEnd();
+    expect(result).toBe(false);
   });
-  // Hook de limpieza que se ejecuta después de cada test
-  afterEach(async () => {
-    // if (cycleIdToClean) {
-    //   await supabase.from("pomodoro_cycles").delete().eq("id", cycleIdToClean);
-    //   // Asegúrate de borrar también pomodoros y tags relacionados
-    // }
-    // cycleIdToClean = 0;
-  });
+
+  afterEach(async () => {});
 });

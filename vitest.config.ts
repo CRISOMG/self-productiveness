@@ -29,6 +29,7 @@ import {
 
 export default defineVitestConfig({
   test: {
+    setupFiles: ["test/setup.ts"],
     environment: "nuxt",
     include: ["test/nuxt/*.{test,spec}.ts", "test/nuxt/**/*.{test,spec}.ts"],
   },
