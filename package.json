@@ -20,7 +20,8 @@
     "pinia": "^3.0.4",
     "supabase": "^2.62.5",
     "vue": "^3.5.25",
-    "vue-router": "^4.6.3"
+    "vue-router": "^4.6.3",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@nuxt/test-utils": "^3.20.1",

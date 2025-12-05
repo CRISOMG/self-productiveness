@@ -52,12 +52,14 @@ export const usePomodoroService = () => {
     return newCycle.id;
   }
 
-  async function startPomodoro({
+  async function createPomodoro({
     user_id,
     tagId = TagIdByType.FOCUS,
+    state = "current",
   }: {
     user_id: string;
     tagId?: TagIdByType;
+    state?: "current";
   }) {
     const defaultDurationBytag =
       PomodoroDurationInSecondsByDefaultCycleConfiguration[tagId];
@@ -76,7 +78,43 @@ export const usePomodoroService = () => {
         timelapse: 0,
         toggle_timeline: [],
         created_at: new Date().toISOString(),
-        state: "current",
+        state,
+        expected_duration,
+        cycle: pomodoroCycleId,
+      },
+      tagId
+    );
+
+    return result;
+  }
+
+  async function startPomodoro({
+    user_id,
+    tagId = TagIdByType.FOCUS,
+    state = "current",
+  }: {
+    user_id: string;
+    tagId?: TagIdByType;
+    state?: "current" | "paused";
+  }) {
+    const defaultDurationBytag =
+      PomodoroDurationInSecondsByDefaultCycleConfiguration[tagId];
+
+    const { started_at, expected_end } =
+      calculateTimelineFromNow(defaultDurationBytag);
+
+    const pomodoroCycleId = await getOrCreateCurrentCycleId(user_id);
+
+    const expected_duration = defaultDurationBytag;
+    const result = await pomodoroRepository.insert(
+      {
+        user_id,
+        started_at,
+        expected_end,
+        timelapse: 0,
+        toggle_timeline: [],
+        created_at: new Date().toISOString(),
+        state,
         expected_duration,
         cycle: pomodoroCycleId,
       },
@@ -121,7 +159,7 @@ export const usePomodoroService = () => {
     if (!pomodoro) {
       return;
     }
-    await pomodoroRepository.update(pomodoro.id, {
+    return await pomodoroRepository.update(pomodoro.id, {
       timelapse,
       state: "finished",
       finished_at: new Date().toISOString(),
@@ -159,7 +197,18 @@ export const usePomodoroService = () => {
     }
     return tag.id;
   }
+  async function createNextPomodoro({ user_id }: { user_id: string }) {
+    const pomodoroCycleId = await getOrCreateCurrentCycleId(user_id);
 
+    const cycle = await cycleRepository.getOne(pomodoroCycleId);
+    const nextTag: string = calculateNextTagFromCycleSecuence(
+      cycle?.pomodoros?.flatMap((p) => p.tags?.map((t) => t.type)) || [],
+      cycle?.required_tags || DEFAULT_REQUIRED_TAGS_FOR_FINISH_CYCLE
+    );
+    const nextTagId = TagEnumByType[nextTag as keyof typeof TagEnumByType];
+
+    return await startPomodoro({ user_id, tagId: nextTagId, state: "paused" });
+  }
   return {
     checkIsCurrentCycleEnd,
     finishCurrentCycle,
@@ -169,5 +218,6 @@ export const usePomodoroService = () => {
     finishCurrentPomodoro,
     getTagByCycleSecuense,
     getTagIdByType,
+    createNextPomodoro,
   };
 };

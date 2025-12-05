@@ -21,6 +21,12 @@ export enum TagType {
   LONG_BREAK = "long-break",
 }
 
+export const TagEnumByType = {
+  ["focus"]: TagIdByType.FOCUS,
+  ["break"]: TagIdByType.BREAK,
+  ["long-break"]: TagIdByType.LONG_BREAK,
+};
+
 export const TagTypeById = {
   [TagIdByType.FOCUS]: "focus",
   [TagIdByType.BREAK]: "break",

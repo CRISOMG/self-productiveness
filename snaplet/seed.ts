@@ -76,20 +76,8 @@ const main = async () => {
       cycle: mainCycle.id,
     },
     {
-      user_id: mainUserId,
-      cycle: mainCycle.id,
-    },
-    {
-      user_id: mainUserId,
-      cycle: mainCycle.id,
-    },
-    {
       user_id: userWithoutFinishedCycleId,
       cycle: userWithoutFinishedCycle.id,
-    },
-    {
-      user_id: userWithMiddleCycleId,
-      cycle: userWithMiddleCycle.id,
     },
   ]);
 
@@ -100,24 +88,9 @@ const main = async () => {
       tag: 1,
     },
     {
-      user_id: mainUserId,
-      pomodoro: 2,
-      tag: 2,
-    },
-    {
-      user_id: mainUserId,
-      pomodoro: 3,
-      tag: 3,
-    },
-    {
       user_id: userWithoutFinishedCycleId,
-      pomodoro: 4,
+      pomodoro: 2,
       tag: 1,
-    },
-    {
-      user_id: userWithMiddleCycleId,
-      pomodoro: 5,
-      tag: 2,
     },
   ]);
 

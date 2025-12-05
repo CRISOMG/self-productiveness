@@ -19,7 +19,10 @@ export const usePomodoroRepository = () => {
       .select(
         `
           *,
-          cycle (*),
+          cycle (
+            *,
+            pomodoros (*)
+          ),
           tags (*)
           `
       )
@@ -33,7 +36,16 @@ export const usePomodoroRepository = () => {
     const { data } = await supabase
       .from("pomodoros")
       .insert(pomodoro)
-      .select()
+      .select(
+        `
+          *,
+          cycle (
+            *,
+            pomodoros (*)
+          ),
+          tags (*)
+          `
+      )
       .single()
       .throwOnError();
 
@@ -44,18 +56,28 @@ export const usePomodoroRepository = () => {
         user_id: pomodoro.user_id,
         tag: tagId,
       })
-      .select()
+      .select(`*,pomodoro (*), tag (*)`)
       .single()
       .throwOnError();
 
-    return data;
+    const updatedPomodoro = await getOne(data.id);
+    return updatedPomodoro;
   }
   async function update(id: number, pomodoro: Pomodoro["Update"]) {
     const { data } = await supabase
       .from("pomodoros")
       .update(pomodoro)
       .eq("id", id)
-      .select()
+      .select(
+        `
+          *,
+          cycle (
+            *,
+            pomodoros (*)
+          ),
+          tags (*)
+          `
+      )
       .order("created_at", { ascending: false })
       .single()
       .throwOnError();
@@ -68,7 +90,11 @@ export const usePomodoroRepository = () => {
       .select(
         `
           *,
-          cycle (state)
+          cycle (
+            *,
+            pomodoros (*)
+          ),
+          tags (*)
           `
       )
       .neq("state", "finished")
@@ -80,7 +106,18 @@ export const usePomodoroRepository = () => {
   async function getOne(id: number) {
     const { data } = await supabase
       .from("pomodoros")
-      .select()
+      .select(
+        `
+        *,
+        cycle (
+          *,
+          pomodoros (
+            tags (*)
+          )
+        ),
+        tags (*)
+      `
+      )
       .eq("id", id)
       .single()
       .throwOnError();
@@ -98,7 +135,10 @@ export const usePomodoroRepository = () => {
       .select(
         `
           *,
-          cycle (state),
+          cycle (
+            *,
+            pomodoros (*)
+          ),
           tags (*)
           `
       )
@@ -168,7 +208,15 @@ export const usePomodoroCycleRepository = () => {
   async function getOne(id: number) {
     const { data } = await supabase
       .from("pomodoros_cycles")
-      .select()
+      .select(
+        `
+            *,
+            pomodoros (
+              *,
+              tags (*)
+            )
+          `
+      )
       .eq("id", id)
       .single()
       .throwOnError();

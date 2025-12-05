@@ -3,6 +3,7 @@ import type { Pomodoro, PomodoroCycle } from "~/types/Pomodoro";
 import {
   hasCycleFinished,
   calculateTimelineFromNow,
+  TagType,
 } from "~/utils/pomodoro-domain";
 import { usePomodoroService } from "./pomodoro/use-pomodoro-service";
 import { usePomodoroRepository } from "./pomodoro/use-pomodoro-repository";
@@ -55,6 +56,7 @@ export const usePomodoroUtils = () => {
         return handleFinishPomodoro();
       }
 
+      console.log({ remainingSeconds });
       setClockInSeconds(remainingSeconds);
     }
 
@@ -121,8 +123,23 @@ export const usePomodoroUtils = () => {
       await pomodoroService.finishCurrentCycle();
     }
 
-    currPomodoro.value = null;
-    localStorage.removeItem("currPomodoro");
+    const nextPomodoro = await pomodoroService.createNextPomodoro({
+      user_id: currPomodoro.value.user_id,
+    });
+
+    // const nextTag: string = calculateNextTagFromCycleSecuence(
+    //   nextPomodoro?.cycle?.pomodoros?.flatMap((p) =>
+    //     p.tags?.map((t) => t.type)
+    //   ) || [],
+    //   nextPomodoro?.cycle?.required_tags
+    // );
+    // const nextTagId = TagEnumByType[nextTag as keyof typeof TagEnumByType];
+
+    // console.log("nextTagId", nextTagId, nextPomodoro);
+    setClockInSeconds(nextPomodoro.expected_duration);
+    currPomodoro.value = nextPomodoro;
+    localStorage.setItem("currPomodoro", JSON.stringify(nextPomodoro));
+    if (timer.value) clearInterval(timer.value);
   }
   async function handleResetPomodoro() {
     if (
@@ -142,6 +159,21 @@ export const usePomodoroUtils = () => {
     localStorage.removeItem("currPomodoro");
     currPomodoro.value = null;
   }
+
+  async function handleSkipPomodoro(tagType?: TagType) {
+    if (!currPomodoro.value) {
+      return;
+    }
+
+    try {
+      await handleFinishPomodoro();
+    } catch (error) {
+      console.error(error);
+
+      toast.addErrorToast({ title: error.type, description: error.message });
+    }
+  }
+
   async function handleSyncPomodoro() {
     if (!currPomodoro.value) {
       return;
@@ -184,6 +216,7 @@ export const usePomodoroUtils = () => {
     handlePausePomodoro,
     handleFinishPomodoro,
     handleResetPomodoro,
+    handleSkipPomodoro,
     getCurrentPomodoro,
     handleListPomodoros,
     currPomodoro,
