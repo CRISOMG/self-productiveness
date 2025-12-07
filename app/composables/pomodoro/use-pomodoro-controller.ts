@@ -5,14 +5,12 @@ import {
   calculateTimelineFromNow,
   TagType,
 } from "~/utils/pomodoro-domain";
-import { usePomodoroService } from "./pomodoro/use-pomodoro-service";
-import { usePomodoroRepository } from "./pomodoro/use-pomodoro-repository";
 
 /**
  * TODO:
  * _ hacer global datos de configuracion como el tiempo de duracion del pomodoro
  */
-export const usePomodoroUtils = () => {
+export const usePomodoroController = () => {
   const pomodoroStore = usePomodoroStore();
   const { currPomodoro, pomodorosListToday, loadingPomodoros } =
     storeToRefs(pomodoroStore);
@@ -67,10 +65,14 @@ export const usePomodoroUtils = () => {
       localStorage.removeItem("currPomodoro");
     }
   }
-  async function handleStartPomodoro(user_id: string) {
-    if (!currPomodoro.value) {
+  async function handleStartPomodoro(
+    user_id: string,
+    type?: "focus" | "break" | "long-break"
+  ) {
+    if (type || !currPomodoro.value) {
       const result = await pomodoroService.startPomodoro({
         user_id,
+        type,
       });
       await handleListPomodoros();
 
@@ -109,7 +111,10 @@ export const usePomodoroUtils = () => {
     currPomodoro.value = result;
     if (timer.value) clearInterval(timer.value);
   }
-  async function handleFinishPomodoro() {
+  async function handleFinishPomodoro({
+    clockInSeconds,
+    withNext = true,
+  }: { clockInSeconds?: number; withNext?: boolean } = {}) {
     if (!currPomodoro.value) {
       return;
     }
@@ -123,13 +128,19 @@ export const usePomodoroUtils = () => {
       await pomodoroService.finishCurrentCycle();
     }
 
-    const nextPomodoro = await pomodoroService.createNextPomodoro({
-      user_id: currPomodoro.value.user_id,
-    });
+    let _clockInSeconds = clockInSeconds;
 
-    setClockInSeconds(nextPomodoro.expected_duration);
-    currPomodoro.value = nextPomodoro;
-    localStorage.setItem("currPomodoro", JSON.stringify(nextPomodoro));
+    if (withNext) {
+      const nextPomodoro = await pomodoroService.createNextPomodoro({
+        user_id: currPomodoro.value.user_id,
+      });
+
+      _clockInSeconds = nextPomodoro.expected_duration;
+      currPomodoro.value = nextPomodoro;
+      localStorage.setItem("currPomodoro", JSON.stringify(nextPomodoro));
+    }
+
+    setClockInSeconds(_clockInSeconds);
     if (timer.value) clearInterval(timer.value);
   }
   async function handleResetPomodoro() {

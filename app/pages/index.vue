@@ -23,7 +23,7 @@
         >
           <UButton
             :avatar="{
-              src: 'user-white.png',
+              src: profile?.avatar_url || 'user-white.png',
             }"
             size="md"
             color="neutral"
@@ -45,6 +45,8 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 import TimelineModal from "~/components/timeline-modal .vue";
+
+const { profile } = useProfileController();
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();

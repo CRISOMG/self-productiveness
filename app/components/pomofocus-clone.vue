@@ -78,12 +78,13 @@ const {
   handlePausePomodoro,
   handleResetPomodoro,
   handleSkipPomodoro,
+  handleFinishPomodoro,
   getCurrentPomodoro,
   handleListPomodoros,
   currPomodoro,
   clockInMinutes,
   timer,
-} = usePomodoroUtils();
+} = usePomodoroController();
 
 defineShortcuts({
   " ": () => {
@@ -94,6 +95,44 @@ defineShortcuts({
       handlePausePomodoro();
       pomodoroBottonIsPlay.value = true;
     }
+  },
+  "1": () => {
+    if (currPomodoro.value?.type === TagType.FOCUS) {
+      return alert("You are already in focus");
+    }
+    handleFinishPomodoro({
+      clockInSeconds:
+        PomodoroDurationInSecondsByDefaultCycleConfiguration[TagIdByType.FOCUS],
+      withNext: false,
+    }).then(() => {
+      handleStartPomodoro(props.user_id, TagType.FOCUS);
+    });
+  },
+  "2": () => {
+    if (currPomodoro.value?.type === TagType.BREAK) {
+      return alert("You are already in break");
+    }
+    handleFinishPomodoro({
+      clockInSeconds:
+        PomodoroDurationInSecondsByDefaultCycleConfiguration[TagIdByType.BREAK],
+      withNext: false,
+    }).then(() => {
+      handleStartPomodoro(props.user_id, TagType.BREAK);
+    });
+  },
+  "3": () => {
+    if (currPomodoro.value?.type === TagType.LONG_BREAK) {
+      return alert("You are already in break");
+    }
+    handleFinishPomodoro({
+      clockInSeconds:
+        PomodoroDurationInSecondsByDefaultCycleConfiguration[
+          TagIdByType.LONG_BREAK
+        ],
+      withNext: false,
+    }).then(() => {
+      handleStartPomodoro(props.user_id, TagType.LONG_BREAK);
+    });
   },
 });
 

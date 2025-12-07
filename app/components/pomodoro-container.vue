@@ -49,7 +49,7 @@ const {
   currPomodoro,
   clockInMinutes,
   timer,
-} = usePomodoroUtils();
+} = usePomodoroController();
 
 defineShortcuts({
   " ": () => {

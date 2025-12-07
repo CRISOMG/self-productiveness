@@ -59,15 +59,17 @@ export const usePomodoroService = () => {
   async function startPomodoro({
     user_id,
     state = "current",
+    type,
   }: {
     user_id: string;
     state?: "current" | "paused";
+    type?: "focus" | "break" | "long-break";
   }) {
     const cycle = await getOrCreateCurrentCycle(user_id);
 
-    const type = await getTagByCycleSecuense(cycle);
+    const _type = type || (await getTagByCycleSecuense(cycle));
     const defaultDurationBytag =
-      PomodoroDurationInSecondsByDefaultCycleConfiguration[type];
+      PomodoroDurationInSecondsByDefaultCycleConfiguration[_type];
 
     const { started_at, expected_end } =
       calculateTimelineFromNow(defaultDurationBytag);

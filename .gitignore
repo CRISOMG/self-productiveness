@@ -39,3 +39,14 @@ supabase/db/volumes/
 .env.local
 .env*.local
 .env.development.local
+
+
+# Carpetas y Archivos Ignorados por Obsidian
+.obsidian/workspace
+.obsidian/backups/
+.obsidian/cache/
+.obsidian/themes/
+.DS_Store
+
+# Archivos de sincronización de otros sistemas (si los usas)
+*.sync-conflict.*

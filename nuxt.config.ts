@@ -12,6 +12,13 @@ export default defineNuxtConfig({
     "@nuxt/test-utils/module",
   ],
   css: ["~/assets/css/main.css"],
+  imports: {
+    dirs: [
+      "~/composables",
+      "~/composables/*/index.{ts,js,mjs,mts}",
+      "~/composables/**",
+    ],
+  },
   runtimeConfig: {
     public: {
       test_email: process.env.TEST_EMAIL || "",
