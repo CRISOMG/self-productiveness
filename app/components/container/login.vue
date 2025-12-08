@@ -29,20 +29,20 @@ const fields: AuthFormField[] = [
 ];
 
 const providers = [
-  //   {
-  //     label: "Google",
-  //     icon: "i-simple-icons-google",
-  //     onClick: () => {
-  //       toast.add({ title: "Google", description: "Login with Google" });
-  //     },
-  //   },
-  //   {
-  //     label: "GitHub",
-  //     icon: "i-simple-icons-github",
-  //     onClick: () => {
-  //       toast.add({ title: "GitHub", description: "Login with GitHub" });
-  //     },
-  //   },
+  {
+    label: "Google",
+    icon: "i-simple-icons-google",
+    onClick: () => {
+      authController.handleLoginWithGoogle();
+    },
+  },
+  {
+    label: "GitHub",
+    icon: "i-simple-icons-github",
+    onClick: () => {
+      authController.handleLoginWithGithub();
+    },
+  },
 ];
 
 const schema = z.object({

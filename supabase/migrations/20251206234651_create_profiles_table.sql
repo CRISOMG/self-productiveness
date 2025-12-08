@@ -82,7 +82,8 @@ CREATE TRIGGER on_auth_user_created
 -- Use Postgres to create a bucket for avatars.
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES ('avatars', 'avatars', false, 5242880, ARRAY['image/*']);
+VALUES ('avatars', 'avatars', TRUE, 5242880, ARRAY['image/*'])
+ON CONFLICT (id) DO NOTHING;
 
 -- Políticas RLS para el Bucket 'avatars' (ya que public: false)
 -- -----------------------------------------------------------

@@ -32,11 +32,7 @@ export default defineNuxtConfig({
   },
   test: true,
   supabase: {
-    clientOptions: {
-      auth: {
-        flowType: "implicit",
-      },
-    },
+    clientOptions: {},
     types: path.resolve(__dirname, "app/types/database.types.ts"),
     redirectOptions: {
       login: "/login",

@@ -105,6 +105,44 @@ export function useAuthController() {
     }
   }
 
+  async function handleLoginWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/callback`,
+      },
+    });
+    localStorage.setItem("auth-google", JSON.stringify(data));
+    if (error) {
+      toast.addErrorToast({ title: "Error", description: error.message });
+      return;
+    } else {
+      toast.addSuccessToast({
+        title: "Success",
+        description: "The form has been submitted.",
+      });
+      navigateTo("/");
+    }
+  }
+  async function handleLoginWithGithub() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: `${window.location.origin}/callback`,
+      },
+    });
+    localStorage.setItem("auth-github", JSON.stringify(data));
+    if (error) {
+      toast.addErrorToast({ title: "Error", description: error.message });
+      return;
+    } else {
+      toast.addSuccessToast({
+        title: "Success",
+        description: "The form has been submitted.",
+      });
+      navigateTo("/");
+    }
+  }
   return {
     state,
     validate,
@@ -114,5 +152,7 @@ export function useAuthController() {
     signInWithEmail,
     signInWithEmailPassword,
     toast,
+    handleLoginWithGoogle,
+    handleLoginWithGithub,
   };
 }
