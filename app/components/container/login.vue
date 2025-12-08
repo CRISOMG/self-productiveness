@@ -21,11 +21,11 @@ const fields: AuthFormField[] = [
     placeholder: "Enter your password",
     required: true,
   },
-  {
-    name: "remember",
-    label: "Remember me",
-    type: "checkbox",
-  },
+  // {
+  //   name: "remember",
+  //   label: "Remember me",
+  //   type: "checkbox",
+  // },
 ];
 
 const providers = [

@@ -39,6 +39,7 @@
 
     <UserProfileModal v-model="openProfileModal" />
     <TimelineModal v-model="openTimelineModal" />
+    <ShortcutsModal v-model="openShortcutsModal" />
   </UContainer>
 </template>
 
@@ -56,6 +57,7 @@ const user_id = computed(() => {
 
 const openProfileModal = ref(false);
 const openTimelineModal = ref(false);
+const openShortcutsModal = ref(false);
 
 const items = ref<DropdownMenuItem[][]>([
   [
@@ -70,6 +72,9 @@ const items = ref<DropdownMenuItem[][]>([
     {
       label: "Keyboard shortcuts",
       icon: "i-lucide-monitor",
+      onSelect: () => {
+        openShortcutsModal.value = true;
+      },
     },
   ],
 
@@ -79,7 +84,9 @@ const items = ref<DropdownMenuItem[][]>([
       icon: "i-lucide-log-out",
       kbds: ["shift", "meta", "q"],
       onSelect() {
-        supabase.auth.signOut();
+        supabase.auth.signOut().then(() => {
+          navigateTo("/login");
+        });
       },
     },
   ],
