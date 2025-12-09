@@ -40,6 +40,7 @@
     <UserProfileModal v-model="openProfileModal" />
     <TimelineModal v-model="openTimelineModal" />
     <ShortcutsModal v-model="openShortcutsModal" />
+    <PasswordSetupModal v-model="openPasswordSetupModal" />
   </UContainer>
 </template>
 
@@ -58,6 +59,7 @@ const user_id = computed(() => {
 const openProfileModal = ref(false);
 const openTimelineModal = ref(false);
 const openShortcutsModal = ref(false);
+const openPasswordSetupModal = ref(false);
 
 const items = ref<DropdownMenuItem[][]>([
   [
@@ -91,4 +93,10 @@ const items = ref<DropdownMenuItem[][]>([
     },
   ],
 ]);
+
+watch(profile, () => {
+  if (!profile.value?.has_password) {
+    openPasswordSetupModal.value = true;
+  }
+});
 </script>

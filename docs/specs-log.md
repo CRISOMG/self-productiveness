@@ -3,6 +3,7 @@
 ## Specification 1
 
 - [x] oauth sign-in and sign-up con google y github
+- [x] reset or update password flow
 - [] notificaciones push cuando cambia el estado del pomodoro (comenzado, pausado, terminado)
 - [] modelo para reflejar el estado del reloj en remoto vs local (por dispositivos) 
 - [] sincronizacion del reloj en tiempo real y logica para determinar cual de los relojes sera el principal (sobreescribira al resto [single source of truth])

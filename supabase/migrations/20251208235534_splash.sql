@@ -80,24 +80,21 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
 
 
-CREATE TYPE "public"."pomodoro-state" AS ENUM (
-    'current',
-    'paused',
-    'finished'
-);
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'pomodoro-state') THEN
+        CREATE TYPE "public"."pomodoro-state" AS ENUM ('current', 'paused', 'finished');
+        ALTER TYPE "public"."pomodoro-state" OWNER TO "postgres";
+    END IF;
+END$$;
 
-
-ALTER TYPE "public"."pomodoro-state" OWNER TO "postgres";
-
-
-CREATE TYPE "public"."pomodoro-type" AS ENUM (
-    'focus',
-    'break',
-    'long-break'
-);
-
-
-ALTER TYPE "public"."pomodoro-type" OWNER TO "postgres";
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'pomodoro-type') THEN
+        CREATE TYPE "public"."pomodoro-type" AS ENUM ('focus', 'break', 'long-break');
+        ALTER TYPE "public"."pomodoro-type" OWNER TO "postgres";
+    END IF;
+END$$;
 
 
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"

@@ -23,16 +23,26 @@
 
         <div class="flex flex-col w-full">
           <p class="font-bold text-2xl mt-6 capitalize">
-            {{ user?.user_metadata?.fullname }}
+            {{ profile?.fullname }}
           </p>
           <USeparator class="mb-2" />
           <p class="font-bold">{{ user?.email }}</p>
+
+          <div class="mt-4">
+            <ULink
+              to="/update-password"
+              class="text-sm text-primary font-medium hover:underline flex items-center gap-1"
+            >
+              <UIcon name="i-lucide-lock" class="w-4 h-4" />
+              Change Password
+            </ULink>
+          </div>
         </div>
       </div>
     </template>
     <template #footer>
       <div class="flex gap-1 justify-end w-full">
-        <UButton>Cancel</UButton>
+        <UButton @click="isOpen = false">Cancel</UButton>
         <UButton
           @click="
             handleUpdateProfile({ fullname: user?.user_metadata?.fullname })

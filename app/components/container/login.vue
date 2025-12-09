@@ -73,10 +73,22 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
         @submit="onSubmit"
       />
       <div>
-        <p class="text-base text-pretty text-muted">
-          Don't have an account?
-          <ULink to="/sign-up">Sign up</ULink>
-        </p>
+        <div class="flex flex-col gap-2 text-center">
+          <ULink
+            to="/request-reset-password"
+            class="text-sm text-primary font-medium hover:underline"
+          >
+            Forgot your password?
+          </ULink>
+          <p class="text-base text-pretty text-muted">
+            Don't have an account?
+            <ULink
+              to="/sign-up"
+              class="text-primary font-medium hover:underline"
+              >Sign up</ULink
+            >
+          </p>
+        </div>
       </div>
     </UPageCard>
   </div>
