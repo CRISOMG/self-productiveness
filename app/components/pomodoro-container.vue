@@ -28,7 +28,7 @@
         </div>
       </div>
       <div class="w-2xl h-[80vh]">
-        <TimeGrid :pomodoros="pomodorosListToday" />
+        <TimeGrid :pomodoros="pomodoros" />
       </div>
     </div>
   </section>
@@ -37,9 +37,14 @@
 <script setup lang="ts">
 import { usePomodoroStore } from "~/stores/pomodoro";
 import { storeToRefs } from "pinia";
+import type { Pomodoro } from "~/types/Pomodoro";
+import { computed } from "vue";
 
 const pomodoroStore = usePomodoroStore();
 const { pomodorosListToday } = storeToRefs(pomodoroStore);
+const pomodoros = computed<Pomodoro["Row"][]>(
+  () => (pomodorosListToday.value as any) || []
+);
 const {
   handleStartPomodoro,
   handlePausePomodoro,
@@ -66,28 +71,5 @@ const props = defineProps({
     type: String,
     required: true,
   },
-});
-
-watch(currPomodoro, () => {
-  localStorage.setItem("currPomodoro", JSON.stringify(currPomodoro.value));
-});
-
-onMounted(() => {
-  getCurrentPomodoro();
-
-  handleListPomodoros();
-  // TODO: mejorar logica para pausar pomodoro al cerrar la pestaña. se puede usar un websocket para mantener la syncronizacion o pushing en intervalos de tiempo
-  window.onbeforeunload = async () => {
-    if (import.meta.client) {
-      localStorage.setItem("currPomodoro", JSON.stringify(currPomodoro.value));
-      if (currPomodoro.value?.state === "current") {
-        await handlePausePomodoro();
-      }
-    }
-  };
-});
-onUnmounted(() => {
-  if (timer.value) clearInterval(timer.value);
-  window.onbeforeunload = null;
 });
 </script>

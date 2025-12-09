@@ -41,6 +41,15 @@ export function useAuthController() {
     });
   });
 
+  onMounted(() => {
+    defineShortcuts({
+      ctrl_shift_q: () => {
+        confirm("Are you sure you want to sign out?") &&
+          supabase.auth.signOut();
+      },
+    });
+  });
+
   type Schema = typeof state;
 
   function validate(state: Partial<Schema>): FormError[] {

@@ -35,6 +35,7 @@ export const useProfileController = () => {
     username?: string;
     fullname?: string;
     avatar_url?: string;
+    settings?: Record<string, any>;
   }) {
     if (!user.value) return;
     loading.value = true;

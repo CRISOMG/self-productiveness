@@ -150,6 +150,7 @@ export type Database = {
           fullname: string | null
           has_password: boolean | null
           id: string
+          settings: Json | null
           updated_at: string | null
           username: string | null
         }
@@ -158,6 +159,7 @@ export type Database = {
           fullname?: string | null
           has_password?: boolean | null
           id: string
+          settings?: Json | null
           updated_at?: string | null
           username?: string | null
         }
@@ -166,6 +168,7 @@ export type Database = {
           fullname?: string | null
           has_password?: boolean | null
           id?: string
+          settings?: Json | null
           updated_at?: string | null
           username?: string | null
         }

@@ -40,18 +40,30 @@ export const PomodoroDurationInSecondsByDefaultCycleConfiguration = {
 };
 
 export function hasCycleFinished(
-  pomodoroTags: string[],
-  requiredTags:
-    | string[]
-    | null
-    | undefined = DEFAULT_REQUIRED_TAGS_FOR_FINISH_CYCLE
+  currentSecuense: string[],
+  requiredSecuense: string[]
 ): boolean {
-  return (
-    requiredTags?.reduce(
-      (acc, curr) => acc && pomodoroTags.includes(curr),
-      true
-    ) || false
-  );
+  const rest = structuredClone(requiredSecuense);
+
+  requiredSecuense.forEach((tag) => {
+    if (currentSecuense?.length === 0) {
+      return;
+    }
+
+    const currTagFromSecuense = currentSecuense[0];
+
+    const currentSecuenceIncludeARequiredTag = currTagFromSecuense === tag;
+
+    if (!currentSecuenceIncludeARequiredTag) {
+      rest.shift();
+      return;
+    }
+
+    currentSecuense.shift();
+    rest.shift();
+  });
+
+  return rest.length === 0;
 }
 
 export function calculateTimelineFromNow(

@@ -1,4 +1,5 @@
 import { usePomodoroStore } from "~/stores/pomodoro";
+import { useNotificationController } from "../system/use-notification-controller";
 import type { Pomodoro, PomodoroCycle } from "~/types/Pomodoro";
 import {
   hasCycleFinished,
@@ -11,6 +12,7 @@ import {
  * _ hacer global datos de configuracion como el tiempo de duracion del pomodoro
  */
 export const usePomodoroController = () => {
+  //#region VUE semantic context
   const pomodoroStore = usePomodoroStore();
   const { currPomodoro, pomodorosListToday, loadingPomodoros } =
     storeToRefs(pomodoroStore);
@@ -20,6 +22,37 @@ export const usePomodoroController = () => {
 
   const pomodoroService = usePomodoroService();
   const toast = useSuccessErrorToast();
+  const { notify, requestPermission } = useNotificationController();
+  watch(currPomodoro, () => {
+    localStorage.setItem("currPomodoro", JSON.stringify(currPomodoro.value));
+  });
+
+  onMounted(() => {
+    getCurrentPomodoro();
+
+    handleListPomodoros();
+    requestPermission();
+    // TODO: mejorar logica para pausar pomodoro al cerrar la pestaña. se puede usar un websocket para mantener la syncronizacion o pushing en intervalos de tiempo
+    window.onbeforeunload = () => {
+      if (import.meta.client) {
+        localStorage.setItem(
+          "currPomodoro",
+          JSON.stringify(currPomodoro.value)
+        );
+        // if (currPomodoro.value?.state === "current") {
+        //   await handlePausePomodoro();
+        // }
+      }
+    };
+  });
+  onUnmounted(() => {
+    if (timer.value) clearInterval(timer.value);
+    window.onbeforeunload = null;
+  });
+
+  //#endregion
+
+  //#region UI interaction and state management
 
   function handleStartTimer() {
     startTimer({
@@ -33,11 +66,29 @@ export const usePomodoroController = () => {
       },
       onFinish: () => {
         handleFinishPomodoro();
+        notify("Pomodoro finished!", {
+          body: "Time to take a break!",
+          icon: "/favicon.ico",
+          requireInteraction: true, // Keeps notification until user dismisses it
+          // silent: false,
+        });
       },
       syncAccSeconds: currPomodoro.value?.timelapse || 0,
       clockStartInMinute: (currPomodoro.value?.expected_duration || 0) / 60,
     });
   }
+
+  defineShortcuts({
+    "t-n": () => {
+      notify("Pomodoro finished!", {
+        body: "Time to take a break!",
+        icon: "/favicon.ico",
+        requireInteraction: true, // Keeps notification until user dismisses it
+        // silent: false,
+      });
+    },
+  });
+
   async function getCurrentPomodoro() {
     const upstreamPomodoro = await pomodoroRepository.getCurrentPomodoro();
 
@@ -69,7 +120,7 @@ export const usePomodoroController = () => {
     user_id: string,
     type?: "focus" | "break" | "long-break"
   ) {
-    if (type || !currPomodoro.value) {
+    if (type || !currPomodoro.value?.id) {
       const result = await pomodoroService.startPomodoro({
         user_id,
         type,
@@ -77,7 +128,6 @@ export const usePomodoroController = () => {
       await handleListPomodoros();
 
       currPomodoro.value = result;
-      localStorage.setItem("currPomodoro", JSON.stringify(result));
     } else {
       const result = await pomodoroService.registToggleTimelinePomodoro(
         currPomodoro.value.id,
@@ -211,6 +261,8 @@ export const usePomodoroController = () => {
       loadingPomodoros.value = false;
     }
   }
+
+  //#endregion
 
   return {
     handleSyncPomodoro,

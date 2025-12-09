@@ -83,7 +83,7 @@ export const usePomodoroService = () => {
       toggle_timeline: [],
       created_at: new Date().toISOString(),
       state,
-      type,
+      type: _type,
       expected_duration,
       cycle: cycle.id,
     });

@@ -1,6 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import path from "path";
 export default defineNuxtConfig({
+  app: {
+    head: {
+      title: process.env.HEAD_APP_NAME || "Pomodoro",
+    },
+  },
   compatibilityDate: "2025-07-15",
   ssr: false,
   devtools: { enabled: true },
@@ -22,6 +27,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       test_email: process.env.TEST_EMAIL || "",
+      head_app_name: process.env.HEAD_APP_NAME || "Pomodoro",
     },
   },
   router: {
