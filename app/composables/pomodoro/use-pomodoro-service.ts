@@ -80,7 +80,12 @@ export const usePomodoroService = () => {
       started_at,
       expected_end,
       timelapse: 0,
-      toggle_timeline: [],
+      toggle_timeline: [
+        {
+          at: new Date().toISOString(),
+          type: "play",
+        },
+      ],
       created_at: new Date().toISOString(),
       state,
       type: _type,

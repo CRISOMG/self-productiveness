@@ -39,6 +39,22 @@ export const PomodoroDurationInSecondsByDefaultCycleConfiguration = {
   [TagIdByType.LONG_BREAK]: DEFAULT_LONG_BREAK_DURATION_IN_MINUTES * 60,
 };
 
+export function calculateSecondsRemaining({
+  estimated_start,
+  expected_end,
+}: {
+  estimated_start?: string;
+  expected_end?: string;
+} = {}) {
+  const finishingAt = new Date(expected_end || 0);
+  const now = estimated_start
+    ? new Date(estimated_start).getTime()
+    : Date.now();
+  const remainingSeconds = Math.floor((finishingAt.getTime() - now) / 1000);
+
+  return remainingSeconds;
+}
+
 export function hasCycleFinished(
   currentSecuense: string[],
   requiredSecuense: string[]
@@ -107,4 +123,42 @@ export function calculateNextTagFromCycleSecuence(
   });
 
   return rest[0] || "";
+}
+
+export function calculatePomodoroTimelapse(
+  startedAt: string,
+  toggleTimeline: Array<{ at: string; type: "play" | "pause" }>,
+  now = Date.now()
+): number {
+  const start = new Date(startedAt).getTime();
+  let elapsed = 0;
+
+  const events = [...toggleTimeline].sort(
+    (a, b) => new Date(a.at).getTime() - new Date(b.at).getTime()
+  );
+
+  let currentSegmentStart = start;
+  let isRunning = true;
+
+  for (const event of events) {
+    const eventTime = new Date(event.at).getTime();
+
+    if (event.type === "pause") {
+      if (isRunning) {
+        elapsed += Math.max(0, eventTime - currentSegmentStart);
+        isRunning = false;
+      }
+    } else if (event.type === "play") {
+      if (!isRunning) {
+        currentSegmentStart = eventTime;
+        isRunning = true;
+      }
+    }
+  }
+
+  if (isRunning) {
+    elapsed += Math.max(0, now - currentSegmentStart);
+  }
+
+  return Math.floor(elapsed / 1000);
 }

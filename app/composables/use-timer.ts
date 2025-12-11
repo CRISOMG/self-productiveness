@@ -11,32 +11,32 @@ export const useTimer = () => {
       .padStart(2, "0")}`;
   }
 
+  const _expected_end = ref<string | null>(null);
+
   function startTimer({
     onTick,
     onFinish,
     syncAccSeconds,
     clockStartInMinute,
+    expected_end,
   }: {
-    onTick: (accSeconds: number) => void;
+    onTick: (remainingSeconds: number) => void;
     onFinish: () => void;
-    syncAccSeconds: number;
+    syncAccSeconds?: number;
     clockStartInMinute?: number;
+    expected_end: string;
   }) {
     if (timer.value) clearInterval(timer.value);
+    _expected_end.value = expected_end;
 
     timer.value = setInterval(() => {
-      onTick(accSeconds.value);
-      const pomodoroDurationInSeconds = clockStartInMinute
-        ? clockStartInMinute * 60
-        : PomodoroDurationInSecondsByDefaultCycleConfiguration[
-            TagIdByType.FOCUS
-          ];
+      const remainingSeconds = calculateSecondsRemaining({
+        expected_end: _expected_end.value!,
+      });
 
-      syncAccSeconds += 1;
-      accSeconds.value += 1;
-      const remainingSeconds = pomodoroDurationInSeconds - syncAccSeconds;
       setClockInSeconds(remainingSeconds);
-
+      onTick(remainingSeconds);
+      accSeconds.value += 1;
       if (remainingSeconds <= 0) {
         if (timer.value) clearInterval(timer.value);
         clockInMinutes.value = `${clockStartInMinute}:00`;

@@ -89,11 +89,8 @@ const caclTop = (hour: number, minutes: number) => {
   return top;
 };
 
-const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
+const getPomodoroHeight = (pomodoro: Pomodoro["Row"]) => {
   const start = new Date(pomodoro.started_at);
-  const hour = start.getHours();
-  const minutes = start.getMinutes();
-
   const end = new Date(pomodoro.finished_at || pomodoro.expected_end);
 
   const diff = getDiffInMinutes(
@@ -101,8 +98,16 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
     end.toLocaleTimeString().slice(0, 5)
   );
 
+  return diff * proportion;
+};
+
+const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
+  const start = new Date(pomodoro.started_at);
+  const hour = start.getHours();
+  const minutes = start.getMinutes();
+
   const top = caclTop(hour, minutes);
-  let height = diff * proportion;
+  const height = getPomodoroHeight(pomodoro);
   return {
     top: `calc(${top}%)`,
     height: `${height}px`,
@@ -112,7 +117,7 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
 
 <template>
   <div
-    class="relative w-full h-full border border-gray-200 rounded-lg overflow-hidden bg-white dark:bg-gray-900 dark:border-gray-800 overflow-y-scroll"
+    class="relative w-full h-full border border-gray-200 rounded-lg truncate bg-white dark:bg-gray-900 dark:border-gray-800 overflow-y-scroll"
   >
     <!-- Grid -->
     <div
@@ -134,7 +139,7 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
         }"
       >
         <span
-          class="text-sm text-gray-400 ml-2 -mt-[10px] bg-white dark:bg-gray-900 px-1"
+          class="text-sm text-gray-400 ml-2 -mt-[10px] bg-white dark:bg-gray-900 px-1 z-[99999]"
         >
           {{ formatHour(hour) }}
         </span>
@@ -152,33 +157,76 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
       <div
         v-for="pomodoro in pomodoros"
         :key="pomodoro.id"
-        class="absolute left-2 right-4 rounded-sm shadow-sm border border-primary-200 bg-primary-50 dark:bg-primary-900/20 dark:border-primary-800 p-0 transition-all hover:shadow-md z-10"
+        class="absolute left-2 right-4 rounded-sm shadow-sm border p-0 transition-all hover:shadow-md z-10"
+        :class="{
+          'border-primary-200 bg-primary-50 dark:bg-primary-900/20 dark:border-primary-800':
+            pomodoro.type === 'focus',
+          'border-secondary-200 bg-secondary-50 dark:bg-secondary-900/20 dark:border-secondary-800':
+            pomodoro.type !== 'focus',
+        }"
         :style="getPomodoroStyle(pomodoro)"
       >
-        <span
-          class="absolute -top-[5px] bg-amber- select-none text-sm text-primary-500 dark:text-primary-400 mx-1"
-        >
-          {{ new Date(pomodoro.started_at).toLocaleTimeString().slice(0, 5) }}
-        </span>
-        <span
-          class="absolute -bottom-[4px] bg-amber- select-none text-sm text-primary-500 dark:text-primary-400 mx-1"
-        >
-          {{
-            new Date(pomodoro.finished_at || pomodoro.expected_end)
-              .toLocaleTimeString()
-              .slice(0, 5)
-          }}
-        </span>
-        <div class="ml-12 flex flex-row justify-left items-baseline">
+        <div class="flex flex-row w-full h-full">
           <div
-            class="select-none text-sm text-primary-500 dark:text-primary-400 mx-1"
+            class="flex flex-col justify-between"
+            :class="{ truncate: getPomodoroHeight(pomodoro) <= 10 }"
           >
-            {{ (pomodoro.expected_duration || 0) / 60 }}m
+            <span
+              class="relative -top-[10px] select-none text-sm mx-1"
+              :class="{
+                '!text-transparent': getPomodoroHeight(pomodoro) <= 10,
+                'text-primary-500 dark:text-primary-400':
+                  pomodoro.type === 'focus',
+                'text-secondary-700 dark:text-secondary-300':
+                  pomodoro.type !== 'focus',
+              }"
+            >
+              {{
+                new Date(pomodoro.started_at).toLocaleTimeString().slice(0, 5)
+              }}
+            </span>
+            <!-- <span
+              class="relative -bottom-[10px] select-none text-sm mx-1"
+              :class="{
+                '!text-transparent': getPomodoroHeight(pomodoro) <= 10,
+                'text-primary-500 dark:text-primary-400':
+                  pomodoro.type === 'focus',
+                'text-secondary-700 dark:text-secondary-300':
+                  pomodoro.type !== 'focus',
+              }"
+            >
+              {{
+                new Date(pomodoro.finished_at || pomodoro.expected_end)
+                  .toLocaleTimeString()
+                  .slice(0, 5)
+              }}
+            </span> -->
           </div>
-          <div
-            class="select-none text-md font-medium text-primary-700 dark:text-primary-300"
-          >
-            {{ pomodoro.type || "Pomodoro" }}
+          <div class="truncate ml-1 flex flex-row justify-left items-baseline">
+            <div
+              class="truncate select-none text-sm mx-1"
+              :class="{
+                '!text-transparent': getPomodoroHeight(pomodoro) <= 10,
+                'text-primary-700 dark:text-primary-300':
+                  pomodoro.type === 'focus',
+                'text-secondary-700 dark:text-secondary-300':
+                  pomodoro.type !== 'focus',
+              }"
+            >
+              {{ (pomodoro.expected_duration || 0) / 60 }}m
+            </div>
+            <div
+              class="truncate select-none text-md font-medium"
+              :class="{
+                '!text-transparent': getPomodoroHeight(pomodoro) <= 10,
+                'text-primary-700 dark:text-primary-300':
+                  pomodoro.type === 'focus',
+                'text-secondary-700 dark:text-secondary-300':
+                  pomodoro.type !== 'focus',
+              }"
+            >
+              {{ pomodoro.type || "Pomodoro" }}
+            </div>
           </div>
         </div>
       </div>
