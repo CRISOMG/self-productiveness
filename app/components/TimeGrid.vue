@@ -145,14 +145,20 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
         </span>
       </div>
       <div
-        class="absolute h-0.5 w-full rounded-sm border border-red-500 flex flex-row justify-left transition-all hover:shadow-md z-10"
+        class="z-[99999] absolute h-0 w-full rounded-sm border border-red-500 flex flex-row justify-left transition-all hover:shadow-md"
         :style="{
           top: `calc(${caclTop(
             new Date().getHours(),
             new Date().getMinutes()
           )}%)`,
         }"
-      ></div>
+      >
+        <span
+          class="z-[99999] dark:bg-gray-900 absolute -top-[10px] select-none text-sm mx-2.5 text-red-500 dark:text-red-400"
+        >
+          {{ new Date().toLocaleTimeString().slice(0, 5) }}
+        </span>
+      </div>
       <!-- Pomodoros -->
       <div
         v-for="pomodoro in pomodoros"

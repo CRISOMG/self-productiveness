@@ -29,7 +29,7 @@
         </div>
         <div class="flex items-center justify-center p-4">
           <h1 class="text-8xl">
-            {{ clockInMinutes }}
+            {{ timeController.clockInMinutes }}
           </h1>
         </div>
         <div class="flex items-center justify-center p-4">
@@ -82,8 +82,7 @@ const {
   getCurrentPomodoro,
   handleListPomodoros,
   currPomodoro,
-  clockInMinutes,
-  timer,
+  timeController,
 } = usePomodoroController();
 
 defineShortcuts({
