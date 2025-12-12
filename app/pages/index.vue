@@ -37,7 +37,9 @@
       <PomofocusClone :user_id="user_id" />
     </div>
 
-    <UserProfileModal v-model="openProfileModal" />
+    <template v-if="openProfileModal">
+      <UserProfileModal v-model="openProfileModal" />
+    </template>
     <TimelineModal v-model="openTimelineModal" />
     <ShortcutsModal v-model="openShortcutsModal" />
     <PasswordSetupModal v-model="openPasswordSetupModal" />
@@ -53,7 +55,7 @@ const { profile } = useProfileController();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const user_id = computed(() => {
-  return user.value?.sub as string;
+  return user.value?.sub || "";
 });
 
 const openProfileModal = ref(false);

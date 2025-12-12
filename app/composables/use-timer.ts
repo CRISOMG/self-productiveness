@@ -4,6 +4,7 @@ export const useTimer = () => {
   const accSeconds = ref(0);
 
   function setClockInSeconds(remainingSeconds: number) {
+    if (remainingSeconds < 0) return;
     const minutes = Math.floor(remainingSeconds / 60);
     const seconds = remainingSeconds % 60;
     clockInMinutes.value = `${minutes.toString().padStart(2, "0")}:${seconds
@@ -17,7 +18,7 @@ export const useTimer = () => {
     onTick,
     onFinish,
     syncAccSeconds,
-    clockStartInMinute,
+    clockStartInMinute = DEFAULT_POMODORO_DURATION_IN_MINUTES,
     expected_end,
   }: {
     onTick: (remainingSeconds: number) => void;
@@ -33,16 +34,18 @@ export const useTimer = () => {
       const remainingSeconds = calculateSecondsRemaining({
         expected_end: _expected_end.value!,
       });
+      if (remainingSeconds <= 0) {
+        if (timer.value) clearInterval(timer.value);
+        clockInMinutes.value = `${
+          clockStartInMinute < 1 ? "00" : clockStartInMinute
+        }:00`;
+        accSeconds.value = 0;
+        return onFinish();
+      }
 
       setClockInSeconds(remainingSeconds);
       onTick(remainingSeconds);
       accSeconds.value += 1;
-      if (remainingSeconds <= 0) {
-        if (timer.value) clearInterval(timer.value);
-        clockInMinutes.value = `${clockStartInMinute}:00`;
-        accSeconds.value = 1;
-        return onFinish();
-      }
     }, 1000);
   }
 

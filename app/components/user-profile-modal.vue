@@ -1,58 +1,60 @@
 <template>
-  <UModal
-    :ui="{ content: 'top-60' }"
-    :overlay="false"
-    v-model:open="isOpen"
-    title="Profile"
-  >
-    <template #body>
-      <div class="flex">
-        <div class="flex p-4">
-          <UFileUpload
-            size="xl"
-            v-model="fileUpload.avatar"
-            @change="onFileChange"
-            color="neutral"
-            accept="image/*"
-            :ui="{
-              file: '[&_img]:object-contain',
-            }"
-          >
-          </UFileUpload>
-        </div>
-
-        <div class="flex flex-col w-full">
-          <p class="font-bold text-2xl mt-6 capitalize">
-            {{ profile?.fullname }}
-          </p>
-          <USeparator class="mb-2" />
-          <p class="font-bold">{{ user?.email }}</p>
-
-          <div class="mt-4">
-            <ULink
-              to="/update-password"
-              class="text-sm text-primary font-medium hover:underline flex items-center gap-1"
+  <template v-if="isOpen">
+    <UModal
+      :ui="{ content: 'top-60' }"
+      :overlay="false"
+      v-model:open="isOpen"
+      title="Profile"
+    >
+      <template #body>
+        <div class="flex">
+          <div class="flex p-4">
+            <UFileUpload
+              size="xl"
+              v-model="fileUpload.avatar"
+              @change="onFileChange"
+              color="neutral"
+              accept="image/*"
+              :ui="{
+                file: '[&_img]:object-contain',
+              }"
             >
-              <UIcon name="i-lucide-lock" class="w-4 h-4" />
-              Change Password
-            </ULink>
+            </UFileUpload>
+          </div>
+
+          <div class="flex flex-col w-full">
+            <p class="font-bold text-2xl mt-6 capitalize">
+              {{ profile?.fullname }}
+            </p>
+            <USeparator class="mb-2" />
+            <p class="font-bold">{{ user?.email }}</p>
+
+            <div class="mt-4">
+              <ULink
+                to="/update-password"
+                class="text-sm text-primary font-medium hover:underline flex items-center gap-1"
+              >
+                <UIcon name="i-lucide-lock" class="w-4 h-4" />
+                Change Password
+              </ULink>
+            </div>
           </div>
         </div>
-      </div>
-    </template>
-    <template #footer>
-      <div class="flex gap-1 justify-end w-full">
-        <UButton @click="isOpen = false">Cancel</UButton>
-        <UButton
-          @click="
-            handleUpdateProfile({ fullname: user?.user_metadata?.fullname })
-          "
-          color="success"
-          >Save</UButton
-        >
-      </div>
-    </template>
-  </UModal>
+      </template>
+      <template #footer>
+        <div class="flex gap-1 justify-end w-full">
+          <UButton @click="isOpen = false">Cancel</UButton>
+          <UButton
+            @click="
+              handleUpdateProfile({ fullname: user?.user_metadata?.fullname })
+            "
+            color="success"
+            >Save</UButton
+          >
+        </div>
+      </template>
+    </UModal>
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -81,12 +83,13 @@ const fileUpload = reactive<{ avatar: File | undefined }>({
 const { profile, handleUpdateProfile, handleUploadAvatar } =
   useProfileController();
 watch(profile, async () => {
-  if (profile.value) {
-    const file = await urlToFile(
-      (profile.value?.avatar_url as string) || "/user-white.png",
-      "avatar"
-    );
-    fileUpload.avatar = file;
+  console.log("profile.value", profile.value, fileUpload.avatar);
+  if (profile.value && !fileUpload.avatar) {
+    // const file = await urlToFile(
+    //   (profile.value?.avatar_url as string) || "/user-white.png",
+    //   "avatar"
+    // );
+    // fileUpload.avatar = file;
   }
 });
 

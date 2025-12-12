@@ -27,7 +27,7 @@ export const usePomodoroService = () => {
     }
 
     const pomodoros = currCycle.pomodoros;
-    const required_tags = currCycle.required_tags;
+    const required_tags = currCycle.required_tags || [];
 
     const pomodoroTagsTypesArray = pomodoros?.flatMap((p) => p.type) || [];
     return hasCycleFinished(pomodoroTagsTypesArray, required_tags);
@@ -58,7 +58,7 @@ export const usePomodoroService = () => {
   }
   async function startPomodoro({
     user_id,
-    state = "current",
+    state = "paused",
     type,
   }: {
     user_id: string;
@@ -83,7 +83,7 @@ export const usePomodoroService = () => {
       toggle_timeline: [
         {
           at: new Date().toISOString(),
-          type: "play",
+          type: state === "current" ? "play" : "pause",
         },
       ],
       created_at: new Date().toISOString(),
@@ -103,7 +103,7 @@ export const usePomodoroService = () => {
     const { toggle_timeline } = await pomodoroRepository.getOne(pomodoroId);
 
     const result = await pomodoroRepository.update(pomodoroId, {
-      state: "current",
+      state: type == "play" ? "current" : "paused",
       toggle_timeline: [
         ...(toggle_timeline as []),
         {
