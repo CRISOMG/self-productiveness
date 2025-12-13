@@ -187,9 +187,7 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
                   pomodoro.type !== 'focus',
               }"
             >
-              {{
-                new Date(pomodoro.started_at).toLocaleTimeString().slice(0, 5)
-              }}
+              {{ new Date(pomodoro.started_at).toString().slice(16, 21) }}
             </span>
             <!-- <span
               class="relative -bottom-[10px] select-none text-sm mx-1"

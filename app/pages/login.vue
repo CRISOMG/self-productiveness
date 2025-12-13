@@ -3,3 +3,17 @@
     <ContainerLogin />
   </div>
 </template>
+
+<script setup lang="ts">
+definePageMeta({
+  middleware: [
+    async (to, from) => {
+      const { data } = await useSupabaseClient().auth.getSession();
+
+      if (data.session) {
+        return navigateTo("/");
+      }
+    },
+  ],
+});
+</script>

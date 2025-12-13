@@ -47,7 +47,7 @@ export const usePomodoroRepository = () => {
           tags (*)
           `
       )
-      .single()
+      .maybeSingle()
       .throwOnError();
 
     if (tagId) {
@@ -59,7 +59,7 @@ export const usePomodoroRepository = () => {
           tag: tagId,
         })
         .select(`*,pomodoro (*), tag (*)`)
-        .single()
+        .maybeSingle()
         .throwOnError();
     }
 
@@ -82,7 +82,7 @@ export const usePomodoroRepository = () => {
           `
       )
       .order("created_at", { ascending: false })
-      .single()
+      .maybeSingle()
       .throwOnError();
 
     return data;
@@ -101,7 +101,7 @@ export const usePomodoroRepository = () => {
           `
       )
       .neq("state", "finished")
-      .single();
+      .maybeSingle();
 
     handleError(error);
     return data;
@@ -122,7 +122,7 @@ export const usePomodoroRepository = () => {
       `
       )
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     handleError(error);
     return data;
@@ -177,7 +177,7 @@ export const usePomodoroCycleRepository = () => {
           `
       )
       .filter("state", "eq", "current")
-      .single();
+      .maybeSingle();
 
     handleError(error);
 
@@ -189,7 +189,7 @@ export const usePomodoroCycleRepository = () => {
       .from("pomodoros_cycles")
       .insert(pomodoroCycle)
       .select()
-      .single()
+      .maybeSingle()
       .throwOnError();
 
     return data;
@@ -201,7 +201,7 @@ export const usePomodoroCycleRepository = () => {
       .update(pomodoroCycle)
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
 
     handleError(error);
     return data;
@@ -220,7 +220,7 @@ export const usePomodoroCycleRepository = () => {
           `
       )
       .eq("id", id)
-      .single()
+      .maybeSingle()
       .throwOnError();
 
     return data;
@@ -252,7 +252,7 @@ export const useTagRepository = () => {
           `
       )
       .filter("state", "eq", "current")
-      .single();
+      .maybeSingle();
     if (error && error.code !== "PGRST116") {
       throw error;
     }
@@ -265,7 +265,7 @@ export const useTagRepository = () => {
       .from(fromTable)
       .insert(tag)
       .select()
-      .single()
+      .maybeSingle()
       .throwOnError();
 
     return data;
@@ -277,7 +277,7 @@ export const useTagRepository = () => {
       .update(tag)
       .eq("id", id)
       .select()
-      .single()
+      .maybeSingle()
       .throwOnError();
 
     return data;
@@ -288,7 +288,7 @@ export const useTagRepository = () => {
       .from(fromTable)
       .select()
       .eq("id", id)
-      .single()
+      .maybeSingle()
       .throwOnError();
 
     return data;
@@ -299,7 +299,7 @@ export const useTagRepository = () => {
       .from(fromTable)
       .select()
       .eq("type", type)
-      .single()
+      .maybeSingle()
       .throwOnError();
 
     return data;
