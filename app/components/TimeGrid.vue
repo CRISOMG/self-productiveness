@@ -91,7 +91,7 @@ const caclTop = (hour: number, minutes: number) => {
 
 const getPomodoroHeight = (pomodoro: Pomodoro["Row"]) => {
   const start = new Date(pomodoro.started_at);
-  const end = new Date(pomodoro.finished_at || pomodoro.expected_end);
+  const end = new Date(pomodoro.finished_at || Date.now());
 
   const diff = getDiffInMinutes(
     start.toLocaleTimeString().slice(0, 5),
@@ -217,7 +217,21 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
                   pomodoro.type !== 'focus',
               }"
             >
-              {{ (pomodoro.expected_duration || 0) / 60 }}m
+              {{
+                getDiffInMinutes(
+                  new Date(pomodoro.started_at)
+                    .toLocaleTimeString()
+                    .slice(0, 5),
+                  new Date(pomodoro.finished_at || Date.now())
+                    .toLocaleTimeString()
+                    .slice(0, 5)
+                )
+              }}m
+              <!-- {{
+                Math.floor(
+                  (pomodoro.timelapse || pomodoro.expected_duration || 0) / 60
+                )
+              }}m -->
             </div>
             <div
               class="truncate select-none text-md font-medium"
