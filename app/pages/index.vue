@@ -49,6 +49,7 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 import TimelineModal from "~/components/timeline-modal .vue";
+import { useProfileController } from "~/composables/profile/use-profile-controller";
 
 const { profile } = useProfileController();
 

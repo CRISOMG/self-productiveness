@@ -5,7 +5,7 @@ import {
   hasCycleFinished,
   calculateTimelineFromNow,
   calculatePomodoroTimelapse,
-  TagType,
+  PomodoroType,
 } from "~/utils/pomodoro-domain";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
@@ -17,6 +17,9 @@ export const usePomodoroController = () => {
   //#region VUE semantic context
   const channel = ref<RealtimeChannel>();
   const supabase = useSupabaseClient();
+
+  const selectedTags = useSelectedTags();
+  const keepTags = useKeepSelectedTags();
 
   const { profile } = useProfileController();
 
@@ -311,17 +314,47 @@ export const usePomodoroController = () => {
         user_id: currPomodoro.value.user_id,
       });
 
+      const tagsIds = selectedTags.value.map((tag) => tag.id);
+
       _clockInSeconds = nextPomodoro?.expected_duration;
       currPomodoro.value = nextPomodoro as unknown as TPomodoro;
       localStorage.setItem("currPomodoro", JSON.stringify(nextPomodoro));
       broadcastPomodoro.broadcastEvent("pomodoro:next", {
         id: currPomodoro.value.id,
       });
+
+      if (keepTags.value) {
+        tagsIds.forEach((tagId) => {
+          handleAddTag(tagId);
+        });
+      }
     }
 
     timeController.setClockInSeconds(_clockInSeconds);
     timeController.clearTimer();
   }
+  async function handleAddTag(tagId: number) {
+    try {
+      if (!currPomodoro.value) return;
+      await pomodoroService.addTagToPomodoro(
+        currPomodoro.value.id,
+        tagId,
+        currPomodoro.value.user_id
+      );
+      const fresh = await pomodoroRepository.getOne(currPomodoro.value.id);
+      if (fresh) currPomodoro.value = fresh as unknown as TPomodoro;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function handleRemoveTag(tagId: number) {
+    if (!currPomodoro.value) return;
+    await pomodoroService.removeTagFromPomodoro(currPomodoro.value.id, tagId);
+    const fresh = await pomodoroRepository.getOne(currPomodoro.value.id);
+    if (fresh) currPomodoro.value = fresh as unknown as TPomodoro;
+  }
+
   async function handleResetPomodoro() {
     if (
       !confirm(
@@ -341,7 +374,7 @@ export const usePomodoroController = () => {
     currPomodoro.value = null;
   }
 
-  async function handleSkipPomodoro(tagType?: TagType) {
+  async function handleSkipPomodoro(tagType?: PomodoroType) {
     if (!currPomodoro.value) {
       return;
     }
@@ -419,6 +452,8 @@ export const usePomodoroController = () => {
     handleSkipPomodoro,
     getCurrentPomodoro,
     handleListPomodoros,
+    handleAddTag,
+    handleRemoveTag,
     currPomodoro,
     timeController,
   };

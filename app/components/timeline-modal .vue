@@ -14,17 +14,9 @@
 </template>
 
 <script setup lang="ts">
-import { usePomodoroStore } from "~/stores/pomodoro";
-import { storeToRefs } from "pinia";
+import { usePomodoroStoreRefs } from "~/stores/pomodoro";
 
-const pomodoroStore = usePomodoroStore();
-const { pomodorosListToday } = storeToRefs(pomodoroStore);
-
-const supabase = useSupabaseClient();
-const user = useSupabaseUser();
-const user_id = computed(() => {
-  return user.value?.sub as string;
-});
+const { pomodorosListToday } = usePomodoroStoreRefs();
 
 const isOpen = defineModel<boolean>({ default: false });
 </script>

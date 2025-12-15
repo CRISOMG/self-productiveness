@@ -33,7 +33,7 @@ export const usePomodoroRepository = () => {
     return data;
   }
 
-  async function insert(pomodoro: Pomodoro["Insert"], tagId?: number) {
+  async function insert(pomodoro: Pomodoro["Insert"]) {
     const { data } = await supabase
       .from("pomodoros")
       .insert(pomodoro)
@@ -49,19 +49,6 @@ export const usePomodoroRepository = () => {
       )
       .maybeSingle()
       .throwOnError();
-
-    if (tagId) {
-      const tags = await supabase
-        .from("pomodoros_tags")
-        .insert({
-          pomodoro: data.id,
-          user_id: pomodoro.user_id,
-          tag: tagId,
-        })
-        .select(`*,pomodoro (*), tag (*)`)
-        .maybeSingle()
-        .throwOnError();
-    }
 
     const updatedPomodoro = await getOne(data.id);
     return updatedPomodoro;
@@ -151,6 +138,30 @@ export const usePomodoroRepository = () => {
 
     return data;
   }
+  async function addTag(pomodoroId: number, tagId: number, userId: string) {
+    const { data } = await supabase
+      .from("pomodoros_tags")
+      .insert({
+        pomodoro: pomodoroId,
+        tag: tagId,
+        user_id: userId,
+      })
+      .select()
+      .maybeSingle()
+      .throwOnError();
+    return data;
+  }
+
+  async function removeTag(pomodoroId: number, tagId: number) {
+    const { error } = await supabase
+      .from("pomodoros_tags")
+      .delete()
+      .eq("pomodoro", pomodoroId)
+      .eq("tag", tagId);
+
+    if (error) throw error;
+  }
+
   return {
     insert,
     update,
@@ -158,6 +169,8 @@ export const usePomodoroRepository = () => {
     getCurrentPomodoro,
     getCurrentPomodorosOfCurrentCycle,
     listToday,
+    addTag,
+    removeTag,
   };
 };
 
@@ -231,85 +244,5 @@ export const usePomodoroCycleRepository = () => {
     update,
     getOne,
     getCurrent,
-  };
-};
-
-export const useTagRepository = () => {
-  const supabase = useSupabaseClient();
-
-  const fromTable = "tags";
-
-  async function getCurrent() {
-    const { data, error } = await supabase
-      .from(fromTable)
-      .select(
-        `
-            *,
-            pomodoros (
-              *,
-              tags (*)
-            )
-          `
-      )
-      .filter("state", "eq", "current")
-      .maybeSingle();
-    if (error && error.code !== "PGRST116") {
-      throw error;
-    }
-
-    return data;
-  }
-
-  async function insert(tag: Tag["Insert"]) {
-    const { data } = await supabase
-      .from(fromTable)
-      .insert(tag)
-      .select()
-      .maybeSingle()
-      .throwOnError();
-
-    return data;
-  }
-
-  async function update(id: number, tag: Tag["Update"]) {
-    const { data } = await supabase
-      .from(fromTable)
-      .update(tag)
-      .eq("id", id)
-      .select()
-      .maybeSingle()
-      .throwOnError();
-
-    return data;
-  }
-
-  async function getOne(id: number) {
-    const { data } = await supabase
-      .from(fromTable)
-      .select()
-      .eq("id", id)
-      .maybeSingle()
-      .throwOnError();
-
-    return data;
-  }
-
-  async function getOneByType(type: string) {
-    const { data } = await supabase
-      .from(fromTable)
-      .select()
-      .eq("type", type)
-      .maybeSingle()
-      .throwOnError();
-
-    return data;
-  }
-
-  return {
-    insert,
-    update,
-    getOne,
-    getCurrent,
-    getOneByType,
   };
 };

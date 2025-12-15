@@ -15,7 +15,7 @@ export enum TagIdByType {
   LONG_BREAK = "long-break",
 }
 
-export enum TagType {
+export enum PomodoroType {
   FOCUS = "focus",
   BREAK = "break",
   LONG_BREAK = "long-break",

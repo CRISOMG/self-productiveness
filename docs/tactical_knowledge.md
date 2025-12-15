@@ -39,7 +39,7 @@ Uso extensivo del sistema de tipos para garantizar la seguridad en tiempo de com
 
 ### **Enums y Constantes de Configuración**
 Evitar "Magic Numbers" y "Magic Strings" dispersos por el código.
-*   **Evidencia:** Uso de `TagIdByType`, `TagType` y `PomodoroDurationInSecondsByDefaultCycleConfiguration` en `pomodoro-domain.ts` para centralizar la configuración del sistema.
+*   **Evidencia:** Uso de `TagIdByType`, `PomodoroType` y `PomodoroDurationInSecondsByDefaultCycleConfiguration` en `pomodoro-domain.ts` para centralizar la configuración del sistema.
 
 ## 4. Ecosistema Vue / Nuxt
 

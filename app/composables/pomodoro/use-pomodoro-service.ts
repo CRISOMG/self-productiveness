@@ -7,8 +7,8 @@ import {
 import {
   usePomodoroRepository,
   usePomodoroCycleRepository,
-  useTagRepository,
 } from "./use-pomodoro-repository";
+import { useTagRepository } from "~/composables/tag/use-tag-repository";
 
 type PomodoroCycleWithPomodoros = PomodoroCycle["Row"] & {
   pomodoros?: Pomodoro["Row"][];
@@ -170,9 +170,28 @@ export const usePomodoroService = () => {
     }
     return tag.id;
   }
-  async function createNextPomodoro({ user_id }: { user_id: string }) {
-    return await startPomodoro({ user_id, state: "paused" });
+  async function createNextPomodoro({
+    user_id,
+    state = "paused",
+  }: {
+    user_id: string;
+    state?: "current" | "paused";
+  }) {
+    return await startPomodoro({ user_id, state });
   }
+
+  async function addTagToPomodoro(
+    pomodoroId: number,
+    tagId: number,
+    userId: string
+  ) {
+    return await pomodoroRepository.addTag(pomodoroId, tagId, userId);
+  }
+
+  async function removeTagFromPomodoro(pomodoroId: number, tagId: number) {
+    return await pomodoroRepository.removeTag(pomodoroId, tagId);
+  }
+
   return {
     checkIsCurrentCycleEnd,
     finishCurrentCycle,
@@ -183,5 +202,7 @@ export const usePomodoroService = () => {
     getTagByCycleSecuense,
     getTagIdByType,
     createNextPomodoro,
+    addTagToPomodoro,
+    removeTagFromPomodoro,
   };
 };

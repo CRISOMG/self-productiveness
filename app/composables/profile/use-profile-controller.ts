@@ -87,7 +87,9 @@ export const useProfileController = () => {
   }
 
   watch(user, () => {
-    handleGetProfile();
+    if (!loading.value) {
+      handleGetProfile();
+    }
   });
 
   return {

@@ -1,31 +1,37 @@
 <template>
   <section class="flex flex-col items-center justify-center mt-8">
     <div
-      class="flex flex-col items-center justify-center border rounded p-4 px-8 bg-amber-100/5"
+      class="flex flex-col items-center max-w-sm w-full justify-center border rounded p-4 px-8 bg-amber-100/5"
     >
       <div class="flex flex-col">
         <div>
-          <span
-            class="text-md p-2 py-1 rounded-md"
+          <button
+            @click="handlePomodoroTypeChange(PomodoroType.FOCUS)"
+            class="cursor-pointer text-md p-2 py-1 rounded-md select-none"
             :class="{
-              'bg-black/20': currentPomodoroType === TagType.FOCUS,
+              'bg-black/20': currentPomodoroType === PomodoroType.FOCUS,
             }"
-            >Pomodoro</span
           >
-          <span
-            class="text-md p-2 py-1 rounded-md"
+            Pomodoro
+          </button>
+          <button
+            @click="handlePomodoroTypeChange(PomodoroType.BREAK)"
+            class="cursor-pointer text-md p-2 py-1 rounded-md select-none"
             :class="{
-              'bg-black/20': currentPomodoroType === TagType.BREAK,
+              'bg-black/20': currentPomodoroType === PomodoroType.BREAK,
             }"
-            >Short Break</span
           >
-          <span
-            class="text-md p-2 py-1 rounded-md"
+            Short Break
+          </button>
+          <button
+            @click="handlePomodoroTypeChange(PomodoroType.LONG_BREAK)"
+            class="cursor-pointer text-md p-2 py-1 rounded-md select-none"
             :class="{
-              'bg-black/20': currentPomodoroType === TagType.LONG_BREAK,
+              'bg-black/20': currentPomodoroType === PomodoroType.LONG_BREAK,
             }"
-            >Long Break</span
           >
+            Long Break
+          </button>
         </div>
         <div class="flex items-center justify-center p-4">
           <h1 class="text-8xl">
@@ -65,25 +71,89 @@
         </div>
       </div>
     </div>
+    <div class="flex justify-center mt-4">
+      <p>Today Completed #{{ pomodoroFocusCompletedToday }}</p>
+    </div>
+    <div class="max-w-sm w-full mt-4">
+      <div class="flex items-center justify-between p-1">
+        <p class="text-lg">Tags</p>
+        <div>
+          <UPopover>
+            <UButton icon="i-lucide-menu" color="neutral" variant="outline" />
+
+            <template #content>
+              <div class="p-2">
+                <UCheckbox
+                  v-model="keepTags"
+                  label="Keep tags"
+                  alt="Keep tags between pomodoros"
+                />
+              </div>
+            </template>
+          </UPopover>
+        </div>
+      </div>
+      <USeparator />
+      <PomodoroTagSelector
+        class="mt-4"
+        :initial-tags="currPomodoro?.tags || []"
+        @add="handleAddTag"
+        @remove="handleRemoveTag"
+      />
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { usePomodoroStoreRefs } from "~/stores/pomodoro";
+import type { TPomodoro } from "~/types/Pomodoro";
+
+const { pomodorosListToday } = usePomodoroStoreRefs();
+
+const keepTags = useKeepSelectedTags();
+
+const pomodoroFocusCompletedToday = computed(() => {
+  if (!pomodorosListToday.value) {
+    return 0;
+  }
+
+  const pl = pomodorosListToday.value as unknown as TPomodoro[];
+  return pl.filter((p) => p.type === PomodoroType.FOCUS).length;
+});
+
 const pomodoroBottonIsPlay = ref(true);
 
-const currentPomodoroType = ref<keyof typeof TagEnumByType>(TagType.FOCUS);
+const currentPomodoroType = ref<keyof typeof TagEnumByType>(PomodoroType.FOCUS);
 
 const {
   handleStartPomodoro,
   handlePausePomodoro,
-  handleResetPomodoro,
   handleSkipPomodoro,
   handleFinishPomodoro,
-  getCurrentPomodoro,
   handleListPomodoros,
+  handleAddTag,
+  handleRemoveTag,
   currPomodoro,
   timeController,
 } = usePomodoroController();
+
+const currentPomodoroId = computed(() => currPomodoro.value?.id);
+
+watch(currentPomodoroId, () => {
+  handleListPomodoros();
+});
+
+const handlePomodoroTypeChange = (type: keyof typeof TagEnumByType) => {
+  if (currPomodoro.value?.type === type) {
+    return alert("You are already in " + type);
+  }
+  handleFinishPomodoro({
+    clockInSeconds: PomodoroDurationInSecondsByDefaultCycleConfiguration[type],
+    withNext: false,
+  }).then(() => {
+    handleStartPomodoro(props.user_id, type);
+  });
+};
 
 defineShortcuts({
   " ": () => {
@@ -96,42 +166,13 @@ defineShortcuts({
     }
   },
   "1": () => {
-    if (currPomodoro.value?.type === TagType.FOCUS) {
-      return alert("You are already in focus");
-    }
-    handleFinishPomodoro({
-      clockInSeconds:
-        PomodoroDurationInSecondsByDefaultCycleConfiguration[TagIdByType.FOCUS],
-      withNext: false,
-    }).then(() => {
-      handleStartPomodoro(props.user_id, TagType.FOCUS);
-    });
+    handlePomodoroTypeChange(PomodoroType.FOCUS);
   },
   "2": () => {
-    if (currPomodoro.value?.type === TagType.BREAK) {
-      return alert("You are already in break");
-    }
-    handleFinishPomodoro({
-      clockInSeconds:
-        PomodoroDurationInSecondsByDefaultCycleConfiguration[TagIdByType.BREAK],
-      withNext: false,
-    }).then(() => {
-      handleStartPomodoro(props.user_id, TagType.BREAK);
-    });
+    handlePomodoroTypeChange(PomodoroType.BREAK);
   },
   "3": () => {
-    if (currPomodoro.value?.type === TagType.LONG_BREAK) {
-      return alert("You are already in break");
-    }
-    handleFinishPomodoro({
-      clockInSeconds:
-        PomodoroDurationInSecondsByDefaultCycleConfiguration[
-          TagIdByType.LONG_BREAK
-        ],
-      withNext: false,
-    }).then(() => {
-      handleStartPomodoro(props.user_id, TagType.LONG_BREAK);
-    });
+    handlePomodoroTypeChange(PomodoroType.LONG_BREAK);
   },
 });
 

@@ -42,7 +42,7 @@ export type Database = {
           expected_end: string
           finished_at: string | null
           id: number
-          started_at: string
+          started_at: string | null
           state: Database["public"]["Enums"]["pomodoro-state"]
           timelapse: number
           toggle_timeline: Json | null
@@ -56,7 +56,7 @@ export type Database = {
           expected_end?: string
           finished_at?: string | null
           id?: number
-          started_at?: string
+          started_at?: string | null
           state?: Database["public"]["Enums"]["pomodoro-state"]
           timelapse?: number
           toggle_timeline?: Json | null
@@ -70,7 +70,7 @@ export type Database = {
           expected_end?: string
           finished_at?: string | null
           id?: number
-          started_at?: string
+          started_at?: string | null
           state?: Database["public"]["Enums"]["pomodoro-state"]
           timelapse?: number
           toggle_timeline?: Json | null
@@ -179,19 +179,22 @@ export type Database = {
           created_at: string
           id: number
           label: string
-          type: string
+          type: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: number
           label: string
-          type: string
+          type?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: number
           label?: string
-          type?: string
+          type?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
