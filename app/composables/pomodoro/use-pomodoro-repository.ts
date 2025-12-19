@@ -1,5 +1,5 @@
 import type { PostgrestError } from "@supabase/supabase-js";
-import type { Pomodoro, PomodoroCycle, Tag } from "~/types/Pomodoro";
+import type { Pomodoro, PomodoroCycle, Tag, TPomodoro } from "~/types/Pomodoro";
 import {
   hasCycleFinished,
   calculateTimelineFromNow,
@@ -33,7 +33,7 @@ export const usePomodoroRepository = () => {
     return data;
   }
 
-  async function insert(pomodoro: Pomodoro["Insert"]) {
+  async function insert(pomodoro: Pomodoro) {
     const { data } = await supabase
       .from("pomodoros")
       .insert(pomodoro)
@@ -50,10 +50,9 @@ export const usePomodoroRepository = () => {
       .maybeSingle()
       .throwOnError();
 
-    const updatedPomodoro = await getOne(data.id);
-    return updatedPomodoro;
+    return data;
   }
-  async function update(id: number, pomodoro: Pomodoro["Update"]) {
+  async function update(id: number, pomodoro: Partial<TPomodoro>) {
     const { data } = await supabase
       .from("pomodoros")
       .update(pomodoro)
@@ -72,7 +71,7 @@ export const usePomodoroRepository = () => {
       .maybeSingle()
       .throwOnError();
 
-    return data;
+    return data as TPomodoro;
   }
   async function getCurrentPomodoro() {
     const { data, error } = await supabase
@@ -91,9 +90,9 @@ export const usePomodoroRepository = () => {
       .maybeSingle();
 
     handleError(error);
-    return data;
+    return data as TPomodoro | null;
   }
-  async function getOne(id: number) {
+  async function getOne(id: number): Promise<TPomodoro> {
     const { data, error } = await supabase
       .from("pomodoros")
       .select(
@@ -112,7 +111,7 @@ export const usePomodoroRepository = () => {
       .maybeSingle();
 
     handleError(error);
-    return data;
+    return data as TPomodoro;
   }
   async function listToday() {
     const today = new Date();
@@ -136,7 +135,7 @@ export const usePomodoroRepository = () => {
       .lt("started_at", tomorrow.toISOString())
       .throwOnError();
 
-    return data;
+    return data as TPomodoro[];
   }
   async function addTag(pomodoroId: number, tagId: number, userId: string) {
     const { data } = await supabase
@@ -197,7 +196,7 @@ export const usePomodoroCycleRepository = () => {
     return data;
   }
 
-  async function insert(pomodoroCycle: PomodoroCycle["Insert"]) {
+  async function insert(pomodoroCycle: PomodoroCycle) {
     const { data } = await supabase
       .from("pomodoros_cycles")
       .insert(pomodoroCycle)
@@ -208,7 +207,7 @@ export const usePomodoroCycleRepository = () => {
     return data;
   }
 
-  async function update(id: number, pomodoroCycle: PomodoroCycle["Update"]) {
+  async function update(id: number, pomodoroCycle: PomodoroCycle) {
     const { data, error } = await supabase
       .from("pomodoros_cycles")
       .update(pomodoroCycle)

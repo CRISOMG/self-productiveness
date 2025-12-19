@@ -1,6 +1,11 @@
 import { usePomodoroStore, usePomodoroStoreRefs } from "~/stores/pomodoro";
 import { useNotificationController } from "../system/use-notification-controller";
-import type { Pomodoro, PomodoroCycle, TPomodoro } from "~/types/Pomodoro";
+import type {
+  Pomodoro,
+  PomodoroCycle,
+  TimelineEvent,
+  TPomodoro,
+} from "~/types/Pomodoro";
 import {
   hasCycleFinished,
   calculateTimelineFromNow,
@@ -15,18 +20,14 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
  */
 export const usePomodoroController = () => {
   //#region VUE semantic context
-  const channel = ref<RealtimeChannel>();
   const supabase = useSupabaseClient();
 
   const selectedTags = useSelectedTags();
   const keepTags = useKeepSelectedTags();
 
-  const { profile } = useProfileController();
-
   const { currPomodoro, pomodorosListToday, loadingPomodoros } =
     usePomodoroStoreRefs();
 
-  const pomodoroRepository = usePomodoroRepository();
   const pomodoroService = usePomodoroService();
 
   const timeController = useTimer();
@@ -36,8 +37,20 @@ export const usePomodoroController = () => {
 
   watch(currPomodoro, () => {
     localStorage.setItem("currPomodoro", JSON.stringify(currPomodoro.value));
+    handleListPomodoros();
   });
 
+  const recalculateTimelapse = (pomodoro: TPomodoro) => {
+    if (pomodoro.id) {
+      pomodoro.timelapse = calculatePomodoroTimelapse(
+        pomodoro.started_at || "",
+        pomodoro.toggle_timeline as Array<{
+          at: string;
+          type: "play" | "pause";
+        }>
+      );
+    }
+  };
   const broadcastPomodoro = useBroadcastPomodoroController({
     onPlay: (payload: any) => {
       console.log("pomodoro:play", payload);
@@ -45,13 +58,7 @@ export const usePomodoroController = () => {
         currPomodoro.value!.toggle_timeline = payload.payload.toggle_timeline;
         currPomodoro.value!.state = "current";
         // Recalculate timelapse with new timeline
-        currPomodoro.value!.timelapse = calculatePomodoroTimelapse(
-          currPomodoro.value!.started_at,
-          currPomodoro.value!.toggle_timeline as Array<{
-            at: string;
-            type: "play" | "pause";
-          }>
-        );
+        recalculateTimelapse(currPomodoro.value!);
         handleStartTimer();
       }
     },
@@ -60,13 +67,7 @@ export const usePomodoroController = () => {
       if (currPomodoro.value?.id === payload.payload.id) {
         currPomodoro.value!.toggle_timeline = payload.payload.toggle_timeline;
         currPomodoro.value!.state = "paused";
-        currPomodoro.value!.timelapse = calculatePomodoroTimelapse(
-          currPomodoro.value!.started_at,
-          currPomodoro.value!.toggle_timeline as Array<{
-            at: string;
-            type: "play" | "pause";
-          }>
-        );
+        recalculateTimelapse(currPomodoro.value!);
         timeController.clearTimer();
         timeController.setClockInSeconds(
           ((currPomodoro.value as any).expected_duration || 25 * 60) -
@@ -91,15 +92,16 @@ export const usePomodoroController = () => {
     handleListPomodoros();
     notificationController.requestPermission();
 
+    // code smell
     window.onbeforeunload = async () => {
-      if (import.meta.client) {
+      if (import.meta.client && currPomodoro.value?.state !== "finished") {
         localStorage.setItem(
           "currPomodoro",
           JSON.stringify(currPomodoro.value)
         );
-        if (channel.value) {
-          await channel.value.unsubscribe();
-          supabase.removeChannel(channel.value);
+        if (broadcastPomodoro.channel.value) {
+          await broadcastPomodoro.channel.value.unsubscribe();
+          supabase.removeChannel(broadcastPomodoro.channel.value);
         }
       }
     };
@@ -107,8 +109,8 @@ export const usePomodoroController = () => {
   onUnmounted(() => {
     timeController.clearTimer();
     window.onbeforeunload = null;
-    if (channel.value) {
-      supabase.removeChannel(channel.value);
+    if (broadcastPomodoro.channel.value) {
+      supabase.removeChannel(broadcastPomodoro.channel.value);
     }
   });
 
@@ -138,21 +140,25 @@ export const usePomodoroController = () => {
   }
 
   function handleStartTimer() {
+    if (!currPomodoro.value) return;
+
+    const safeCurrentPomodoro = currPomodoro.value as TPomodoro;
+
     timeController.startTimer({
       onTick: (remainingSeconds) => {
         const pomodoro = currPomodoro.value;
         if (!pomodoro) return;
 
-        pomodoro.timelapse = calculatePomodoroTimelapse(
-          pomodoro.started_at,
-          pomodoro.toggle_timeline as Array<{
-            at: string;
-            type: "play" | "pause";
-          }>
-        );
+        // pomodoro.timelapse = calculatePomodoroTimelapse(
+        //   pomodoro.started_at,
+        //   pomodoro.toggle_timeline as Array<{
+        //     at: string;
+        //     type: "play" | "pause";
+        //   }>
+        // );
 
         if (pomodoro.timelapse % 10 === 0) {
-          handleSyncPomodoro();
+          // handleSyncPomodoro();
         }
       },
       onFinish: () => {
@@ -161,11 +167,9 @@ export const usePomodoroController = () => {
           withNext: broadcastPomodoro.isMainHandler.value,
         });
         // Notify others
-        if (currPomodoro.value) {
-          broadcastPomodoro.broadcastEvent("pomodoro:finish", {
-            id: currPomodoro.value.id,
-          });
-        }
+        broadcastPomodoro.broadcastEvent("pomodoro:finish", {
+          id: safeCurrentPomodoro.id,
+        });
 
         notificationController.notify("Pomodoro finished!", {
           body: "Time to take a break!",
@@ -173,14 +177,12 @@ export const usePomodoroController = () => {
           silent: false,
         });
       },
-      expected_end: computeExpectedEnd(
-        currPomodoro.value as unknown as TPomodoro
-      ),
+      expected_end: computeExpectedEnd(safeCurrentPomodoro),
       clockStartInMinute:
-        (((currPomodoro.value as any).expected_duration || 25 * 60) -
+        (((safeCurrentPomodoro as any).expected_duration || 25 * 60) -
           calculatePomodoroTimelapse(
-            currPomodoro.value!.started_at,
-            currPomodoro.value!.toggle_timeline as Array<{
+            safeCurrentPomodoro.started_at,
+            safeCurrentPomodoro.toggle_timeline as Array<{
               at: string;
               type: "play" | "pause";
             }>
@@ -190,10 +192,10 @@ export const usePomodoroController = () => {
   }
 
   async function getCurrentPomodoro() {
-    const upstreamPomodoro = await pomodoroRepository.getCurrentPomodoro();
+    const upstreamPomodoro = await pomodoroService.getCurrentPomodoro();
 
     if (upstreamPomodoro && upstreamPomodoro.state !== "finished") {
-      currPomodoro.value = upstreamPomodoro as unknown as TPomodoro;
+      currPomodoro.value = upstreamPomodoro;
       localStorage.setItem("currPomodoro", JSON.stringify(upstreamPomodoro));
 
       const timelapse = calculatePomodoroTimelapse(
@@ -203,8 +205,7 @@ export const usePomodoroController = () => {
           type: "play" | "pause";
         }>
       );
-      const remainingSeconds =
-        ((upstreamPomodoro as any).expected_duration || 25 * 60) - timelapse;
+      const remainingSeconds = upstreamPomodoro.expected_duration - timelapse;
 
       if (remainingSeconds <= 0) {
         return handleFinishPomodoro();
@@ -223,16 +224,18 @@ export const usePomodoroController = () => {
   }
   async function handleStartPomodoro(
     user_id: string,
-    type?: "focus" | "break" | "long-break"
+    type?: "focus" | "break" | "long-break",
+    state?: "current" | "paused"
   ) {
-    if (type || !currPomodoro.value?.id) {
+    if (!currPomodoro.value?.id) {
       const result = await pomodoroService.startPomodoro({
         user_id,
         type,
+        state,
       });
-      await handleListPomodoros();
+      currPomodoro.value = result;
 
-      currPomodoro.value = result as unknown as TPomodoro;
+      await handleListPomodoros();
 
       // New pomodoro started, we might want to broadcast a 'start' too if useful,
       // but 'play' below handles the ticking state.
@@ -242,7 +245,7 @@ export const usePomodoroController = () => {
         "play"
       );
 
-      currPomodoro.value = result as unknown as TPomodoro;
+      currPomodoro.value = result;
     }
 
     handleStartTimer();
@@ -256,6 +259,20 @@ export const usePomodoroController = () => {
       });
     }
   }
+
+  async function handleSelectPomodoro(
+    user_id: string,
+    type: "focus" | "break" | "long-break"
+  ) {
+    const result = await pomodoroService.startPomodoro({
+      user_id,
+      type,
+    });
+    await handleListPomodoros();
+
+    currPomodoro.value = result;
+  }
+
   async function handlePausePomodoro() {
     if (!currPomodoro.value) {
       return;
@@ -266,20 +283,18 @@ export const usePomodoroController = () => {
         type: "play" | "pause";
       }>) || [];
 
-    const toggleTimeline = [
+    const toggleTimeline: TimelineEvent[] = [
       ...currToggleTimeline,
       { at: new Date().toISOString(), type: "pause" },
     ];
 
-    const result = await pomodoroRepository.update(currPomodoro.value.id, {
-      timelapse: currPomodoro.value.timelapse,
+    const result = await pomodoroService.update(currPomodoro.value.id, {
+      // timelapse: currPomodoro.value.timelapse,
       toggle_timeline: toggleTimeline,
       state: "paused",
-      expected_end: computeExpectedEnd(
-        currPomodoro.value as unknown as TPomodoro
-      ),
+      expected_end: computeExpectedEnd(currPomodoro.value),
     });
-    currPomodoro.value = result as unknown as TPomodoro;
+    currPomodoro.value = result;
     timeController.clearTimer();
 
     // Broadcast Pause
@@ -288,11 +303,16 @@ export const usePomodoroController = () => {
       toggle_timeline: currPomodoro.value.toggle_timeline,
     });
   }
+
+  type THandleFinishPomodoroParams = {
+    clockInSeconds?: number;
+    withNext?: boolean;
+  };
   async function handleFinishPomodoro({
     clockInSeconds,
     withNext = false,
-  }: { clockInSeconds?: number; withNext?: boolean } = {}) {
-    if (!currPomodoro.value) {
+  }: THandleFinishPomodoroParams = {}) {
+    if (!currPomodoro.value || currPomodoro.value.state == "finished") {
       return;
     }
 
@@ -316,8 +336,8 @@ export const usePomodoroController = () => {
 
       const tagsIds = selectedTags.value.map((tag) => tag.id);
 
-      _clockInSeconds = nextPomodoro?.expected_duration;
-      currPomodoro.value = nextPomodoro as unknown as TPomodoro;
+      _clockInSeconds = nextPomodoro?.expected_duration || 0;
+      currPomodoro.value = nextPomodoro;
       localStorage.setItem("currPomodoro", JSON.stringify(nextPomodoro));
       broadcastPomodoro.broadcastEvent("pomodoro:next", {
         id: currPomodoro.value.id,
@@ -341,8 +361,8 @@ export const usePomodoroController = () => {
         tagId,
         currPomodoro.value.user_id
       );
-      const fresh = await pomodoroRepository.getOne(currPomodoro.value.id);
-      if (fresh) currPomodoro.value = fresh as unknown as TPomodoro;
+      const fresh = await pomodoroService.getOne(currPomodoro.value.id);
+      if (fresh) currPomodoro.value = fresh;
     } catch (e) {
       console.log(e);
     }
@@ -351,8 +371,8 @@ export const usePomodoroController = () => {
   async function handleRemoveTag(tagId: number) {
     if (!currPomodoro.value) return;
     await pomodoroService.removeTagFromPomodoro(currPomodoro.value.id, tagId);
-    const fresh = await pomodoroRepository.getOne(currPomodoro.value.id);
-    if (fresh) currPomodoro.value = fresh as unknown as TPomodoro;
+    const fresh = await pomodoroService.getOne(currPomodoro.value.id);
+    if (fresh) currPomodoro.value = fresh;
   }
 
   async function handleResetPomodoro() {
@@ -380,7 +400,7 @@ export const usePomodoroController = () => {
     }
 
     try {
-      await handleFinishPomodoro();
+      await handleFinishPomodoro({ withNext: true });
       // Broadcast Finish
       broadcastPomodoro.broadcastEvent("pomodoro:finish", {
         id: currPomodoro.value!.id,
@@ -401,17 +421,17 @@ export const usePomodoroController = () => {
     }
 
     try {
-      const result = await pomodoroRepository.update(currPomodoro.value.id, {
+      const result = await pomodoroService.update(currPomodoro.value.id, {
         timelapse: currPomodoro.value.timelapse,
       });
 
-      if (result.state === "current") {
+      if (result && result.state === "current") {
         handleStartTimer();
       } else {
         timeController.clearTimer();
       }
 
-      currPomodoro.value = result as unknown as TPomodoro;
+      currPomodoro.value = result;
     } catch (error) {
       console.error(error);
 
@@ -425,9 +445,9 @@ export const usePomodoroController = () => {
   async function handleListPomodoros() {
     try {
       loadingPomodoros.value = true;
-      const result = await pomodoroRepository.listToday();
+      const result = await pomodoroService.listToday();
 
-      pomodorosListToday.value = result as unknown as TPomodoro[];
+      pomodorosListToday.value = result;
       return result;
     } catch (error) {
       console.error(error);
@@ -454,6 +474,7 @@ export const usePomodoroController = () => {
     handleListPomodoros,
     handleAddTag,
     handleRemoveTag,
+    handleSelectPomodoro,
     currPomodoro,
     timeController,
   };

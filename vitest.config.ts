@@ -3,6 +3,7 @@ import {
   defineVitestConfig,
   defineVitestProject,
 } from "@nuxt/test-utils/config";
+import { fileURLToPath } from "node:url";
 
 // export default defineConfig({
 //   test: {
@@ -29,8 +30,10 @@ import {
 
 export default defineVitestConfig({
   test: {
-    setupFiles: ["test/setup.ts"],
+    setupFiles: [fileURLToPath(new URL("./test/setup.ts", import.meta.url))],
     environment: "nuxt",
-    include: ["test/nuxt/*.{test,spec}.ts", "test/nuxt/**/*.{test,spec}.ts"],
+    include: [
+      fileURLToPath(new URL("./test/**/*.{test,spec}.ts", import.meta.url)),
+    ],
   },
 });

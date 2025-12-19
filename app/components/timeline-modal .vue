@@ -7,7 +7,7 @@
   >
     <template #body>
       <div class="flex h-[85vh] p-0">
-        <TimeGrid :pomodoros="pomodorosListToday" />
+        <TimeGrid :pomodoros="(pomodorosListToday as TPomodoro[])" />
       </div>
     </template>
   </UModal>
@@ -15,6 +15,7 @@
 
 <script setup lang="ts">
 import { usePomodoroStoreRefs } from "~/stores/pomodoro";
+import type { TPomodoro } from "~/types/Pomodoro";
 
 const { pomodorosListToday } = usePomodoroStoreRefs();
 

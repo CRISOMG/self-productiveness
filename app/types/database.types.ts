@@ -63,7 +63,7 @@ export type Database = {
           created_at: string
           cycle: number | null
           expected_duration: number
-          expected_end: string
+          expected_end: string | null
           finished_at: string | null
           id: number
           started_at: string | null
@@ -77,7 +77,7 @@ export type Database = {
           created_at?: string
           cycle?: number | null
           expected_duration?: number
-          expected_end?: string
+          expected_end?: string | null
           finished_at?: string | null
           id?: number
           started_at?: string | null
@@ -91,7 +91,7 @@ export type Database = {
           created_at?: string
           cycle?: number | null
           expected_duration?: number
-          expected_end?: string
+          expected_end?: string | null
           finished_at?: string | null
           id?: number
           started_at?: string | null
@@ -222,11 +222,70 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          archived: boolean | null
+          created_at: string | null
+          description: string | null
+          done: boolean | null
+          id: string
+          pomodoro_id: number
+          tag_id: number
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          done?: boolean | null
+          id?: string
+          pomodoro_id: number
+          tag_id: number
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          archived?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          done?: boolean | null
+          id?: string
+          pomodoro_id?: number
+          tag_id?: number
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_pomodoro_id_fkey"
+            columns: ["pomodoro_id"]
+            isOneToOne: false
+            referencedRelation: "pomodoros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      auto_finish_expired_pomodoros: { Args: never; Returns: undefined }
+      calculate_pomodoro_timelapse_sql: {
+        Args: { p_now?: string; p_started_at: string; p_toggle_timeline: Json }
+        Returns: number
+      }
       is_valid_personal_access_token: { Args: never; Returns: boolean }
     }
     Enums: {

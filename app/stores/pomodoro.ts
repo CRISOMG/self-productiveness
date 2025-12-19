@@ -3,8 +3,8 @@ import type { Pomodoro, TPomodoro } from "~/types/Pomodoro";
 import { storeToRefs } from "pinia";
 
 export const usePomodoroStore = defineStore("pomodoro", () => {
-  const currPomodoro = ref<TPomodoro | null>(null);
-  const pomodorosListToday = ref<TPomodoro[] | null>(null);
+  const currPomodoro = ref<TPomodoro | null>();
+  const pomodorosListToday = ref<TPomodoro[] | null>();
   const loadingPomodoros = ref<boolean>(false);
   return { currPomodoro, pomodorosListToday, loadingPomodoros };
 });

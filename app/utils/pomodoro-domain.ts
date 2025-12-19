@@ -21,6 +21,12 @@ export enum PomodoroType {
   LONG_BREAK = "long-break",
 }
 
+export enum PomodoroState {
+  CURRENT = "current",
+  PAUSED = "paused",
+  FINISHED = "finished",
+}
+
 export const TagEnumByType = {
   ["focus"]: TagIdByType.FOCUS,
   ["break"]: TagIdByType.BREAK,
@@ -126,10 +132,12 @@ export function calculateNextTagFromCycleSecuence(
 }
 
 export function calculatePomodoroTimelapse(
-  startedAt: string,
+  startedAt: string | null,
   toggleTimeline: Array<{ at: string; type: "play" | "pause" }>,
   now = Date.now()
 ): number {
+  if (!startedAt) return 0;
+
   const start = new Date(startedAt).getTime();
   let elapsed = 0;
 
@@ -143,16 +151,14 @@ export function calculatePomodoroTimelapse(
   for (const event of events) {
     const eventTime = new Date(event.at).getTime();
 
-    if (event.type === "pause") {
-      if (isRunning) {
-        elapsed += Math.max(0, eventTime - currentSegmentStart);
-        isRunning = false;
-      }
-    } else if (event.type === "play") {
-      if (!isRunning) {
-        currentSegmentStart = eventTime;
-        isRunning = true;
-      }
+    if (event.type === "pause" && isRunning) {
+      elapsed += Math.max(0, eventTime - currentSegmentStart);
+      isRunning = false;
+    }
+
+    if (event.type === "play" && !isRunning) {
+      currentSegmentStart = eventTime;
+      isRunning = true;
     }
   }
 

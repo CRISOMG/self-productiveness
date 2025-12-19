@@ -41,9 +41,13 @@
     <template v-if="openProfileModal">
       <UserProfileModal v-model="openProfileModal" />
     </template>
-    <TimelineModal v-model="openTimelineModal" />
+    <template v-if="openTimelineModal">
+      <TimelineModal v-model="openTimelineModal" />
+    </template>
     <ShortcutsModal v-model="openShortcutsModal" />
     <PasswordSetupModal v-model="openPasswordSetupModal" />
+    <WebhookModal v-model="openWebhookModal" />
+    <PersonalAccessTokenModal v-model="openPersonalAccessTokenModal" />
   </UContainer>
 </template>
 
@@ -63,6 +67,8 @@ const openProfileModal = ref(false);
 const openTimelineModal = ref(false);
 const openShortcutsModal = ref(false);
 const openPasswordSetupModal = ref(false);
+const openWebhookModal = ref(false);
+const openPersonalAccessTokenModal = ref(false);
 
 const items = ref<DropdownMenuItem[][]>([
   [
@@ -86,7 +92,15 @@ const items = ref<DropdownMenuItem[][]>([
       label: "Personal Access Token",
       icon: "i-lucide-key",
       onSelect: () => {
-        profileController.createToken();
+        openPersonalAccessTokenModal.value = true;
+      },
+    },
+
+    {
+      label: "Webhook",
+      icon: "i-lucide-webhook",
+      onSelect: () => {
+        openWebhookModal.value = true;
       },
     },
   ],

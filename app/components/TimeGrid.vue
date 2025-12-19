@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, nextTick } from "vue";
+import { storeToRefs } from "pinia";
 import { usePomodoroStore } from "~/stores/pomodoro";
-import type { Pomodoro } from "~/types/Pomodoro";
+import type { Pomodoro, TPomodoro } from "~/types/Pomodoro";
 const currHour = ref(new Date().getHours());
 const pomodoroStore = usePomodoroStore();
 const pomodoroStoreRefs = storeToRefs(pomodoroStore);
@@ -30,24 +31,32 @@ onMounted(() => {
   });
 });
 
-const props = withDefaults(
-  defineProps<{
-    startHour?: number;
-    endHour?: number;
-    pomodoros?: Pomodoro["Row"][];
-    format24h?: boolean;
-  }>(),
-  {
-    startHour: 0,
-    endHour: 23,
-    pomodoros: [],
-    format24h: true,
-  }
-);
+type TProps = {
+  startHour?: number;
+  endHour?: number;
+  pomodoros: TPomodoro[];
+  format24h?: boolean;
+};
+
+const _props = defineProps<TProps>();
+// const _defaults = {
+//   startHour: 0,
+//   endHour: 23,
+//   pomodoros: [],
+//   format24h: true,
+// };
+// const props = withDefaults<TProps>(_props, _defaults);
+
+const {
+  startHour = 0,
+  endHour = 23,
+  pomodoros = [],
+  format24h = true,
+} = _props;
 
 const hours = computed(() => {
   const h = [];
-  for (let i = props.startHour; i <= props.endHour; i++) {
+  for (let i = startHour; i <= endHour; i++) {
     h.push(i);
   }
   return h;
@@ -55,7 +64,7 @@ const hours = computed(() => {
 
 function getDiffInMinutes(from: string, to: string) {
   const tiempoAMinutos = (tiempoStr: string) => {
-    const [horas, minutos] = tiempoStr.split(":").map(Number);
+    const [horas = 0, minutos = 0] = tiempoStr.split(":").map(Number);
     return horas * 60 + minutos;
   };
 
@@ -70,7 +79,7 @@ function getDiffInMinutes(from: string, to: string) {
 }
 
 const formatHour = (hour: number) => {
-  if (props.format24h) {
+  if (format24h) {
     return `${hour.toString().padStart(2, "0")}:00`;
   }
   const ampm = hour >= 12 ? "PM" : "AM";
@@ -89,9 +98,11 @@ const caclTop = (hour: number, minutes: number) => {
   return top;
 };
 
-const getPomodoroHeight = (pomodoro: Pomodoro["Row"]) => {
-  const start = new Date(pomodoro.started_at);
-  const end = new Date(pomodoro.finished_at || Date.now());
+const getPomodoroHeight = (pomodoro: TPomodoro) => {
+  const start = new Date(pomodoro.started_at || Date.now());
+  const end = new Date(
+    pomodoro?.finished_at || pomodoro.expected_end || Date.now()
+  );
 
   const diff = getDiffInMinutes(
     start.toLocaleTimeString().slice(0, 5),
@@ -101,8 +112,8 @@ const getPomodoroHeight = (pomodoro: Pomodoro["Row"]) => {
   return diff * proportion;
 };
 
-const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
-  const start = new Date(pomodoro.started_at);
+const getPomodoroStyle = (pomodoro: TPomodoro) => {
+  const start = new Date(pomodoro.started_at || Date.now());
   const hour = start.getHours();
   const minutes = start.getMinutes();
 
@@ -187,7 +198,7 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
                   pomodoro.type !== 'focus',
               }"
             >
-              {{ new Date(pomodoro.started_at).toString().slice(16, 21) }}
+              {{ new Date(pomodoro.started_at || "").toString().slice(16, 21) }}
             </span>
             <!-- <span
               class="relative -bottom-[10px] select-none text-sm mx-1"
@@ -219,10 +230,10 @@ const getPomodoroStyle = (pomodoro: Pomodoro["Row"]) => {
             >
               {{
                 getDiffInMinutes(
-                  new Date(pomodoro.started_at)
+                  new Date(pomodoro.started_at || "")
                     .toLocaleTimeString()
                     .slice(0, 5),
-                  new Date(pomodoro.finished_at || Date.now())
+                  new Date(pomodoro.expected_end || Date.now())
                     .toLocaleTimeString()
                     .slice(0, 5)
                 )

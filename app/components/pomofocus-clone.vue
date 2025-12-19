@@ -117,8 +117,10 @@ const pomodoroFocusCompletedToday = computed(() => {
     return 0;
   }
 
-  const pl = pomodorosListToday.value as unknown as TPomodoro[];
-  return pl.filter((p) => p.type === PomodoroType.FOCUS).length;
+  const pl = pomodorosListToday.value;
+  return pl.filter(
+    (p) => p.type === PomodoroType.FOCUS && p.state == PomodoroState.FINISHED
+  ).length;
 });
 
 const pomodoroBottonIsPlay = ref(true);
@@ -133,6 +135,7 @@ const {
   handleListPomodoros,
   handleAddTag,
   handleRemoveTag,
+  handleSelectPomodoro,
   currPomodoro,
   timeController,
 } = usePomodoroController();
@@ -151,14 +154,14 @@ const handlePomodoroTypeChange = (type: keyof typeof TagEnumByType) => {
     clockInSeconds: PomodoroDurationInSecondsByDefaultCycleConfiguration[type],
     withNext: false,
   }).then(() => {
-    handleStartPomodoro(props.user_id, type);
+    handleSelectPomodoro(props.user_id, type);
   });
 };
 
 defineShortcuts({
   " ": () => {
     if (currPomodoro.value?.state !== "current") {
-      handleStartPomodoro(props.user_id);
+      handleStartPomodoro(props.user_id, currPomodoro.value?.type, "current");
       pomodoroBottonIsPlay.value = false;
     } else {
       handlePausePomodoro();

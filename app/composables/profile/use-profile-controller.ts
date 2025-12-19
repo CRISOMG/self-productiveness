@@ -92,19 +92,28 @@ export const useProfileController = () => {
     }
   });
 
-  const createToken = async () => {
+  type TCreateToken = {
+    token: string;
+    id: string;
+    name: string;
+    message: string;
+  };
+
+  const createToken = async (): Promise<TCreateToken | null> => {
     try {
       const { data, error } = await useFetch("/api/token/generate", {
         method: "POST",
         body: { name: "N8N Token" },
       });
 
-      if (data.value) {
-        console.log("Tu nuevo token:", data.value);
-        // Mostrar modal para que el usuario copie el token
+      if (error.value) {
+        throw error.value;
       }
+
+      return data.value;
     } catch (e) {
       console.error("Error generando token", e);
+      return null;
     }
   };
   return {
