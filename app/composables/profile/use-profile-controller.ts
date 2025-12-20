@@ -116,6 +116,28 @@ export const useProfileController = () => {
       return null;
     }
   };
+
+  async function handleSetKeepTagsSetting(value: boolean) {
+    if (!profile.value) return;
+    try {
+      const updatedProfile = await service.updateProfile(profile.value.id, {
+        ...profile.value,
+        settings: {
+          ...((profile.value.settings as Record<string, any>) || {}),
+          keep_tags: value,
+        },
+      });
+      profile.value = updatedProfile;
+      return updatedProfile;
+    } catch (error: any) {
+      console.error(error);
+      toast.addErrorToast({
+        title: "Error updating keep tags setting",
+        description: error.message,
+      });
+    }
+  }
+
   return {
     profile,
     loading,
@@ -123,5 +145,6 @@ export const useProfileController = () => {
     handleUpdateProfile,
     handleUploadAvatar,
     createToken,
+    handleSetKeepTagsSetting,
   };
 };

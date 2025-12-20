@@ -6,10 +6,19 @@ export const useSelectedTags = (initial: any[] = []) => {
 };
 
 export const useKeepSelectedTags = () => {
-  return useState<boolean>("keep_tags", () => false);
+  const profileController = useProfileController();
+
+  const keepTags = computed({
+    get: () => profileController.profile.value?.settings?.keep_tags || false,
+    set: (value) => {
+      profileController.handleSetKeepTagsSetting(value);
+    },
+  });
+
+  return keepTags;
 };
 
-export type TUserTags = Tag["Row"][];
+export type TUserTags = Tag[];
 export const useTagController = () => {
   const { createTag, searchTags, getUserTags } = useTagService();
   const { profile } = useProfileController();
@@ -33,16 +42,14 @@ export const useTagController = () => {
     }
   }
 
-  async function handleCreateTag(
-    label: string
-  ): Promise<Tag["Row"] | undefined> {
+  async function handleCreateTag(label: string): Promise<Tag | undefined> {
     if (!profile.value) return;
     isLoading.value = true;
     try {
       const newTag = await createTag(label, profile.value.id);
       // Refresh user tags
       await loadUserTags();
-      return newTag as Tag["Row"];
+      return newTag as Tag;
     } catch (e: any) {
       error.value = e.message;
     } finally {
