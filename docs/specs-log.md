@@ -55,6 +55,6 @@ integracion para etiquetar los pomodoros, el objetivo es poder agrupar los pomod
 5. [x] barra de busqueda de etiquetas al querer agregar una
 6. [x] si la etiqueta no existe, se confirma al usuario si desea crearla
 7. [x] debe segir el standard S1 en [Standards & Guidelines](./standards.md)
-8. [ ] debe poder tener un flujo de auth para una api de tercero que permita importar las etiquetas para ese usuario
+8. [x] debe poder tener un flujo de auth para una api de tercero que permita importar las etiquetas para ese usuario
 9. [x] el componente PomodoroTagSelector.vue debe listar todas las etiquetas una ves enfocado o interactuado con el, cuando empieza a escribir se empieza a filtrar, la lista de etiquetas debe poder ser scrollable y debe tener un limite de altura para que no se desborde el contenedor y explorable con la tecla tab y flechas arriba y abajo.
 10. [x] Utiliza componente de nuxt/ui para el input y el dropdown
