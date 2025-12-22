@@ -1,4 +1,3 @@
-import { usePomodoroStoreRefs } from "~/stores/pomodoro";
 import { useNotificationController } from "../system/use-notification-controller";
 import type { TimelineEvent, TPomodoro } from "~/types/Pomodoro";
 import {
@@ -9,12 +8,15 @@ import {
 } from "~/utils/pomodoro-domain";
 import { useBroadcastPomodoro } from "./use-broadcast-pomodoro";
 
-export const usePomodoroController = () => {
+export const usePomodoroController = defineStore("pomodoro", () => {
   //#region DEPENDENCIES
   const selectedTags = useSelectedTags();
   const keepTags = useKeepSelectedTags();
-  const { currPomodoro, pomodorosListToday, loadingPomodoros } =
-    usePomodoroStoreRefs();
+
+  const currPomodoro = ref<TPomodoro | null>(null);
+  const pomodorosListToday = ref<TPomodoro[] | null>();
+  const loadingPomodoros = ref<boolean>(false);
+
   const pomodoroService = usePomodoroService();
   const timeController = useTimer();
   const toast = useSuccessErrorToast();
@@ -78,13 +80,13 @@ export const usePomodoroController = () => {
 
   //#region PERSISTENCE & LIFECYCLE
   watch(
-    currPomodoro,
+    () => currPomodoro.value,
     (newVal) => {
       if (newVal) {
-        localStorage.setItem("currPomodoro", JSON.stringify(newVal));
+        localStorage.setItem("currPomodoro.value", JSON.stringify(newVal));
         handleListPomodoros();
       } else {
-        localStorage.removeItem("currPomodoro");
+        localStorage.removeItem("currPomodoro.value");
       }
     },
     { deep: true }
@@ -175,6 +177,7 @@ export const usePomodoroController = () => {
         type: type as any,
         state,
       });
+
       await handleListPomodoros();
     } else {
       // Reanudar existente (Play)
@@ -321,7 +324,7 @@ export const usePomodoroController = () => {
     timeController.setClockInSeconds(
       PomodoroDurationInSecondsByDefaultCycleConfiguration[TagIdByType.FOCUS]
     );
-    localStorage.removeItem("currPomodoro");
+    localStorage.removeItem("currPomodoro.value");
     currPomodoro.value = null;
   }
 
@@ -345,10 +348,22 @@ export const usePomodoroController = () => {
     try {
       const result = await pomodoroService.getOne(currPomodoro.value.id);
 
-      if (result && result.state === "current") {
+      if (
+        result &&
+        result.state === "current" &&
+        currPomodoro.value.id === result.id &&
+        currPomodoro.value.state !== "current"
+      ) {
         handleStartTimer();
-      } else {
-        timeController.clearTimer();
+      }
+
+      if (
+        result &&
+        currPomodoro.value.id === result.id &&
+        result.state === "paused" &&
+        currPomodoro.value.state !== "paused"
+      ) {
+        handlePausePomodoro();
       }
 
       currPomodoro.value = result;
@@ -383,14 +398,19 @@ export const usePomodoroController = () => {
       user_id,
       type,
     });
-    await handleListPomodoros();
+    const selectedTags = currPomodoro.value?.tags || [];
     currPomodoro.value = result;
+    if (keepTags.value) {
+      for (const tag of selectedTags) {
+        await handleAddTag(tag.id);
+      }
+    }
+    await handleListPomodoros();
   }
 
   //#endregion
 
   return {
-    currPomodoro,
     timeController,
     handleStartPomodoro,
     handlePausePomodoro,
@@ -403,5 +423,9 @@ export const usePomodoroController = () => {
     handleAddTag,
     handleRemoveTag,
     handleSelectPomodoro,
+    isMainHandler,
+    currPomodoro,
+    pomodorosListToday,
+    loadingPomodoros,
   };
-};
+});

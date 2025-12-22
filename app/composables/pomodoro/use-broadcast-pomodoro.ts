@@ -76,7 +76,7 @@ export const useBroadcastPomodoro = (handlers: TBroadcastEvents) => {
 
   const disconnect = async () => {
     if (channel.value) {
-      await channel.value.unsubscribe();
+      // await channel.value?.unsubscribe();
       supabase.removeChannel(channel.value);
       channel.value = undefined;
     }

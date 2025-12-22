@@ -1,7 +1,12 @@
-import type { Database } from "~/types/database.types";
+import type { Database, Tables, TablesUpdate } from "~/types/database.types";
 
-type Profile = Database["public"]["Tables"]["profiles"];
+export interface TProfile extends Tables<"profiles"> {
+  settings: Record<string, any>;
+}
 
+export interface TProfileUpdate extends TablesUpdate<"profiles"> {
+  settings?: Record<string, any>;
+}
 export const useProfileRepository = () => {
   const supabase = useSupabaseClient<Database>();
 
@@ -13,10 +18,10 @@ export const useProfileRepository = () => {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as TProfile;
   }
 
-  async function update(id: string, profile: Profile["Update"]) {
+  async function update(id: string, profile: TProfileUpdate) {
     const { data, error } = await supabase
       .from("profiles")
       .update(profile)
@@ -25,7 +30,7 @@ export const useProfileRepository = () => {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as TProfile;
   }
 
   async function uploadAvatar(userId: string, file: File) {
@@ -40,7 +45,7 @@ export const useProfileRepository = () => {
     if (uploadError) throw uploadError;
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    return data.publicUrl;
+    return data.publicUrl as string;
   }
 
   return {

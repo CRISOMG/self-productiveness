@@ -1,8 +1,6 @@
 import { useProfileRepository } from "./use-profile-repository";
 import type { Database } from "~/types/database.types";
 
-type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
-
 export const useProfileService = () => {
   const repository = useProfileRepository();
 
@@ -10,7 +8,7 @@ export const useProfileService = () => {
     return await repository.getOne(userId);
   }
 
-  async function updateProfile(userId: string, data: ProfileUpdate) {
+  async function updateProfile(userId: string, data: TProfileUpdate) {
     return await repository.update(userId, data);
   }
 

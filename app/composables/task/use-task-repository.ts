@@ -1,0 +1,112 @@
+import type {
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+} from "~/types/database.types";
+
+export type TTaskUpdate = TablesUpdate<"tasks">;
+export type TTaskInsert = TablesInsert<"tasks">;
+
+export const useTaskRepository = () => {
+  const supabase = useSupabaseClient();
+  const fromTable = "tasks";
+
+  async function getOne(id: string) {
+    const { data } = await supabase
+      .from(fromTable)
+      .select(`*, tag:tag_id(*)`)
+      .eq("id", id)
+      .maybeSingle()
+      .throwOnError();
+    return data as TTask;
+  }
+
+  async function insert(task: TTaskInsert) {
+    const { data } = await supabase
+      .from(fromTable)
+      .insert(task)
+      .select(`*, tag:tag_id(*)`)
+      .maybeSingle()
+      .throwOnError();
+    return data as TTask;
+  }
+
+  async function update(id: string, task: TTaskUpdate) {
+    const { data } = await supabase
+      .from(fromTable)
+      .update(task)
+      .eq("id", id)
+      .select(`*, tag:tag_id(*)`)
+      .maybeSingle()
+      .throwOnError();
+    return data;
+  }
+
+  async function archive(id: string) {
+    const { error } = await supabase
+      .from(fromTable)
+      .update({ archived: true })
+      .eq("id", id)
+      .throwOnError();
+    return error;
+  }
+
+  async function unarchive(id: string) {
+    const { error } = await supabase
+      .from(fromTable)
+      .update({ archived: false })
+      .eq("id", id)
+      .throwOnError();
+    return error;
+  }
+
+  async function listByPomodoroId(pomodoroId: number) {
+    const { data } = await supabase
+      .from(fromTable)
+      .select(`*, tag:tag_id(*)`)
+      .eq("pomodoro_id", pomodoroId)
+      .eq("archived", false)
+      .order("created_at", { ascending: true })
+      .throwOnError();
+    return data;
+  }
+
+  type ListByUserIdParams = {
+    archived: boolean;
+  };
+  async function listByUserId({ archived }: ListByUserIdParams) {
+    const query = supabase.from(fromTable).select(`*, tag:tag_id(*)`);
+
+    if (!archived) {
+      query.eq("archived", false);
+    }
+
+    const { data } = await query
+      // .order("created_at", { ascending: false })
+      .throwOnError();
+    return data as TTask[];
+  }
+
+  async function search(query: string, userId: string) {
+    const { data } = await supabase
+      .from(fromTable)
+      .select(`*, tag:tag_id(*)`)
+      .eq("user_id", userId)
+      .eq("archived", false)
+      .ilike("title", `%${query}%`)
+      .limit(10)
+      .throwOnError();
+    return data as TTask[];
+  }
+
+  return {
+    getOne,
+    insert,
+    update,
+    archive,
+    unarchive,
+    listByPomodoroId,
+    listByUserId,
+    search,
+  };
+};

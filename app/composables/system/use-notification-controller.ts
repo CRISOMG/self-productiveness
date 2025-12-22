@@ -12,13 +12,14 @@ export const useNotificationController = () => {
   );
 
   async function requestPermission() {
-    if (!isSupported.value) return false;
+    if (!isSupported.value || !profile.value?.settings?.notificationsEnabled)
+      return false;
 
     const result = await Notification.requestPermission();
     permission.value = result;
 
     // Sync permission status to settings if profile exists
-    if (profile.value && result === "granted") {
+    if (result === "granted") {
       await updateSettings({ notificationsEnabled: true });
     }
 

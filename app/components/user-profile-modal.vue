@@ -38,20 +38,6 @@
                 Change Password
               </ULink>
             </div>
-
-            <div class="mt-4">
-              <UFormField
-                label="Webhook URL"
-                help="URL to notify when a pomodoro finishes"
-              >
-                <UInput
-                  v-model="webhookUrl"
-                  placeholder="https://your-webhook.com"
-                  icon="i-lucide-webhook"
-                  class="w-full"
-                />
-              </UFormField>
-            </div>
           </div>
         </div>
       </template>

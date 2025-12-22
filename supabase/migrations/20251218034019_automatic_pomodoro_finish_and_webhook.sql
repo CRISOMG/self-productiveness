@@ -1,6 +1,3 @@
--- Alter expected_end to allow NULL values
-ALTER TABLE public.pomodoros ALTER COLUMN expected_end DROP NOT NULL;
-ALTER TABLE public.pomodoros ALTER COLUMN expected_end SET DEFAULT NULL;
 
 -- Function to calculate timelapse in seconds based on toggle_timeline
 CREATE OR REPLACE FUNCTION public.calculate_pomodoro_timelapse_sql(
@@ -149,3 +146,9 @@ CREATE TRIGGER trigger_pomodoro_finished_webhook
 AFTER UPDATE ON public.pomodoros
 FOR EACH ROW
 EXECUTE FUNCTION public.handle_pomodoro_finished_webhook();
+
+
+-- Alter expected_end to allow NULL values
+SET lock_timeout = '5s';
+ALTER TABLE public.pomodoros ALTER COLUMN expected_end DROP NOT NULL;
+ALTER TABLE public.pomodoros ALTER COLUMN expected_end SET DEFAULT NULL;

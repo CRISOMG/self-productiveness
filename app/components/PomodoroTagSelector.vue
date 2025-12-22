@@ -42,9 +42,10 @@ import type { InputMenuItem } from "@nuxt/ui";
 import { useTagController } from "~/composables/tag/use-tag-controller";
 import type { Tag } from "~/types/Pomodoro";
 
-const props = defineProps<{
-  initialTags?: Tag["Row"][];
-}>();
+const tags = defineModel<Tag[]>("tags", {
+  type: Array as () => Tag[],
+  default: () => [],
+});
 
 const emit = defineEmits<{
   (e: "add", tagId: number): void;
@@ -60,7 +61,7 @@ onMounted(() => {
 // Proxy to manage validation and transformation between UI items and Tag Rows used by parent
 const selected = computed({
   get: () => {
-    return (props.initialTags || []).map((t) => ({
+    return (tags.value || []).map((t) => ({
       id: t.id, // For 'by' comparison
       label: t.label, // For display
       tag_data: t, // Consistent structure
@@ -71,7 +72,7 @@ const selected = computed({
     // However, since UInputMenu with 'multiple' updates the whole array,
     // we need to diff against current props to see what changed.
 
-    const oldIds = (props.initialTags || []).map((t) => t.id);
+    const oldIds = (tags.value || []).map((t) => t.id);
     const newItems = newVal || [];
     const newIds = newItems.map((t) => t.id);
 
@@ -89,9 +90,7 @@ const selected = computed({
     });
 
     // 2. Find removed items
-    const removed = (props.initialTags || []).filter(
-      (t) => !newIds.includes(t.id)
-    );
+    const removed = (tags.value || []).filter((t) => !newIds.includes(t.id));
     removed.forEach((t) => emit("remove", t.id));
   },
 });

@@ -7,17 +7,18 @@
   >
     <template #body>
       <div class="flex h-[85vh] p-0">
-        <TimeGrid :pomodoros="(pomodorosListToday as TPomodoro[])" />
+        <TimeGrid
+          :pomodoros="(pomodoroController.pomodorosListToday as TPomodoro[])"
+        />
       </div>
     </template>
   </UModal>
 </template>
 
 <script setup lang="ts">
-import { usePomodoroStoreRefs } from "~/stores/pomodoro";
 import type { TPomodoro } from "~/types/Pomodoro";
 
-const { pomodorosListToday } = usePomodoroStoreRefs();
+const pomodoroController = usePomodoroController();
 
 const isOpen = defineModel<boolean>({ default: false });
 </script>

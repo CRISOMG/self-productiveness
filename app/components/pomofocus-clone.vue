@@ -9,7 +9,8 @@
             @click="handlePomodoroTypeChange(PomodoroType.FOCUS)"
             class="cursor-pointer text-md p-2 py-1 rounded-md select-none"
             :class="{
-              'bg-black/20': currentPomodoroType === PomodoroType.FOCUS,
+              'bg-black/20':
+                pomodoroController.currPomodoro?.type === PomodoroType.FOCUS,
             }"
           >
             Pomodoro
@@ -18,7 +19,8 @@
             @click="handlePomodoroTypeChange(PomodoroType.BREAK)"
             class="cursor-pointer text-md p-2 py-1 rounded-md select-none"
             :class="{
-              'bg-black/20': currentPomodoroType === PomodoroType.BREAK,
+              'bg-black/20':
+                pomodoroController.currPomodoro?.type === PomodoroType.BREAK,
             }"
           >
             Short Break
@@ -27,7 +29,9 @@
             @click="handlePomodoroTypeChange(PomodoroType.LONG_BREAK)"
             class="cursor-pointer text-md p-2 py-1 rounded-md select-none"
             :class="{
-              'bg-black/20': currentPomodoroType === PomodoroType.LONG_BREAK,
+              'bg-black/20':
+                pomodoroController.currPomodoro?.type ===
+                PomodoroType.LONG_BREAK,
             }"
           >
             Long Break
@@ -69,55 +73,86 @@
             />
           </div>
         </div>
+        <div>
+          <div class="flex gap-1 items-center">
+            <div class="flex items-center gap-1">
+              <UTooltip text="Manage Tag">
+                <UButton
+                  :disabled="
+                    (pomodoroController.currPomodoro?.tags?.length || 0) > 10
+                  "
+                  icon="i-lucide-tag"
+                  size="xs"
+                  variant="ghost"
+                  color="neutral"
+                  @click="
+                    manageTagModal = true;
+                    modalSelectedTask = task;
+                  "
+                />
+              </UTooltip>
+            </div>
+            <div
+              class="flex items-center gap-1"
+              v-if="pomodoroController.currPomodoro?.tags"
+            >
+              <UBadge
+                v-for="tag in pomodoroController.currPomodoro.tags"
+                :key="tag.id"
+                size="sm"
+                variant="soft"
+              >
+                {{ tag.label }}
+              </UBadge>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="flex justify-center mt-4">
       <p>Today Completed #{{ pomodoroFocusCompletedToday }}</p>
     </div>
-    <div class="max-w-sm w-full mt-4">
-      <div class="flex items-center justify-between p-1">
-        <p class="text-lg">Tags</p>
-        <div>
-          <UPopover>
-            <UButton icon="i-lucide-menu" color="neutral" variant="outline" />
+    <div class="max-w-sm w-full">
+      <div class="mt-4">
+        <div class="flex items-center justify-between p-1">
+          <p class="text-lg">Tasks</p>
+          <div>
+            <UPopover>
+              <UButton icon="i-lucide-menu" color="neutral" variant="outline" />
 
-            <template #content>
-              <div class="p-2">
-                <UCheckbox
-                  v-model="keepTags"
-                  label="Keep tags"
-                  alt="Keep tags between pomodoros"
-                />
-              </div>
-            </template>
-          </UPopover>
+              <template #content>
+                <div class="p-2">
+                  <UCheckbox
+                    v-model="taskController.showArchivedTasks.value"
+                    label="Show archived tasks"
+                    alt="Show archived tasks"
+                  />
+                </div>
+              </template>
+            </UPopover>
+          </div>
         </div>
+        <USeparator class="mt-4" />
+        <TaskContainer class="mt-4" />
+        <ManageTagsModal v-model:open="manageTagModal" multiple />
       </div>
-      <USeparator />
-      <PomodoroTagSelector
-        class="mt-4"
-        :initial-tags="currPomodoro?.tags || []"
-        @add="handleAddTag"
-        @remove="handleRemoveTag"
-      />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { usePomodoroStoreRefs } from "~/stores/pomodoro";
-import type { TPomodoro } from "~/types/Pomodoro";
+const pomodoroController = usePomodoroController();
+const taskController = useTaskController();
 
-const { pomodorosListToday } = usePomodoroStoreRefs();
-
-const keepTags = useKeepSelectedTags();
+const manageTagModal = ref(false);
+const modalSelectedTask = ref<TTask>({} as TTask);
 
 const pomodoroFocusCompletedToday = computed(() => {
-  if (!pomodorosListToday.value) {
+  if (!pomodoroController.pomodorosListToday) {
     return 0;
   }
 
-  const pl = pomodorosListToday.value;
+  const pl = pomodoroController.pomodorosListToday;
   return pl.filter(
     (p) => p.type === PomodoroType.FOCUS && p.state == PomodoroState.FINISHED
   ).length;
@@ -125,29 +160,24 @@ const pomodoroFocusCompletedToday = computed(() => {
 
 const pomodoroBottonIsPlay = ref(true);
 
-const currentPomodoroType = ref<keyof typeof TagEnumByType>(PomodoroType.FOCUS);
-
 const {
   handleStartPomodoro,
   handlePausePomodoro,
   handleSkipPomodoro,
   handleFinishPomodoro,
   handleListPomodoros,
-  handleAddTag,
-  handleRemoveTag,
   handleSelectPomodoro,
-  currPomodoro,
   timeController,
 } = usePomodoroController();
 
-const currentPomodoroId = computed(() => currPomodoro.value?.id);
+const currentPomodoroId = computed(() => pomodoroController.currPomodoro?.id);
 
 watch(currentPomodoroId, () => {
   handleListPomodoros();
 });
 
 const handlePomodoroTypeChange = (type: keyof typeof TagEnumByType) => {
-  if (currPomodoro.value?.type === type) {
+  if (pomodoroController.currPomodoro?.type === type) {
     return alert("You are already in " + type);
   }
   handleFinishPomodoro({
@@ -160,8 +190,12 @@ const handlePomodoroTypeChange = (type: keyof typeof TagEnumByType) => {
 
 defineShortcuts({
   " ": () => {
-    if (currPomodoro.value?.state !== "current") {
-      handleStartPomodoro(props.user_id, currPomodoro.value?.type, "current");
+    if (pomodoroController.currPomodoro?.state !== "current") {
+      handleStartPomodoro(
+        props.user_id,
+        pomodoroController.currPomodoro?.type,
+        "current"
+      );
       pomodoroBottonIsPlay.value = false;
     } else {
       handlePausePomodoro();
@@ -187,18 +221,17 @@ const props = defineProps({
 });
 
 watch(
-  currPomodoro,
+  () => pomodoroController.currPomodoro,
   () => {
-    if (currPomodoro.value?.type) {
-      currentPomodoroType.value = currPomodoro.value.type;
-    }
-
-    if (currPomodoro.value?.state === "current") {
+    if (pomodoroController.currPomodoro?.state === "current") {
       pomodoroBottonIsPlay.value = false;
     } else {
       pomodoroBottonIsPlay.value = true;
     }
-    localStorage.setItem("currPomodoro", JSON.stringify(currPomodoro.value));
+    localStorage.setItem(
+      "currPomodoro",
+      JSON.stringify(pomodoroController.currPomodoro)
+    );
   },
   { deep: true }
 );

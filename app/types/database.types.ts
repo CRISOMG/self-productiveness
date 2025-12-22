@@ -229,8 +229,8 @@ export type Database = {
           description: string | null
           done: boolean | null
           id: string
-          pomodoro_id: number
-          tag_id: number
+          pomodoro_id: number | null
+          tag_id: number | null
           title: string
           updated_at: string | null
           user_id: string
@@ -241,8 +241,8 @@ export type Database = {
           description?: string | null
           done?: boolean | null
           id?: string
-          pomodoro_id: number
-          tag_id: number
+          pomodoro_id?: number | null
+          tag_id?: number | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -253,8 +253,8 @@ export type Database = {
           description?: string | null
           done?: boolean | null
           id?: string
-          pomodoro_id?: number
-          tag_id?: number
+          pomodoro_id?: number | null
+          tag_id?: number | null
           title?: string
           updated_at?: string | null
           user_id?: string

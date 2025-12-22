@@ -1,6 +1,6 @@
 import { useProfileService } from "./use-profile-service";
 import { useSuccessErrorToast } from "../use-success-error-toast";
-import type { Database } from "~/types/database.types";
+import type { Database, Tables } from "~/types/database.types";
 
 export const useProfileController = () => {
   const service = useProfileService();
@@ -8,9 +8,7 @@ export const useProfileController = () => {
   const user = useSupabaseUser();
 
   // Use useState for shared state across components, similar to a store
-  const profile = useState<
-    Database["public"]["Tables"]["profiles"]["Row"] | null
-  >("user_profile", () => null);
+  const profile = useState<TProfile | null>("user_profile", () => null);
   const loading = useState<boolean>("profile_loading", () => false);
 
   async function handleGetProfile() {
@@ -31,12 +29,7 @@ export const useProfileController = () => {
     }
   }
 
-  async function handleUpdateProfile(data: {
-    username?: string;
-    fullname?: string;
-    avatar_url?: string;
-    settings?: Record<string, any>;
-  }) {
+  async function handleUpdateProfile(data: TProfileUpdate) {
     if (!user.value) return;
     loading.value = true;
     try {

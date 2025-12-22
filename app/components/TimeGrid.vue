@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, nextTick } from "vue";
 import { storeToRefs } from "pinia";
-import { usePomodoroStore } from "~/stores/pomodoro";
-import type { Pomodoro, TPomodoro } from "~/types/Pomodoro";
+import type { TPomodoro } from "~/types/Pomodoro";
 const currHour = ref(new Date().getHours());
-const pomodoroStore = usePomodoroStore();
-const pomodoroStoreRefs = storeToRefs(pomodoroStore);
+const pomodoroController = usePomodoroController();
 
 const elementToScrollRef = ref<HTMLElement | null>(null);
 
@@ -150,13 +148,13 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
         }"
       >
         <span
-          class="text-sm text-gray-400 ml-2 -mt-[10px] bg-white dark:bg-gray-900 px-1 z-[99999]"
+          class="text-sm text-gray-400 ml-2 -mt-[10px] bg-white dark:bg-gray-900 px-1 z-99999"
         >
           {{ formatHour(hour) }}
         </span>
       </div>
       <div
-        class="z-[99999] absolute h-0 w-full rounded-sm border border-red-500 flex flex-row justify-left transition-all hover:shadow-md"
+        class="z-99999 absolute h-0 w-full rounded-sm border border-red-500 flex flex-row justify-left transition-all hover:shadow-md"
         :style="{
           top: `calc(${caclTop(
             new Date().getHours(),
@@ -165,7 +163,7 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
         }"
       >
         <span
-          class="z-[99999] dark:bg-gray-900 absolute -top-[10px] select-none text-sm mx-2.5 text-red-500 dark:text-red-400"
+          class="z-99999 dark:bg-gray-900 absolute -top-[10px] select-none text-sm mx-2.5 text-red-500 dark:text-red-400"
         >
           {{ new Date().toLocaleTimeString().slice(0, 5) }}
         </span>
@@ -191,7 +189,7 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
             <span
               class="relative -top-[10px] select-none text-sm mx-1"
               :class="{
-                '!text-transparent': getPomodoroHeight(pomodoro) <= 10,
+                'text-transparent!': getPomodoroHeight(pomodoro) <= 10,
                 'text-primary-500 dark:text-primary-400':
                   pomodoro.type === 'focus',
                 'text-secondary-700 dark:text-secondary-300':
@@ -203,7 +201,7 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
             <!-- <span
               class="relative -bottom-[10px] select-none text-sm mx-1"
               :class="{
-                '!text-transparent': getPomodoroHeight(pomodoro) <= 10,
+                'text-transparent!': getPomodoroHeight(pomodoro) <= 10,
                 'text-primary-500 dark:text-primary-400':
                   pomodoro.type === 'focus',
                 'text-secondary-700 dark:text-secondary-300':
@@ -221,7 +219,7 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
             <div
               class="truncate select-none text-sm mx-1"
               :class="{
-                '!text-transparent': getPomodoroHeight(pomodoro) <= 10,
+                'text-transparent!': getPomodoroHeight(pomodoro) <= 10,
                 'text-primary-700 dark:text-primary-300':
                   pomodoro.type === 'focus',
                 'text-secondary-700 dark:text-secondary-300':
@@ -247,7 +245,7 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
             <div
               class="truncate select-none text-md font-medium"
               :class="{
-                '!text-transparent': getPomodoroHeight(pomodoro) <= 10,
+                'text-transparent!': getPomodoroHeight(pomodoro) <= 10,
                 'text-primary-700 dark:text-primary-300':
                   pomodoro.type === 'focus',
                 'text-secondary-700 dark:text-secondary-300':

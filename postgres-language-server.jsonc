@@ -1,23 +1,47 @@
 {
   "$schema": "https://pg-language-server.com/0.18.0/schema.json",
   "extends": [],
+  "migrations": {
+    "migrationsDir": "supabase/migrations"
+  },
   "vcs": {
-    "enabled": false,
+    "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": false
   },
   "files": {
+    "include": [
+      "**/*.sql",
+      "./supabase/**/*.sql",
+      "**/*.plpgsql"
+    ],
     "ignore": []
   },
   "linter": {
+    "include": [
+      "**/*.sql",
+      "./supabase/**/*.sql",
+      "**/*.plpgsql"
+    ],
     "enabled": true,
     "rules": {
       "recommended": true
     }
   },
-  "typecheck": {},
-  "plpgsqlCheck": {},
+  "typecheck": {
+    "searchPath": [
+      "public",
+      "app_*",
+      "auth"
+    ]
+  },
+  "plpgsqlCheck": {
+    "enabled": true
+  },
   "db": {
-    "connectionString": "postgresql://postgres:postgres@127.0.0.1:54322/postgres?sslmode=disable"
+    "connectionString": "postgresql://postgres:postgres@127.0.0.1:54322/postgres",
+    "allowStatementExecutionsAgainst": [
+      "localhost/*"
+    ]
   }
 }
