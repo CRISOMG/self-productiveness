@@ -338,7 +338,7 @@ begin
 end;
 $$ language plpgsql;
 
-CREATE OR REPLACE FUNCTION set_tasks_done_at()
+CREATE OR REPLACE FUNCTION public.set_tasks_done_at()
 RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.done IS DISTINCT FROM OLD.done THEN
@@ -352,7 +352,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 -- Also for initial inserts if done starts as true
-CREATE OR REPLACE FUNCTION set_tasks_done_at_insert()
+CREATE OR REPLACE FUNCTION public.set_tasks_done_at_insert()
 RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.done = true THEN
@@ -366,13 +366,13 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER tasks_done_at_trigger
 BEFORE UPDATE OF done ON "public"."tasks"
 FOR EACH ROW
-EXECUTE FUNCTION set_tasks_done_at();
+EXECUTE FUNCTION public.set_tasks_done_at();
 
 
 CREATE TRIGGER tasks_done_at_insert_trigger
 BEFORE INSERT ON "public"."tasks"
 FOR EACH ROW
-EXECUTE FUNCTION set_tasks_done_at_insert();
+EXECUTE FUNCTION public.set_tasks_done_at_insert();
 
 create trigger tr_sync_task_keep
 after update of keep on public.tasks
@@ -412,11 +412,13 @@ execute function public.carry_over_keep_tasks();
 -- Let's stick to INSERT for 'carry over' logic as explicitly requested "with the following pomodoro created".
 
 
+-- -----------------------------------------------------------------------------
+-- 2. Webhook: Task Done
+-- -----------------------------------------------------------------------------
 
+-- Function to handle the webhook when a task is marked as done
 CREATE OR REPLACE FUNCTION public.handle_task_done_webhook()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
+RETURNS trigger AS $$
 DECLARE
     v_webhook_url text;
 BEGIN
@@ -449,8 +451,22 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-$function$
-;
+$$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_task_done_webhook AFTER UPDATE ON public.tasks FOR EACH ROW EXECUTE FUNCTION public.handle_task_done_webhook();
+-- Trigger definition
+-- Drop trigger if exists to allow re-runnability/updates
+DROP TRIGGER IF EXISTS trigger_task_done_webhook ON public.tasks;
 
+CREATE TRIGGER trigger_task_done_webhook
+AFTER UPDATE ON public.tasks
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_task_done_webhook();
+
+
+CREATE OR REPLACE TRIGGER "on_auth_user_created" AFTER INSERT ON "auth"."users" FOR EACH ROW EXECUTE FUNCTION public."handle_new_user"();
+
+DROP TRIGGER IF EXISTS on_auth_user_password_update ON auth.users;
+CREATE TRIGGER on_auth_user_password_update
+AFTER UPDATE OF encrypted_password ON auth.users
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_user_password_update();
