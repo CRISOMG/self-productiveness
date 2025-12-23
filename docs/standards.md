@@ -54,7 +54,7 @@ Estas definiciones aplican a cualquier tarea a menos que la tarea especifique lo
 
 ### S2 rls policy check
 * Enabling Row Level Security
-You can enable RLS for any table using the enable row level security clause:
+* You can enable RLS for any table using the enable row level security clause:
 ```
 alter table "table_name" enable row level security;
 ```
@@ -75,3 +75,11 @@ is always false in SQL.
 To avoid confusion and make your intention clear, we recommend explicitly checking for authentication:
 
 USING (auth.uid() IS NOT NULL AND auth.uid() = user_id)
+
+### S3 Pomodoro-Task Relationship
+* **Many-to-Many Relationship:** We use a dedicated table `pomodoros_tasks` to link Tasks and Pomodoros. This allows tracking which tasks were "Assigned" or "Active" during specific Pomodoro sessions for historical analysis and metrics.
+* **Transition Logic (Carry Over - 'keep' property):** The "Assign to current Pomodoro" feature is powered by a persistent `keep` boolean column in the `tasks` table.
+    * **Syncing:** When `keep` is enabled for a task, a database trigger automatically assigns it to the current active Pomodoro in `pomodoros_tasks`.
+    * **Carry Over:** When a new Pomodoro is created (started), a database trigger automatically copies all tasks with `keep = true` (that are not done/archived) to the new Pomodoro.
+    * **Reset:** Tasks marked as done or archived automatically have `keep` reset to `false`.
+This logic ensures data integrity via the database rather than relying on frontend state.

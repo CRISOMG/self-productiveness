@@ -3,7 +3,7 @@
     <!-- #regiond List of Tasks -->
     <div class="w-full max-w-sm mb-4 gap-2 flex flex-col">
       <div
-        v-for="task in taskController.tasks.value"
+        v-for="task in sortedTasks"
         :key="task.id"
         class="flex flex-row p-3 border rounded-md shadow-sm gap-2"
         :class="{ 'opacity-50': task.done }"
@@ -21,16 +21,18 @@
         </div>
         <div class="flex flex-col w-full">
           <div class="flex items-start justify-between">
-            <div class="flex items-center gap-2">
-              <span :class="{ 'line-through ': task.done }" class="font-medium">
-                {{ task.title }}
-              </span>
+            <div class="w-60 text-wrap whitespace-normal wrap-anywhere">
+              <p
+                class="flex flex-wrap whitespace-normal text-wrap font-medium"
+                :class="{ 'line-through ': task.done }"
+                v-text="task.title"
+              ></p>
             </div>
 
             <div class="flex gap-1">
               <UTooltip
                 :text="
-                  task.pomodoro_id
+                  task.keep
                     ? 'Unassign from current Pomodoro'
                     : 'Assign to current Pomodoro'
                 "
@@ -39,10 +41,10 @@
                   :disabled="task.done!"
                   icon="i-lucide-timer"
                   size="xs"
-                  :variant="task.pomodoro_id ? 'solid' : 'ghost'"
-                  :color="task.pomodoro_id ? 'success' : 'neutral'"
+                  :variant="task.keep ? 'solid' : 'ghost'"
+                  :color="task.keep ? 'success' : 'neutral'"
                   @click="
-                    task.pomodoro_id
+                    task.keep
                       ? taskController.handleUnassignPomodoro(task.id)
                       : taskController.handleAssignPomodoro(task.id)
                   "
@@ -180,6 +182,24 @@ import { usePomodoroController } from "~/composables/pomodoro/use-pomodoro-contr
 const taskController = useTaskController();
 const tagController = useTagController();
 const { currPomodoro } = usePomodoroController();
+
+const sortedTasks = computed(() => {
+  return [...taskController.tasks.value].sort((a, b) => {
+    // 1. Assigned to Current Pomodoro (keep=true) (First)
+    const aAssigned = a.keep;
+    const bAssigned = b.keep;
+
+    if (aAssigned && !bAssigned) return -1;
+    if (!aAssigned && bAssigned) return 1;
+
+    // 2. Not Done (Middle) vs Done (Last)
+    if (a.done && !b.done) return 1;
+    if (!a.done && b.done) return -1;
+
+    // 3. Default (Created At desc or similar, assuming list is already sorted)
+    return 0;
+  });
+});
 
 const createTaskModal = ref(false);
 const manageTagModal = ref(false);

@@ -168,6 +168,45 @@ export type Database = {
           },
         ]
       }
+      pomodoros_tasks: {
+        Row: {
+          created_at: string
+          id: number
+          pomodoro_id: number
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          pomodoro_id: number
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          pomodoro_id?: number
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pomodoros_tasks_pomodoro_id_fkey"
+            columns: ["pomodoro_id"]
+            isOneToOne: false
+            referencedRelation: "pomodoros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pomodoros_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -228,7 +267,9 @@ export type Database = {
           created_at: string | null
           description: string | null
           done: boolean | null
+          done_at: string | null
           id: string
+          keep: boolean | null
           pomodoro_id: number | null
           tag_id: number | null
           title: string
@@ -240,7 +281,9 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           done?: boolean | null
+          done_at?: string | null
           id?: string
+          keep?: boolean | null
           pomodoro_id?: number | null
           tag_id?: number | null
           title: string
@@ -252,7 +295,9 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           done?: boolean | null
+          done_at?: string | null
           id?: string
+          keep?: boolean | null
           pomodoro_id?: number | null
           tag_id?: number | null
           title?: string

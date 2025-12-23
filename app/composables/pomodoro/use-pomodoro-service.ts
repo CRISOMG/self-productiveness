@@ -206,12 +206,28 @@ export const usePomodoroService = () => {
     return await pomodoroRepository.removeTag(pomodoroId, tagId);
   }
 
+  async function addTaskToPomodoro(
+    pomodoroId: number,
+    taskId: string,
+    userId: string
+  ) {
+    return await pomodoroRepository.addTask(pomodoroId, taskId, userId);
+  }
+
+  async function removeTaskFromPomodoro(pomodoroId: number, taskId: string) {
+    return await pomodoroRepository.removeTask(pomodoroId, taskId);
+  }
+
   async function listToday() {
     return await pomodoroRepository.listToday();
   }
 
   async function getCurrentPomodoro() {
     return await pomodoroRepository.getCurrentPomodoro();
+  }
+
+  async function getTaskIdsFromPomodoro(pomodoroId: number) {
+    return await pomodoroRepository.getTaskIds(pomodoroId);
   }
 
   async function update(pomodoroId: number, data: Partial<TPomodoro>) {
@@ -238,5 +254,8 @@ export const usePomodoroService = () => {
     getCurrentPomodoro,
     update,
     getOne,
+    addTaskToPomodoro,
+    removeTaskFromPomodoro,
+    getTaskIdsFromPomodoro,
   };
 };

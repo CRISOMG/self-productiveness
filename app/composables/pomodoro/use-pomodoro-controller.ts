@@ -1,4 +1,5 @@
 import { useNotificationController } from "../system/use-notification-controller";
+import { useTaskController } from "../task/use-task-controller";
 import type { TimelineEvent, TPomodoro } from "~/types/Pomodoro";
 import {
   calculatePomodoroTimelapse,
@@ -10,7 +11,6 @@ import { useBroadcastPomodoro } from "./use-broadcast-pomodoro";
 
 export const usePomodoroController = defineStore("pomodoro", () => {
   //#region DEPENDENCIES
-  const selectedTags = useSelectedTags();
   const keepTags = useKeepSelectedTags();
 
   const currPomodoro = ref<TPomodoro | null>(null);
@@ -18,6 +18,8 @@ export const usePomodoroController = defineStore("pomodoro", () => {
   const loadingPomodoros = ref<boolean>(false);
 
   const pomodoroService = usePomodoroService();
+  // const taskController = useTaskController(); // Removed dependency as logic moved to DB triggers
+
   const timeController = useTimer();
   const toast = useSuccessErrorToast();
   const notificationController = useNotificationController();
@@ -271,11 +273,11 @@ export const usePomodoroController = defineStore("pomodoro", () => {
       const nextPomodoro = await pomodoroService.createNextPomodoro({
         user_id: currPomodoro.value.user_id,
       });
-      currPomodoro.value = nextPomodoro;
 
-      // Aplicar tags persistentes
-      if (keepTags.value) {
-        for (const tag of selectedTags.value) {
+      const selectedTags = currPomodoro.value?.tags || [];
+      currPomodoro.value = nextPomodoro;
+      if (keepTags.value && selectedTags) {
+        for (const tag of selectedTags) {
           await handleAddTag(tag.id);
         }
       }
@@ -408,6 +410,28 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     await handleListPomodoros();
   }
 
+  async function getTaskIdsForCurrentPomodoro() {
+    if (!currPomodoro.value) return [];
+    return await pomodoroService.getTaskIdsFromPomodoro(currPomodoro.value.id);
+  }
+
+  async function addTaskToCurrentPomodoro(taskId: string) {
+    if (!currPomodoro.value) return;
+    return await pomodoroService.addTaskToPomodoro(
+      currPomodoro.value.id,
+      taskId,
+      currPomodoro.value.user_id
+    );
+  }
+
+  async function removeTaskFromCurrentPomodoro(taskId: string) {
+    if (!currPomodoro.value) return;
+    return await pomodoroService.removeTaskFromPomodoro(
+      currPomodoro.value.id,
+      taskId
+    );
+  }
+
   //#endregion
 
   return {
@@ -427,5 +451,8 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     currPomodoro,
     pomodorosListToday,
     loadingPomodoros,
+    getTaskIdsForCurrentPomodoro,
+    addTaskToCurrentPomodoro,
+    removeTaskFromCurrentPomodoro,
   };
 });

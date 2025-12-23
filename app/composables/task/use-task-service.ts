@@ -8,6 +8,7 @@ type CreateTaskParams = {
   userId: string;
   tagId?: number;
   description?: string;
+  keep?: boolean;
 };
 export const useTaskService = () => {
   const repository = useTaskRepository();
@@ -18,6 +19,7 @@ export const useTaskService = () => {
     userId,
     tagId,
     description,
+    keep,
   }: CreateTaskParams) {
     const normalized = normalizeTaskTitle(title);
     if (!isValidTaskTitle(normalized)) {
@@ -31,6 +33,7 @@ export const useTaskService = () => {
       tag_id: (tagId ? tagId : null) as any,
       description: description || null,
       archived: false,
+      keep: keep ?? false,
     });
   }
 

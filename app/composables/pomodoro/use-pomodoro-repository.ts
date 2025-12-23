@@ -161,6 +161,40 @@ export const usePomodoroRepository = () => {
     if (error) throw error;
   }
 
+  async function addTask(pomodoroId: number, taskId: string, userId: string) {
+    const { data } = await supabase
+      .from("pomodoros_tasks")
+      .insert({
+        pomodoro_id: pomodoroId,
+        task_id: taskId,
+        user_id: userId,
+      })
+      .select()
+      .maybeSingle()
+      .throwOnError();
+    return data;
+  }
+
+  async function removeTask(pomodoroId: number, taskId: string) {
+    const { error } = await supabase
+      .from("pomodoros_tasks")
+      .delete()
+      .eq("pomodoro_id", pomodoroId)
+      .eq("task_id", taskId);
+
+    if (error) throw error;
+  }
+
+  async function getTaskIds(pomodoroId: number) {
+    const { data, error } = await supabase
+      .from("pomodoros_tasks")
+      .select("task_id")
+      .eq("pomodoro_id", pomodoroId);
+
+    if (error) throw error;
+    return data.map((t) => t.task_id);
+  }
+
   return {
     insert,
     update,
@@ -170,6 +204,9 @@ export const usePomodoroRepository = () => {
     listToday,
     addTag,
     removeTag,
+    addTask,
+    removeTask,
+    getTaskIds,
   };
 };
 
