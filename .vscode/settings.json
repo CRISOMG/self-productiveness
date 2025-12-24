@@ -20,5 +20,6 @@
   ],
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "workbench.secondarySideBar.defaultVisibility": "hidden"
 }

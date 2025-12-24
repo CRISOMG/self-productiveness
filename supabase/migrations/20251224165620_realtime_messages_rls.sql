@@ -1,6 +1,11 @@
-alter table "public"."pomodoros" alter column "started_at" drop default;
 
-alter table "public"."pomodoros" alter column "started_at" drop not null;
+  create policy "Allow access to own pomodoro sync channel"
+  on "realtime"."messages"
+  as permissive
+  for all
+  to public
+using (((auth.role() = 'authenticated'::text) AND (realtime.topic() = ('pomodoro_sync:'::text || (auth.uid())::text))));
+
 
 
   create policy "Allow broadcasting presences on all channels for authenticated "
