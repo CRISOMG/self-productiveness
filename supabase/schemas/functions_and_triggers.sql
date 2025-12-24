@@ -91,46 +91,10 @@ $$;
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."handle_pomodoro_finished_webhook"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
-    AS $$
-DECLARE
-    v_webhook_url text;
-    v_user_profile record;
-BEGIN
-    -- Only trigger when state changes to finished
-    IF (OLD.state IS DISTINCT FROM 'finished' AND NEW.state = 'finished') THEN
-        
-        -- Get user's webhook_url from profiles
-        SELECT settings->>'webhook_url' INTO v_webhook_url
-        FROM public.profiles
-        WHERE id = NEW.user_id;
-
-        IF v_webhook_url IS NOT NULL AND v_webhook_url <> '' THEN
-            -- Send async webhook using pg_net
-            PERFORM net.http_post(
-                url := v_webhook_url,
-                body := jsonb_build_object(
-                    'event', 'pomodoro.finished',
-                    'pomodoro', jsonb_build_object(
-                        'id', NEW.id,
-                        'type', NEW.type,
-                        'duration', NEW.expected_duration,
-                        'started_at', NEW.started_at,
-                        'finished_at', NEW.finished_at,
-                        'user_id', NEW.user_id
-                    )
-                ),
-                headers := '{"Content-Type": "application/json"}'::jsonb
-            );
-        END IF;
-    END IF;
-    RETURN NEW;
-END;
-$$;
 
 
-ALTER FUNCTION "public"."handle_pomodoro_finished_webhook"() OWNER TO "postgres";
+
+
 
 
 CREATE OR REPLACE FUNCTION "public"."handle_user_password_update"() RETURNS "trigger"
@@ -233,7 +197,7 @@ $$;
 
 ALTER FUNCTION "public"."update_updated_at_column"() OWNER TO "postgres";
 
-CREATE OR REPLACE TRIGGER "trigger_pomodoro_finished_webhook" AFTER UPDATE ON "public"."pomodoros" FOR EACH ROW EXECUTE FUNCTION "public"."handle_pomodoro_finished_webhook"();
+
 
 CREATE OR REPLACE TRIGGER "update_profile_updated_at" BEFORE UPDATE ON "public"."profiles" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
 
@@ -252,9 +216,7 @@ GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."handle_pomodoro_finished_webhook"() TO "anon";
-GRANT ALL ON FUNCTION "public"."handle_pomodoro_finished_webhook"() TO "authenticated";
-GRANT ALL ON FUNCTION "public"."handle_pomodoro_finished_webhook"() TO "service_role";
+
 
 
 

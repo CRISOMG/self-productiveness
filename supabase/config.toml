@@ -58,7 +58,9 @@ schema_paths = [
 "./schemas/tables.sql",
 "./schemas/functions_and_triggers.sql",
 "./schemas/policies.sql",
-"./schemas/storage.sql"
+"./schemas/storage.sql",
+"./schemas/webhooks.sql",
+"./schemas/*.sql"
 ]
 
 [db.seed]
