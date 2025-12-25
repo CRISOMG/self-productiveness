@@ -1,4 +1,3 @@
-import type { Pomodoro, PomodoroCycle, TPomodoro } from "~/types/Pomodoro";
 import {
   hasCycleFinished,
   calculateTimelineFromNow,

@@ -1,9 +1,4 @@
 import type { PostgrestError } from "@supabase/supabase-js";
-import type { Pomodoro, PomodoroCycle, Tag, TPomodoro } from "~/types/Pomodoro";
-import {
-  hasCycleFinished,
-  calculateTimelineFromNow,
-} from "~/utils/pomodoro-domain";
 
 function handleError(error: PostgrestError | null) {
   if (error && error.code !== "PGRST116") {
@@ -33,7 +28,7 @@ export const usePomodoroRepository = () => {
     return data;
   }
 
-  async function insert(pomodoro: Pomodoro) {
+  async function insert(pomodoro: PomodoroInsert) {
     const { data } = await supabase
       .from("pomodoros")
       .insert(pomodoro)

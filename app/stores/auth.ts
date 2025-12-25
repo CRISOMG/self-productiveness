@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import type { Pomodoro } from "~/types/Pomodoro";
 
 export const useAuthStore = defineStore("auth", () => {
   const user = ref<Pomodoro["Row"] | null>(null);

@@ -13,7 +13,7 @@ BEGIN
         AND expected_end IS NOT NULL
         AND expected_end < now();
 END;
-$$;
+$$ SET search_path = public;
 
 
 ALTER FUNCTION "public"."auto_finish_expired_pomodoros"() OWNER TO "postgres";
@@ -53,7 +53,7 @@ BEGIN
     END IF;
     RETURN floor(v_elapsed_decimal);
 END;
-$$;
+$$ SET search_path = public;
 
 
 ALTER FUNCTION "public"."calculate_pomodoro_timelapse_sql"("p_started_at" timestamp with time zone, "p_toggle_timeline" "jsonb", "p_now" timestamp with time zone) OWNER TO "postgres";
@@ -85,7 +85,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$;
+$$ SET search_path = public;
 
 
 ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
@@ -106,7 +106,7 @@ BEGIN
   WHERE id = NEW.id;
   RETURN NEW;
 END;
-$$;
+$$ SET search_path = public;
 
 
 ALTER FUNCTION "public"."handle_user_password_update"() OWNER TO "postgres";
@@ -139,7 +139,7 @@ exception
   when invalid_text_representation then
     return false;
 end;
-$$;
+$$ SET search_path = public;
 
 
 ALTER FUNCTION "public"."is_valid_personal_access_token"() OWNER TO "postgres";
@@ -179,7 +179,7 @@ CREATE OR REPLACE FUNCTION "public"."sync_pomodoro_expected_end"() RETURNS "trig
         
         RETURN NEW;
     END;
-    $$;
+    $$ SET search_path = public;
 
 
 ALTER FUNCTION "public"."sync_pomodoro_expected_end"() OWNER TO "postgres";
@@ -192,7 +192,7 @@ BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$;
+$$ SET search_path = public;
 
 
 ALTER FUNCTION "public"."update_updated_at_column"() OWNER TO "postgres";
@@ -261,7 +261,7 @@ begin
   end if;
   return NEW;
 end;
-$$ language plpgsql;
+$$ language plpgsql SET search_path = public;
 
 create trigger tr_reset_task_keep
 before insert or update of done, archived on public.tasks
@@ -298,7 +298,7 @@ begin
 
   return NEW;
 end;
-$$ language plpgsql;
+$$ language plpgsql SET search_path = public;
 
 CREATE OR REPLACE FUNCTION public.set_tasks_done_at()
 RETURNS TRIGGER AS $$
@@ -322,7 +322,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = public;
 
 -- Trigger to call the function
 CREATE TRIGGER tasks_done_at_trigger
@@ -357,7 +357,7 @@ begin
   on conflict (pomodoro_id, task_id) do nothing;
   return NEW;
 end;
-$$ language plpgsql;
+$$ language plpgsql SET search_path = public;
 
 create trigger tr_carry_over_keep_tasks
 after insert on public.pomodoros
@@ -374,55 +374,7 @@ execute function public.carry_over_keep_tasks();
 -- Let's stick to INSERT for 'carry over' logic as explicitly requested "with the following pomodoro created".
 
 
--- -----------------------------------------------------------------------------
--- 2. Webhook: Task Done
--- -----------------------------------------------------------------------------
 
--- Function to handle the webhook when a task is marked as done
-CREATE OR REPLACE FUNCTION public.handle_task_done_webhook()
-RETURNS trigger AS $$
-DECLARE
-    v_webhook_url text;
-BEGIN
-    -- Only trigger when done status changes from false (or null) to true
-    IF (OLD.done IS DISTINCT FROM true AND NEW.done = true) THEN
-        
-        -- Get user's webhook_url from profiles
-        SELECT settings->>'webhook_url' INTO v_webhook_url
-        FROM public.profiles
-        WHERE id = NEW.user_id;
-
-        IF v_webhook_url IS NOT NULL AND v_webhook_url <> '' THEN
-            -- Send async webhook using pg_net
-            PERFORM net.http_post(
-                url := v_webhook_url,
-                body := jsonb_build_object(
-                    'event', 'task.done',
-                    'task', jsonb_build_object(
-                        'id', NEW.id,
-                        'title', NEW.title,
-                        'description', NEW.description,
-                        'user_id', NEW.user_id,
-                        'done_at', NEW.done_at,
-                        'created_at', NEW.created_at
-                    )
-                ),
-                headers := '{"Content-Type": "application/json"}'::jsonb
-            );
-        END IF;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Trigger definition
--- Drop trigger if exists to allow re-runnability/updates
-DROP TRIGGER IF EXISTS trigger_task_done_webhook ON public.tasks;
-
-CREATE TRIGGER trigger_task_done_webhook
-AFTER UPDATE ON public.tasks
-FOR EACH ROW
-EXECUTE FUNCTION public.handle_task_done_webhook();
 
 
 CREATE OR REPLACE TRIGGER "on_auth_user_created" AFTER INSERT ON "auth"."users" FOR EACH ROW EXECUTE FUNCTION public."handle_new_user"();

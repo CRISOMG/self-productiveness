@@ -280,7 +280,7 @@ BEGIN
                 url := v_webhook_url,
                 body := jsonb_build_object(
                     'event', 'task.done',
-                    'task', jsonb_build_object(
+                    'payload', jsonb_build_object(
                         'id', NEW.id,
                         'title', NEW.title,
                         'description', NEW.description,

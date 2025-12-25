@@ -9,13 +9,14 @@
         "@nuxtjs/i18n": "10.2.1",
         "@nuxtjs/supabase": "2.0.1",
         "@pinia/nuxt": "0.11.3",
-        "@postgrestools/postgrestools": "^0.18.0",
         "@types/jsonwebtoken": "^9.0.10",
+        "@xstate/vue": "^5.0.0",
         "jsonwebtoken": "^9.0.3",
         "nuxt": "^4.2.1",
         "pinia": "^3.0.4",
         "vue": "^3.5.25",
         "vue-router": "^4.6.3",
+        "xstate": "^5.25.0",
         "zod": "^4.1.13",
       },
       "devDependencies": {
@@ -425,22 +426,6 @@
 
     "@poppinss/exception": ["@poppinss/exception@1.2.3", "", {}, "sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw=="],
 
-    "@postgrestools/cli-aarch64-apple-darwin": ["@postgrestools/cli-aarch64-apple-darwin@0.18.0", "", { "os": "darwin", "cpu": "arm64" }, "sha512-5R2eU4cZ9Pt+pHuToG185e4ETGMgkwScCM9HDOT85RrX3YQi5t/EU1agDC29lsM35r5NgvpzfnJPZdt3QvEsIQ=="],
-
-    "@postgrestools/cli-aarch64-linux-gnu": ["@postgrestools/cli-aarch64-linux-gnu@0.18.0", "", { "os": "linux", "cpu": "arm64" }, "sha512-/ht+Bx3+s/yuqTQNkwqKsVBkRPQRAvfFLO2L8UNWxqi8GrtLTm4S1FwGI4zXzuP7+22xSuxpVdN49XQmX16Ezg=="],
-
-    "@postgrestools/cli-aarch64-windows-msvc": ["@postgrestools/cli-aarch64-windows-msvc@0.18.0", "", { "os": "win32", "cpu": "arm64" }, "sha512-T89NhIp8/lmkraR9rPp7dvEJCFsXswh7QG2W1nFV2WHl1cPnzQUt0cN3uxGfnEL7Bfi4yW/jyDMiZwUiGWqtXQ=="],
-
-    "@postgrestools/cli-x86_64-apple-darwin": ["@postgrestools/cli-x86_64-apple-darwin@0.18.0", "", { "os": "darwin", "cpu": "x64" }, "sha512-cT7sSx39s8xVdluJIQlAA8rqgs1h5mbTN25Fe2Dojy82/S7emAXG2RrB7Mt+YsAgx1+ORcVQ3ID6KJMPrY3Enw=="],
-
-    "@postgrestools/cli-x86_64-linux-gnu": ["@postgrestools/cli-x86_64-linux-gnu@0.18.0", "", { "os": "linux", "cpu": "x64" }, "sha512-iNsmyEPyuuN3QPEg4P8VsuhpCCWkWt1ea6qY2TVWuzLNlKSIs8rhDXe+DnoEzV864maYC2FJ/RUVZ42RuicRQQ=="],
-
-    "@postgrestools/cli-x86_64-linux-musl": ["@postgrestools/cli-x86_64-linux-musl@0.18.0", "", { "os": "linux", "cpu": "x64" }, "sha512-3yDqwjTPpWn4ouqQxNOR2+e8ryJN9fq3Bzo3pokLdAN4qsepeQs5ztrek4Jmff+BSc4PrDYc09InGcI+0DukYQ=="],
-
-    "@postgrestools/cli-x86_64-windows-msvc": ["@postgrestools/cli-x86_64-windows-msvc@0.18.0", "", { "os": "win32", "cpu": "x64" }, "sha512-DuHgccICdit8DXsDt9olc94/VuKjcVJxHh+7Z2W4RG1TalnSELSD0mDZBk1vHgGlrDASudDuKW6tudUnpTgeiA=="],
-
-    "@postgrestools/postgrestools": ["@postgrestools/postgrestools@0.18.0", "", { "optionalDependencies": { "@postgrestools/cli-aarch64-apple-darwin": "0.18.0", "@postgrestools/cli-aarch64-linux-gnu": "0.18.0", "@postgrestools/cli-aarch64-windows-msvc": "0.18.0", "@postgrestools/cli-x86_64-apple-darwin": "0.18.0", "@postgrestools/cli-x86_64-linux-gnu": "0.18.0", "@postgrestools/cli-x86_64-linux-musl": "0.18.0", "@postgrestools/cli-x86_64-windows-msvc": "0.18.0" }, "bin": { "postgrestools": "bin/postgrestools" } }, "sha512-/2UuDdou7OyWAqaPv3RaJwzOduMKHWGbrtlAQyQ/qd41sM8a+ccqhq0sxOjyN0n8iNWLsAogWipP/umayc46iw=="],
-
     "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.0-beta.53", "", {}, "sha512-vENRlFU4YbrwVqNDZ7fLvy+JR1CRkyr01jhSiDpE1u6py3OMzQfztQU2jxykW3ALNxO4kSlqIDeYyD0Y9RcQeQ=="],
 
     "@rollup/plugin-alias": ["@rollup/plugin-alias@5.1.1", "", { "peerDependencies": { "rollup": "^1.20.0||^2.0.0||^3.0.0||^4.0.0" }, "optionalPeers": ["rollup"] }, "sha512-PR9zDb+rOzkRb2VD+EuKB7UC41vU5DIwZ5qqCpk0KJudcWAyi8rvYOhS7+L5aZCspw1stTViLgN5v6FF1p5cgQ=="],
@@ -678,6 +663,8 @@
     "@vueuse/metadata": ["@vueuse/metadata@13.9.0", "", {}, "sha512-1AFRvuiGphfF7yWixZa0KwjYH8ulyjDCC0aFgrGRz8+P4kvDFSdXLVfTk5xAN9wEuD1J6z4/myMoYbnHoX07zg=="],
 
     "@vueuse/shared": ["@vueuse/shared@13.9.0", "", { "peerDependencies": { "vue": "^3.5.0" } }, "sha512-e89uuTLMh0U5cZ9iDpEI2senqPGfbPRTHM/0AaQkcxnpqjkZqDYP8rpfm7edOz8s+pOCOROEy1PIveSW8+fL5g=="],
+
+    "@xstate/vue": ["@xstate/vue@5.0.0", "", { "peerDependencies": { "vue": "^3.0.0", "xstate": "^5.20.0" }, "optionalPeers": ["xstate"] }, "sha512-9TyJV4yz5QLJdEU44Ly9LBooEyZmv0nht3qEvDflxXAJmSn1dzaZeESdHFm+ANHtxoUed5jGqH6NT86BusvXQg=="],
 
     "abbrev": ["abbrev@3.0.1", "", {}, "sha512-AO2ac6pjRB3SJmGJo+v5/aK6Omggp6fsLrs6wN9bd35ulu4cCwaAU9+7ZhXjeqHVkaHThLuzH0nZr0YpCDhygg=="],
 
@@ -1762,6 +1749,8 @@
     "ws": ["ws@8.18.3", "", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg=="],
 
     "wsl-utils": ["wsl-utils@0.1.0", "", { "dependencies": { "is-wsl": "^3.1.0" } }, "sha512-h3Fbisa2nKGPxCpm89Hk33lBLsnaGBvctQopaBSOW/uIs6FTe1ATyAnKFJrzVs9vpGdsTe73WF3V4lIsk4Gacw=="],
+
+    "xstate": ["xstate@5.25.0", "", {}, "sha512-yyWzfhVRoTHNLjLoMmdwZGagAYfmnzpm9gPjlX2MhJZsDojXGqRxODDOi4BsgGRKD46NZRAdcLp6CKOyvQS0Bw=="],
 
     "y18n": ["y18n@5.0.8", "", {}, "sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA=="],
 

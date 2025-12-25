@@ -1,5 +1,4 @@
 import { useTagService } from "./use-tag-service";
-import type { Tag } from "~/types/Pomodoro";
 
 export const useSelectedTags = (initial: any[] = []) => {
   return useState<any[]>("selected_tags", () => initial);

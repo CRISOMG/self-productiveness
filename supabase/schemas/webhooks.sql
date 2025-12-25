@@ -36,64 +36,141 @@ CREATE POLICY "Users can view their own webhook traces"
 ON public.webhook_trace 
 FOR SELECT 
 TO authenticated 
-USING (user_id = auth.uid());
+USING (user_id = (select auth.uid()));
 
 
 -- 4. CLEANUP OLD LOGIC (Important to avoid double sending)
 DROP TRIGGER IF EXISTS trigger_pomodoro_finished_webhook ON public.pomodoros;
 DROP FUNCTION IF EXISTS public.handle_pomodoro_finished_webhook();
 
+DROP TRIGGER IF EXISTS trigger_enqueue_pomodoro_finished_webhook ON public.pomodoros;
+DROP FUNCTION IF EXISTS public.handle_enqueue_pomodoro_finished_webhook();
+
+DROP TRIGGER IF EXISTS trigger_task_done_webhook ON public.tasks;
+DROP FUNCTION IF EXISTS public.handle_task_done_webhook();
+
+DROP TRIGGER IF EXISTS trigger_enqueue_task_done_webhook ON public.tasks;
+DROP FUNCTION IF EXISTS public.handle_enqueue_task_done_webhook();
+
 -- 5. Producer Function: Enqueue Event
 -- SECURITY DEFINER: Allows "authenticated" users to insert into PGMQ without direct permissions on pgmq schema
-CREATE OR REPLACE FUNCTION public.encolar_pomodoro_finished()
-RETURNS trigger AS $$
+-- 5. Helper Function: Enqueue generic webhook event
+-- Centralizes logic for fetching URL and sending to PGMQ
+CREATE OR REPLACE FUNCTION public.enqueue_webhook(
+  p_user_id uuid,
+  p_event_type text,
+  p_payload jsonb
+) RETURNS void AS $$
 DECLARE
     v_webhook_url text;
+BEGIN
+    -- Get user webhook URL
+    SELECT settings->>'webhook_url' INTO v_webhook_url
+    FROM public.profiles
+    WHERE id = p_user_id;
+
+    -- If valid URL, enqueue message
+    IF v_webhook_url IS NOT NULL AND v_webhook_url <> '' THEN
+        PERFORM pgmq.send(
+            'pomodoro_webhooks',
+            jsonb_build_object(
+                'url', v_webhook_url,
+                'event', p_event_type,
+                'payload', p_payload,
+                'timestamp', now()
+            )
+        );
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pgmq, extensions;
+
+
+-- 6. Trigger Function: Pomodoro Finished
+CREATE OR REPLACE FUNCTION public.handle_enqueue_pomodoro_finished_webhook()
+RETURNS trigger AS $$
+DECLARE
+  v_tags jsonb;
 BEGIN
     -- Check for state change to 'finished'
     IF (OLD.state IS DISTINCT FROM 'finished' AND NEW.state = 'finished') THEN
         
-        -- Get user webhook URL
-        SELECT settings->>'webhook_url' INTO v_webhook_url
-        FROM public.profiles
-        WHERE id = NEW.user_id;
+        -- Fetch tags associated with the pomodoro
+        SELECT jsonb_agg(jsonb_build_object('id', t.id, 'label', t.label, 'type', t.type))
+        INTO v_tags
+        FROM public.pomodoros_tags pt
+        JOIN public.tags t ON pt.tag = t.id
+        WHERE pt.pomodoro = NEW.id;
 
-        -- If valid URL, enqueue message
-        IF v_webhook_url IS NOT NULL AND v_webhook_url <> '' THEN
-            PERFORM pgmq.send(
-                'pomodoro_webhooks',
-                jsonb_build_object(
-                    'url', v_webhook_url,
-                    'event', 'pomodoro.finished',
-                    'payload', jsonb_build_object(
-                        'id', NEW.id,
-                        'type', NEW.type,
-                        'duration', NEW.expected_duration,
-                        'started_at', NEW.started_at,
-                        'finished_at', NEW.finished_at,
-                        'user_id', NEW.user_id
-                    ),
-                    'timestamp', now()
-                )
-            );
-        END IF;
+        PERFORM public.enqueue_webhook(
+            NEW.user_id,
+            'pomodoro.finished',
+            jsonb_build_object(
+                'id', NEW.id,
+                'type', NEW.type,
+                'duration', NEW.expected_duration,
+                'started_at', NEW.started_at,
+                'finished_at', NEW.finished_at,
+                'user_id', NEW.user_id,
+                'tags', COALESCE(v_tags, '[]'::jsonb)
+            )
+        );
     END IF;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pgmq, extensions;
 
 -- Explicitly set search_path for SECURITY DEFINER safety
-ALTER FUNCTION public.encolar_pomodoro_finished() SET search_path = public, pgmq, extensions;
-
 -- 6. Trigger Definition
-CREATE TRIGGER trigger_encolar_pomodoro_finished
+CREATE TRIGGER trigger_enqueue_pomodoro_finished_webhook
 AFTER UPDATE ON public.pomodoros
 FOR EACH ROW
-EXECUTE FUNCTION public.encolar_pomodoro_finished();
+EXECUTE FUNCTION public.handle_enqueue_pomodoro_finished_webhook();
+
+-- 7. Trigger Function: Task Done
+CREATE OR REPLACE FUNCTION public.handle_enqueue_task_done_webhook()
+RETURNS trigger AS $$
+DECLARE
+  v_tag jsonb;
+BEGIN
+    -- Only trigger when done status changes from false (or null) to true
+    IF (OLD.done IS DISTINCT FROM true AND NEW.done = true) THEN
+        
+        -- Fetch tag if exists
+        IF NEW.tag_id IS NOT NULL THEN
+            SELECT jsonb_build_object('id', t.id, 'label', t.label, 'type', t.type)
+            INTO v_tag
+            FROM public.tags t
+            WHERE t.id = NEW.tag_id;
+        END IF;
+
+        PERFORM public.enqueue_webhook(
+            NEW.user_id,
+            'task.done',
+            jsonb_build_object(
+                'id', NEW.id,
+                'title', NEW.title,
+                'description', NEW.description,
+                'user_id', NEW.user_id,
+                'done_at', NEW.done_at,
+                'created_at', NEW.created_at,
+                'tag', v_tag
+            )
+        );
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pgmq, extensions;
+
+DROP TRIGGER IF EXISTS trigger_enqueue_task_done_webhook ON public.tasks;
+
+CREATE TRIGGER trigger_enqueue_task_done_webhook
+AFTER UPDATE ON public.tasks
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_enqueue_task_done_webhook();
 
 -- 7. Consumer Function: Process Queue
 -- Also SECURITY DEFINER to ensure cron running this has full access
-CREATE OR REPLACE FUNCTION public.procesar_webhooks_pomodoro()
+CREATE OR REPLACE FUNCTION public.process_webhooks()
 RETURNS void AS $$
 DECLARE
   msg RECORD;
@@ -129,7 +206,7 @@ BEGIN
     
   END LOOP;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pgmq, net, extensions;
 
 -- 8. Status View (Observability)
 -- Note: This view accesses protected tables (pgmq, net). 
@@ -159,16 +236,23 @@ ORDER BY A.enqueued_at DESC;
 
 -- Worker 1: Minute 00
 SELECT cron.schedule(
+  'auto-finish-pomodoros',
+  '* * * * *',
+  $$ SELECT public.auto_finish_expired_pomodoros() $$
+);
+
+-- Worker 1: Minute 00
+SELECT cron.schedule(
   'process-webhooks-1',
   '* * * * *',
-  $$ SELECT public.procesar_webhooks_pomodoro() $$
+  $$ SELECT public.process_webhooks() $$
 );
 
 -- Worker 2: Minute 00 + 30s offset
 SELECT cron.schedule(
   'process-webhooks-2',
   '* * * * *',
-  $$ SELECT pg_sleep(30); SELECT public.procesar_webhooks_pomodoro() $$
+  $$ SELECT pg_sleep(30); SELECT public.process_webhooks() $$
 );
 
 -- 10. Auto-Cleanup (Daily)

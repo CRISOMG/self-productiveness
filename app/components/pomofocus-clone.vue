@@ -85,10 +85,7 @@
                   size="xs"
                   variant="ghost"
                   color="neutral"
-                  @click="
-                    manageTagModal = true;
-                    modalSelectedTask = task;
-                  "
+                  @click="manageTagModal = true"
                 />
               </UTooltip>
             </div>
@@ -145,7 +142,6 @@ const pomodoroController = usePomodoroController();
 const taskController = useTaskController();
 
 const manageTagModal = ref(false);
-const modalSelectedTask = ref<TTask>({} as TTask);
 
 const pomodoroFocusCompletedToday = computed(() => {
   if (!pomodoroController.pomodorosListToday) {
@@ -176,7 +172,7 @@ watch(currentPomodoroId, () => {
   handleListPomodoros();
 });
 
-const handlePomodoroTypeChange = (type: keyof typeof TagEnumByType) => {
+const handlePomodoroTypeChange = (type: PomodoroType) => {
   if (pomodoroController.currPomodoro?.type === type) {
     return alert("You are already in " + type);
   }

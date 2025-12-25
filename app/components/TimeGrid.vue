@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, nextTick } from "vue";
 import { storeToRefs } from "pinia";
-import type { TPomodoro } from "~/types/Pomodoro";
 const currHour = ref(new Date().getHours());
 const pomodoroController = usePomodoroController();
 

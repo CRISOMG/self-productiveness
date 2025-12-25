@@ -1,314 +1,113 @@
+import { useMachine } from "@xstate/vue";
 import { useNotificationController } from "../system/use-notification-controller";
-import { useTaskController } from "../task/use-task-controller";
-import type { TimelineEvent, TPomodoro } from "~/types/Pomodoro";
 import {
-  calculatePomodoroTimelapse,
   PomodoroDurationInSecondsByDefaultCycleConfiguration,
   TagIdByType,
-  PomodoroType,
 } from "~/utils/pomodoro-domain";
 import { useBroadcastPomodoro } from "./use-broadcast-pomodoro";
+import type { TPomodoro } from "../types";
+import { createPomodoroMachine } from "./pomodoro.machine";
 
 export const usePomodoroController = defineStore("pomodoro", () => {
   //#region DEPENDENCIES
-  const keepTags = useKeepSelectedTags();
-
-  const currPomodoro = ref<TPomodoro | null>(null);
-  const pomodorosListToday = ref<TPomodoro[] | null>();
-  const loadingPomodoros = ref<boolean>(false);
-
   const pomodoroService = usePomodoroService();
-  // const taskController = useTaskController(); // Removed dependency as logic moved to DB triggers
-
   const timeController = useTimer();
-  const toast = useSuccessErrorToast();
   const notificationController = useNotificationController();
+  const keepTags = useKeepSelectedTags();
+  const toast = useSuccessErrorToast();
+  //#endregion
+
+  //#region STATE
+  const pomodorosListToday = ref<TPomodoro[]>([]);
+  const loadingPomodoros = ref<boolean>(false);
   //#endregion
 
   //#region HELPER FUNCTIONS
-  // Centraliza el cálculo del tiempo restante o timelapse
-  const updateLocalState = (pomodoro: TPomodoro) => {
-    if (!pomodoro.id) return;
-    pomodoro.timelapse = calculatePomodoroTimelapse(
-      pomodoro.started_at || "",
-      pomodoro.toggle_timeline as Array<{
-        at: string;
-        type: "play" | "pause";
-      }>
-    );
-  };
-
-  const computeExpectedEnd = (pomodoro: TPomodoro) => {
-    const duration = (pomodoro as any).expected_duration || 25 * 60;
-    const timelapse = calculatePomodoroTimelapse(
-      pomodoro.started_at,
-      pomodoro.toggle_timeline
-    );
-    return new Date(Date.now() + (duration - timelapse) * 1000).toISOString();
-  };
+  async function handleListPomodoros() {
+    try {
+      loadingPomodoros.value = true;
+      pomodorosListToday.value = await pomodoroService.listToday();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      loadingPomodoros.value = false;
+    }
+  }
   //#endregion
 
   //#region BROADCAST & REALTIME
-  const { broadcastEvent, isMainHandler } = useBroadcastPomodoro({
-    onPlay: (payload: any) => {
-      console.log("pomodoro:play", payload);
-
-      currPomodoro.value!.toggle_timeline = payload.payload.toggle_timeline;
-      currPomodoro.value!.state = "current";
-      updateLocalState(currPomodoro.value!);
-      handleStartTimer();
-    },
-    onPause: (payload: any) => {
-      console.log("pomodoro:pause", payload);
-      if (currPomodoro.value?.id !== payload.payload.id) return;
-
-      currPomodoro.value!.toggle_timeline = payload.payload.toggle_timeline;
-      currPomodoro.value!.state = "paused";
-      updateLocalState(currPomodoro.value!);
-
-      timeController.clearTimer();
-      const remaining =
-        ((currPomodoro.value as any).expected_duration || 25 * 60) -
-        currPomodoro.value!.timelapse;
-      timeController.setClockInSeconds(remaining);
-    },
-    onFinish: (payload: any) => {
-      console.log("pomodoro:finish", payload);
-      handleFinishPomodoro({ withNext: false, broadcast: false }); // Evitar loop infinito de broadcast
-    },
-    onNext: () => getCurrentPomodoro(),
-  });
-  //#endregion
-
-  //#region PERSISTENCE & LIFECYCLE
-  watch(
-    () => currPomodoro.value,
-    (newVal) => {
-      if (newVal) {
-        localStorage.setItem("currPomodoro.value", JSON.stringify(newVal));
-        handleListPomodoros();
+  const broadcastPomodoroController = useBroadcastPomodoro({
+    onPlay: (payload) => {
+      // Only if ID matches or we are idle?
+      if (
+        snapshot.value.context.pomodoro?.id === payload.payload.id ||
+        !snapshot.value.context.pomodoro
+      ) {
+        send({ type: "BROADCAST.PLAY", payload: payload.payload });
       } else {
-        localStorage.removeItem("currPomodoro.value");
+        send({ type: "INIT" });
       }
     },
-    { deep: true }
-  );
-
-  onMounted(async () => {
-    await getCurrentPomodoro();
-    handleListPomodoros();
-    notificationController.requestPermission();
-  });
-
-  onUnmounted(() => {
-    timeController.clearTimer();
-  });
-
-  // Shortcuts
-  defineShortcuts({
-    "t-n": () =>
-      notificationController.notify("Test Notification", { body: "Working!" }),
+    onPause: (payload) => {
+      if (snapshot.value.context.pomodoro?.id === payload.payload.id) {
+        send({ type: "BROADCAST.PAUSE", payload: payload.payload });
+      } else {
+        send({ type: "INIT" });
+      }
+    },
+    onFinish: (payload) => {
+      // If we are handling the same pomodoro
+      if (snapshot.value.context.pomodoro?.id === payload.payload.id) {
+        send({ type: "BROADCAST.FINISH", payload: payload.payload });
+      } else {
+        send({ type: "INIT" });
+      }
+    },
+    onNext: () => {
+      send({ type: "INIT" }); // Just re-fetch
+    },
   });
   //#endregion
 
-  //#region CORE ACTIONS
-  function handleStartTimer() {
-    if (!currPomodoro.value) return;
-    const safePomodoro = currPomodoro.value as TPomodoro;
+  //#region XSTATE MACHINE
+  const pomodoroMachine = createPomodoroMachine({
+    pomodoroService,
+    timeController,
+    notificationController,
+    broadcastPomodoroController,
+    keepTags,
+    handleListPomodoros,
+  });
 
-    timeController.startTimer({
-      expected_end: computeExpectedEnd(safePomodoro),
-      clockStartInMinute:
-        (((safePomodoro as any).expected_duration || 1500) -
-          safePomodoro.timelapse) /
-        60,
+  const { snapshot, send } = useMachine(pomodoroMachine);
 
-      onTick: (remaining) => {
-        if (remaining % 5 === 0) {
-          handleSyncPomodoro();
-        }
-      },
-      onFinish: () => {
-        // 1. Finalizar localmente y crear el siguiente si soy el "Main Handler"
-        handleFinishPomodoro({
-          withNext: isMainHandler.value,
-          broadcast: true,
-        });
+  // Initialize immediately
+  send({ type: "INIT" });
+  handleListPomodoros();
+  //#endregion
 
-        // 2. Notificar al usuario
-        notificationController.notify("Pomodoro finished!", {
-          body: "Time to take a break!",
-          icon: "/favicon.ico",
-          requireInteraction: true,
-        });
-      },
-    });
-  }
-
-  async function getCurrentPomodoro() {
-    const remotePomodoro = await pomodoroService.getCurrentPomodoro();
-
-    // Prioridad: Servidor > LocalStorage (para evitar estados viejos)
-    if (remotePomodoro) {
-      currPomodoro.value = remotePomodoro;
-      updateLocalState(remotePomodoro);
-
-      const remaining =
-        remotePomodoro.expected_duration - remotePomodoro.timelapse;
-
-      if (remaining <= 0) return handleFinishPomodoro();
-
-      timeController.setClockInSeconds(remaining);
-      if (remotePomodoro.state === "current") handleStartTimer();
-    } else {
-      // Limpiar si no hay activo en servidor
-      currPomodoro.value = null;
-    }
-  }
-
+  //#region EXPOSED FUNCTIONS (ACTIONS)
   async function handleStartPomodoro(
     user_id: string,
     type?: string,
     state?: "current" | "paused"
   ) {
-    // Lógica para iniciar o reanudar
-    if (!currPomodoro.value?.id) {
-      // Crear uno nuevo
-      currPomodoro.value = await pomodoroService.startPomodoro({
-        user_id,
-        type: type as any,
-        state,
-      });
-
-      await handleListPomodoros();
+    if (snapshot.value.context.pomodoro) {
+      send({ type: "RESUME" });
     } else {
-      // Reanudar existente (Play)
-      currPomodoro.value = await pomodoroService.registToggleTimelinePomodoro(
-        currPomodoro.value.id,
-        "play"
-      );
-    }
-
-    handleStartTimer();
-
-    if (currPomodoro.value) {
-      broadcastEvent("pomodoro:play", {
-        id: currPomodoro.value.id,
-        toggle_timeline: currPomodoro.value.toggle_timeline,
-        started_at: currPomodoro.value.started_at,
-      });
+      send({ type: "START", inputs: { user_id, type, state } });
     }
   }
 
   async function handlePausePomodoro() {
-    if (!currPomodoro.value) return;
-
-    // Optimistic UI Update: Pausar visualmente antes de que responda el servidor
-    timeController.clearTimer();
-
-    const newEvent: TimelineEvent = {
-      at: new Date().toISOString(),
-      type: "pause",
-    };
-    const newTimeline = [
-      ...(currPomodoro.value.toggle_timeline || []),
-      newEvent,
-    ];
-
-    // Actualizar localmente para reactividad inmediata
-    currPomodoro.value.state = "paused";
-    currPomodoro.value.toggle_timeline = newTimeline;
-
-    // Llamada API
-    const result = await pomodoroService.update(currPomodoro.value.id, {
-      toggle_timeline: newTimeline,
-      state: "paused",
-      expected_end: computeExpectedEnd(currPomodoro.value),
-    });
-
-    currPomodoro.value = result; // Reconciliación con servidor
-
-    broadcastEvent("pomodoro:pause", {
-      id: result.id,
-      toggle_timeline: result.toggle_timeline,
-    });
+    send({ type: "PAUSE" });
   }
-
-  type TFinishParams = {
-    clockInSeconds?: number;
-    withNext?: boolean;
-    broadcast?: boolean;
-  };
 
   async function handleFinishPomodoro({
-    clockInSeconds = 0,
     withNext = false,
     broadcast = true,
-  }: TFinishParams = {}) {
-    if (!currPomodoro.value || currPomodoro.value.state === "finished") return;
-
-    const finishedId = currPomodoro.value.id;
-    currPomodoro.value.state = "finished";
-
-    // Detener timer UI
-    timeController.clearTimer();
-    timeController.setClockInSeconds(clockInSeconds);
-
-    // Guardar en DB
-    await pomodoroService.finishCurrentPomodoro({
-      timelapse: currPomodoro.value.timelapse,
-    });
-
-    if (broadcast) {
-      broadcastEvent("pomodoro:finish", { id: finishedId });
-    }
-
-    // Verificar fin de ciclo
-    if (await pomodoroService.checkIsCurrentCycleEnd()) {
-      await pomodoroService.finishCurrentCycle();
-    }
-
-    // Crear siguiente (generalmente solo el Main Handler hace esto automáticamente)
-    if (withNext) {
-      const nextPomodoro = await pomodoroService.createNextPomodoro({
-        user_id: currPomodoro.value.user_id,
-      });
-
-      const selectedTags = currPomodoro.value?.tags || [];
-      currPomodoro.value = nextPomodoro;
-      if (keepTags.value && selectedTags) {
-        for (const tag of selectedTags) {
-          await handleAddTag(tag.id);
-        }
-      }
-
-      broadcastEvent("pomodoro:next", { id: nextPomodoro.id });
-      timeController.setClockInSeconds(nextPomodoro.expected_duration || 1500);
-    }
-
-    await handleListPomodoros();
-  }
-
-  async function handleAddTag(tagId: number) {
-    try {
-      if (!currPomodoro.value) return;
-      await pomodoroService.addTagToPomodoro(
-        currPomodoro.value.id,
-        tagId,
-        currPomodoro.value.user_id
-      );
-      const fresh = await pomodoroService.getOne(currPomodoro.value.id);
-      if (fresh) currPomodoro.value = fresh;
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  async function handleRemoveTag(tagId: number) {
-    if (!currPomodoro.value) return;
-    await pomodoroService.removeTagFromPomodoro(currPomodoro.value.id, tagId);
-    const fresh = await pomodoroService.getOne(currPomodoro.value.id);
-    if (fresh) currPomodoro.value = fresh;
+  } = {}) {
+    send({ type: "FINISH", withNext, broadcast });
   }
 
   async function handleResetPomodoro() {
@@ -316,143 +115,121 @@ export const usePomodoroController = defineStore("pomodoro", () => {
       !confirm(
         "Are you sure you want to reset the pomodoro? this will finish the current cycle."
       )
-    ) {
+    )
       return;
-    }
 
     timeController.clearTimer();
-    await handleFinishPomodoro();
+    if (snapshot.value.context.pomodoro) {
+      await pomodoroService.finishCurrentPomodoro({
+        timelapse: snapshot.value.context.pomodoro.timelapse,
+      });
+    }
     await pomodoroService.finishCurrentCycle();
+
     timeController.setClockInSeconds(
       PomodoroDurationInSecondsByDefaultCycleConfiguration[TagIdByType.FOCUS]
     );
+    send({ type: "RESET" });
     localStorage.removeItem("currPomodoro.value");
-    currPomodoro.value = null;
   }
 
   async function handleSkipPomodoro() {
-    if (!currPomodoro.value) return;
-
-    try {
-      await handleFinishPomodoro({ withNext: true, broadcast: true });
-    } catch (error) {
-      console.error(error);
-      toast.addErrorToast({
-        title: "Error skipping",
-        description: (error as any)?.message,
-      });
-    }
+    send({ type: "FINISH", withNext: true });
   }
 
+  // Tags
+  async function handleAddTag(tagId: number) {
+    if (!snapshot.value.context.pomodoro) return;
+    await pomodoroService.addTagToPomodoro(
+      snapshot.value.context.pomodoro.id,
+      tagId,
+      snapshot.value.context.pomodoro.user_id
+    );
+    const fresh = await pomodoroService.getOne(
+      snapshot.value.context.pomodoro.id
+    );
+    send({ type: "TAGS.UPDATE", pomodoro: fresh });
+  }
+
+  async function handleRemoveTag(tagId: number) {
+    if (!snapshot.value.context.pomodoro) return;
+    await pomodoroService.removeTagFromPomodoro(
+      snapshot.value.context.pomodoro.id,
+      tagId
+    );
+    const fresh = await pomodoroService.getOne(
+      snapshot.value.context.pomodoro.id
+    );
+    send({ type: "TAGS.UPDATE", pomodoro: fresh });
+  }
+
+  // Select/Tasks
+  async function handleSelectPomodoro(user_id: string, type: PomodoroType) {
+    send({ type: "START", inputs: { user_id, type } });
+  }
+
+  // Sync
   async function handleSyncPomodoro() {
-    if (!currPomodoro.value) return;
-
+    const currentId = snapshot.value.context.pomodoro?.id;
+    if (!currentId) return;
     try {
-      const result = await pomodoroService.getOne(currPomodoro.value.id);
-
-      if (
-        result &&
-        result.state === "current" &&
-        currPomodoro.value.id === result.id &&
-        currPomodoro.value.state !== "current"
-      ) {
-        handleStartTimer();
-      }
-
-      if (
-        result &&
-        currPomodoro.value.id === result.id &&
-        result.state === "paused" &&
-        currPomodoro.value.state !== "paused"
-      ) {
-        handlePausePomodoro();
-      }
-
-      currPomodoro.value = result;
-    } catch (error) {
-      console.error(error);
-      toast.addErrorToast({
-        title: "Error syncing",
-        description: (error as any).message,
-      });
+      const remote = await pomodoroService.getOne(currentId);
+      if (remote) send({ type: "SYNC", pomodoro: remote });
+    } catch (e) {
+      console.error(e);
     }
   }
 
-  async function handleListPomodoros() {
-    try {
-      loadingPomodoros.value = true;
-      const result = await pomodoroService.listToday();
-      pomodorosListToday.value = result;
-      return result;
-    } catch (error) {
-      console.error(error);
-      return null;
-    } finally {
-      loadingPomodoros.value = false;
-    }
-  }
-
-  async function handleSelectPomodoro(
-    user_id: string,
-    type: "focus" | "break" | "long-break"
-  ) {
-    const result = await pomodoroService.startPomodoro({
-      user_id,
-      type,
-    });
-    const selectedTags = currPomodoro.value?.tags || [];
-    currPomodoro.value = result;
-    if (keepTags.value) {
-      for (const tag of selectedTags) {
-        await handleAddTag(tag.id);
+  // Watch for persistence
+  watch(
+    () => snapshot.value.context.pomodoro,
+    (newVal) => {
+      if (newVal) {
+        localStorage.setItem("currPomodoro.value", JSON.stringify(newVal));
+      } else {
+        localStorage.removeItem("currPomodoro.value");
       }
-    }
-    await handleListPomodoros();
-  }
-
-  async function getTaskIdsForCurrentPomodoro() {
-    if (!currPomodoro.value) return [];
-    return await pomodoroService.getTaskIdsFromPomodoro(currPomodoro.value.id);
-  }
-
-  async function addTaskToCurrentPomodoro(taskId: string) {
-    if (!currPomodoro.value) return;
-    return await pomodoroService.addTaskToPomodoro(
-      currPomodoro.value.id,
-      taskId,
-      currPomodoro.value.user_id
-    );
-  }
-
-  async function removeTaskFromCurrentPomodoro(taskId: string) {
-    if (!currPomodoro.value) return;
-    return await pomodoroService.removeTaskFromPomodoro(
-      currPomodoro.value.id,
-      taskId
-    );
-  }
+    },
+    { deep: true }
+  );
 
   //#endregion
-
   return {
     timeController,
+    currPomodoro: computed(() => snapshot.value.context.pomodoro),
+    pomodorosListToday,
+    loadingPomodoros,
+    getCurrentPomodoro: () => send({ type: "INIT" }),
     handleStartPomodoro,
     handlePausePomodoro,
     handleFinishPomodoro,
-    getCurrentPomodoro,
     handleResetPomodoro,
     handleSkipPomodoro,
     handleSyncPomodoro,
     handleListPomodoros,
+    handleSelectPomodoro,
     handleAddTag,
     handleRemoveTag,
-    handleSelectPomodoro,
-    isMainHandler,
-    currPomodoro,
-    pomodorosListToday,
-    loadingPomodoros,
-    getTaskIdsForCurrentPomodoro,
-    addTaskToCurrentPomodoro,
-    removeTaskFromCurrentPomodoro,
+    getTaskIdsForCurrentPomodoro: async () => {
+      if (!snapshot.value.context.pomodoro) return [];
+      return await pomodoroService.getTaskIdsFromPomodoro(
+        snapshot.value.context.pomodoro.id
+      );
+    },
+    addTaskToCurrentPomodoro: async (taskId: string) => {
+      if (!snapshot.value.context.pomodoro) return;
+      return await pomodoroService.addTaskToPomodoro(
+        snapshot.value.context.pomodoro.id,
+        taskId,
+        snapshot.value.context.pomodoro.user_id
+      );
+    },
+    removeTaskFromCurrentPomodoro: async (taskId: string) => {
+      if (!snapshot.value.context.pomodoro) return;
+      return await pomodoroService.removeTaskFromPomodoro(
+        snapshot.value.context.pomodoro.id,
+        taskId
+      );
+    },
   };
 });

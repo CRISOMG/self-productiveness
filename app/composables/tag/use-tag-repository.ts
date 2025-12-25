@@ -1,5 +1,3 @@
-import type { Tag } from "~/types/Pomodoro";
-
 export const useTagRepository = () => {
   const supabase = useSupabaseClient();
   const fromTable = "tags";
@@ -14,7 +12,7 @@ export const useTagRepository = () => {
     return data;
   }
 
-  async function insert(tag: Tag["Insert"]) {
+  async function insert(tag: TagInsert) {
     const { data } = await supabase
       .from(fromTable)
       .insert(tag)
@@ -24,7 +22,7 @@ export const useTagRepository = () => {
     return data;
   }
 
-  async function update(id: number, tag: Tag["Update"]) {
+  async function update(id: number, tag: TagUpdate) {
     const { data } = await supabase
       .from(fromTable)
       .update(tag)

@@ -40,7 +40,6 @@
 <script setup lang="ts">
 import type { InputMenuItem } from "@nuxt/ui";
 import { useTagController } from "~/composables/tag/use-tag-controller";
-import type { Tag } from "~/types/Pomodoro";
 
 const tags = defineModel<Tag[]>("tags", {
   type: Array as () => Tag[],

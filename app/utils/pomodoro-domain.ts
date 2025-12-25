@@ -133,7 +133,7 @@ export function calculateNextTagFromCycleSecuence(
 
 export function calculatePomodoroTimelapse(
   startedAt: string | null,
-  toggleTimeline: Array<{ at: string; type: "play" | "pause" }>,
+  toggleTimeline: TPomodoro["toggle_timeline"],
   now = Date.now()
 ): number {
   if (!startedAt) return 0;

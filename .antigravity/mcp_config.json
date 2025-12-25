@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "supabase-local": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "mcp-remote",
+                "http://localhost:54321/mcp"
+            ]
+        }
+    }
+}

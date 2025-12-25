@@ -16,8 +16,6 @@
 </template>
 
 <script setup lang="ts">
-import type { TPomodoro } from "~/types/Pomodoro";
-
 const pomodoroController = usePomodoroController();
 
 const isOpen = defineModel<boolean>({ default: false });
