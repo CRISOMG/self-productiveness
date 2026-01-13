@@ -1,0 +1,674 @@
+{
+  "name": "My Sub-Workflow 1",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -192,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{$('structure_file_info').item.json.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('set_driveFolderId').first().json.driveFolderId }}",
+          "mode": "id"
+        },
+        "options": {
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "to_folder",
+                "value": "={{ $('set_driveFolderId').first().json.driveFolderId }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "878b1068-df21-4142-a5c2-c57c4a8c7d53",
+      "name": "Upload to Google Drive3",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1520,
+        432
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "lsPXd0MTN6zgNB1b",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "text": "=[[fecha de la bitacora:  {{ $('When Executed by Another Workflow').item.json.bitacora_date }}]]\n\n{{ $('get_transcript_prompt').item.json.value }}",
+        "inputType": "binary",
+        "simplify": false,
+        "options": {
+          "maxOutputTokens": 50000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1184,
+        304
+      ],
+      "id": "69b4622f-98f4-4b84-a091-e6c96ac20909",
+      "name": "Analyze audio1",
+      "executeOnce": false,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MXOoYwy1e9qKRiYk",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3ecdb06e-6a9b-46f1-8fbe-d9a00a5c4d96",
+              "name": "driveFolderId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "dca604a3-f58e-457d-9a0c-7235faa15b20",
+              "name": "old_driveFolderId",
+              "value": "1kfJUFI2-kGFfpCY9r0XdYc5D-7aKAbzz",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": true
+        }
+      },
+      "id": "7c484ea5-94ef-4b09-8b30-5aad58bd5f08",
+      "name": "set_driveFolderId",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Iteramos sobre todos los items de entrada usando .map()\nreturn $input.all().map(item => {\n  \n  // 1. Obtenemos el texto desde la ruta específica del JSON de Gemini\n  // Usamos optional chaining (?.) por si acaso alguna respuesta viene vacía\n  const textContent = item.json.candidates?.[0]?.content?.parts?.[0]?.text || \"Sin texto\";\n\n  const filename =`${$('Code in JavaScript').first().json.customFileName}.txt`\n  // 2. Convertimos el string a Buffer y luego a Base64\n  const binaryData = Buffer.from(textContent, 'utf8');\n\n  // 3. Retornamos la estructura COMPLETA del item (json + binary)\n  return {\n    json: {\n      // Mantenemos el texto en el JSON por si lo necesitas\n      text_content: textContent,\n      fileName:filename\n    },\n    binary: {\n      // \"data\" es la propiedad que usará el nodo de Drive\n      data: {\n        data: binaryData.toString('base64'),\n        mimeType: 'text/plain',\n        fileName: filename,\n        targetFolderId:$('set_driveFolderId').first().json.driveFolderId ,\n        fileExtension: 'txt'\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        480
+      ],
+      "id": "a5c3eb78-0719-4c6c-a386-2427cc2f9c55",
+      "name": "structure_file_info"
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{$('When Executed by Another Workflow').item.json.custom_date }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1kfJUFI2-kGFfpCY9r0XdYc5D-7aKAbzz"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        560,
+        640
+      ],
+      "id": "0a6e622d-f0f0-4730-b77a-3c3c73833950",
+      "name": "Create folder",
+      "executeOnce": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "lsPXd0MTN6zgNB1b",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ $('When Executed by Another Workflow').item.json.custom_date }}",
+        "limit": 1,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "mode": "id",
+            "value": "1kfJUFI2-kGFfpCY9r0XdYc5D-7aKAbzz"
+          },
+          "whatToSearch": "folders"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        240,
+        512
+      ],
+      "id": "e71bd63f-ddc7-4a72-8b83-5de898bb537a",
+      "name": "Search files and folders",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "lsPXd0MTN6zgNB1b",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "991bbd48-d5d1-4d5d-b4f7-37bab5c7dc74",
+              "leftValue": "={{ $('set_driveFolderId').first().json.driveFolderId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        368
+      ],
+      "id": "35cf99e3-7c79-48ca-9189-2794bc1a022a",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chat_key}}",
+        "text": "={{ `carpeta ${$('When Executed by Another Workflow').item.json.custom_date} creada en drive.` }}",
+        "replyMarkup": "inlineKeyboard",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        640
+      ],
+      "id": "e1236c8d-f1aa-45f9-919f-2dc9eba1b15a",
+      "name": "Send a text message4",
+      "webhookId": "e736bc35-7b41-4c83-a106-a5f8ac898fbf",
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chat_key}}",
+        "text": "={{ `transcripcion creada y guardada en drive.` }}",
+        "replyMarkup": "inlineKeyboard",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1712,
+        432
+      ],
+      "id": "110b1fa2-8cb8-4a14-b91b-8af23ce6ad59",
+      "name": "Send a text message5",
+      "webhookId": "e736bc35-7b41-4c83-a106-a5f8ac898fbf",
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "438f9fa5-d5d2-4b39-ab40-410a433d541e",
+              "name": "chat_from",
+              "value": "telegram",
+              "type": "string"
+            },
+            {
+              "id": "72d7d538-3448-42cd-8942-d2e18e76a872",
+              "name": "chat_key",
+              "value": "={{ $('When Executed by Another Workflow').item.json.chat_key }}",
+              "type": "string"
+            },
+            {
+              "id": "907eb29d-0239-4134-adbe-900f1b65b73a",
+              "name": "message",
+              "value": "={{'[[nueva bitacora, esta linea viene del resultado de la vectorizacion de la trancipcion del audio para supabase, puedes consultar la base de datos semantica para confirmar o validar la estadia de esta informacion]]\\n'}}{{ $json.pageContent }}",
+              "type": "string"
+            },
+            {
+              "id": "3108b228-5fbd-4baa-ad00-53bd5cc9ad53",
+              "name": "date",
+              "value": "={{ $('When Executed by Another Workflow').item.json.date }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2064,
+        416
+      ],
+      "id": "d34f5f01-dd15-41ba-aee5-954373b2efcf",
+      "name": "set chat from transcription"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "fwUWhko8EvJGhudZ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/fwUWhko8EvJGhudZ",
+          "cachedResultName": "upload binary txt file to supabase vector store for rag"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1584,
+        704
+      ],
+      "id": "9ede2aff-9449-49ad-aa81-bb10fde46d4d",
+      "name": "supabase vector store for rag1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "xv4NDKPI4oLL38Li",
+          "mode": "list",
+          "cachedResultName": "yourfocus",
+          "cachedResultUrl": "/projects/HSI2YFhaaj8s42CC/datatables/xv4NDKPI4oLL38Li"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "key",
+              "keyValue": "transcript_system_prompt"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        176
+      ],
+      "id": "d5ac0afe-2177-4956-99df-f9cfd5754ce5",
+      "name": "get_transcript_prompt",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst item = $('When Executed by Another Workflow').first()\n\nconsole.log($input.first())\nconst _item = {\n  json: item.json,\n  binary: item.binary\n}\n\n\nreturn _item"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        176
+      ],
+      "id": "754f2da7-137b-4206-86ab-7d03fad2dfe7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "name": "={{$('When Executed by Another Workflow').item.json.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('set_driveFolderId').first().json.driveFolderId }}"
+        },
+        "options": {
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "to_folder",
+                "value": "={{ $('set_driveFolderId').first().json.driveFolderId }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "34c2a10a-a54d-49db-a963-54f84b9d9e5f",
+      "name": "Upload to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1168,
+        48
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "lsPXd0MTN6zgNB1b",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('When Executed by Another Workflow').item.json.chat_key}}",
+        "text": "={{ `archivo ${$('When Executed by Another Workflow').item.json.customFileName} subido a drive.` }}",
+        "replyMarkup": "inlineKeyboard",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1376,
+        48
+      ],
+      "id": "3865d703-564d-4783-8cfe-34412edf59a0",
+      "name": "Send a text message2",
+      "webhookId": "e736bc35-7b41-4c83-a106-a5f8ac898fbf",
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Google Drive3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze audio1": {
+      "main": [
+        [
+          {
+            "node": "structure_file_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_driveFolderId": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "structure_file_info": {
+      "main": [
+        [
+          {
+            "node": "Upload to Google Drive3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "supabase vector store for rag1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create folder": {
+      "main": [
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "set_driveFolderId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "get_transcript_prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message4": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "supabase vector store for rag1": {
+      "main": [
+        [
+          {
+            "node": "set chat from transcription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_transcript_prompt": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Analyze audio1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Upload to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "update_id": 500994583,
+          "message": null,
+          "chat_from": "telegram",
+          "audio": {
+            "duration": 0,
+            "mime_type": "audio/ogg",
+            "file_id": "AwACAgEAAxkBAAIBSWlfzoOsyiC1MmXbo0L8MImDXLd2AAKxBgACtcsBR5Ovkbx3JJyzOAQ",
+            "file_unique_id": "AgADsQYAArXLAUc",
+            "file_size": 1971681
+          },
+          "chat_key": "8130067397",
+          "date": 1767886467,
+          "mimetype": "ogg",
+          "customFileName": "2026_01_08.11.34",
+          "custom_date": "2026_01_08",
+          "bitacora_date": "jueves,  matutino,  08-01-2026",
+          "fileName": "2026_01_08.11.34.ogg",
+          "file_id": "AwACAgEAAxkBAAIBSWlfzoOsyiC1MmXbo0L8MImDXLd2AAKxBgACtcsBR5Ovkbx3JJyzOAQ"
+        },
+        "binary": {
+          "data": {
+            "mimeType": "audio/ogg",
+            "fileType": "audio",
+            "fileExtension": "oga",
+            "fileName": "file_37.oga",
+            "id": "filesystem-v2:workflows/2A0fZ2DvMqXMOWA1/executions/811/binary_data/eb4c844e-14b6-421a-849a-9c44c8763257",
+            "fileSize": "1.97 MB"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "triggerCount": 0,
+  "meta": null,
+  "active": false,
+  "versionId": "2715d4df-c338-48fa-9fc3-1c2a276677d4"
+}

@@ -1,0 +1,52 @@
+{
+    "type": "object",
+    "properties": {
+        "messages": {
+            "type": "array",
+            "description": "REQUIRED, messages list",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "REQUIRED, La respuesta conversacional para el usuario.",
+                        "maxLength": 4096
+                    }
+                }
+            }
+        },
+        "obsidian": {
+            "type": "array",
+            "description": "OPCIONAL. Generar esta lista SOLO si el usuario ha confirmado explícitamente con un 'SÍ' que desea guardar las notas. Contiene una lista de objetos, donde cada objeto es una nota individual.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "filename": {
+                        "type": "string",
+                        "description": "El nombre del archivo sin extensión. Debe ser breve y descriptivo."
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "El contenido COMPLETO de la nota en formato Markdown. Debe incluir frontmatter (YAML) si es necesario, encabezados."
+                    },
+                    "folder": {
+                        "type": "string",
+                        "enum": [
+                            "00 Inbox",
+                            "10 References",
+                            "20 Zettels"
+                        ],
+                        "description": "La carpeta de destino. Por defecto '00 Inbox' si es una nota rápida, '20 Zettels' si es una idea desarrollada."
+                    }
+                },
+                "required": [
+                    "filename",
+                    "content"
+                ]
+            }
+        }
+    },
+    "required": [
+        "messages"
+    ]
+}

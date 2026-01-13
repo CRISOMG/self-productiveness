@@ -1,0 +1,94 @@
+# n8n configuration and data
+.n8n/binaryData/**
+.n8n-files/**
+# Environment variables
+.env
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+
+# Dependencies
+node_modules
+/dist
+/tmp
+.env
+.env.bak
+.env.test
+
+# IDE/OS files
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Logs and debug files
+npm-debug.log*
+lerna-debug.log*
+yarn-error.log*
+
+# n8n specific files (if applicable to your setup, e.g. for self-hosted installations)
+google-generated-credentials.json
+*_START_PACKAGE
+volumes/
+shared/
+
+
+node_modules
+.DS_Store
+.tmp
+tmp
+dist
+coverage
+npm-debug.log*
+yarn.lock
+google-generated-credentials.json
+_START_PACKAGE
+.env
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.default.json
+.idea
+nodelinter.config.json
+**/package-lock.json
+packages/**/.turbo
+.turbo
+*.tsbuildinfo
+.stylelintcache
+*.swp
+CHANGELOG-*.md
+*.mdx
+build-storybook.log
+*.junit.xml
+junit.xml
+test-results.json
+*.0x
+packages/testing/playwright/playwright-report
+packages/testing/playwright/test-results
+packages/testing/playwright/.playwright-browsers
+test-results/
+compiled_app_output
+trivy_report*
+compiled
+packages/cli/src/modules/my-feature
+.secrets
+packages/testing/**/.cursor/rules/
+.venv
+.ruff_cache
+__pycache__
+packages/cli/THIRD_PARTY_LICENSES.md
+.coverage
+.nyc_output
+packages/cli/src/commands/export/outputs
+*.bak
+# SQLite Databases
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

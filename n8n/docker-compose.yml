@@ -1,0 +1,37 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.1.4
+    restart: always
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./.n8n:/home/node/.n8n
+      - ./.n8n-files:/home/node/.n8n-files
+    environment:
+      - WEBHOOK_URL=https://${WEBHOOK_SUBDOMAIN}.${WEBHOOK_DOMAIN} 
+      - N8N_EDITOR_BASE_URL=https://${WEBHOOK_SUBDOMAIN}.${WEBHOOK_DOMAIN}
+      - N8N_HOST=${WEBHOOK_SUBDOMAIN}.${WEBHOOK_DOMAIN}
+      - N8N_PROXY_HOPS=1
+
+      - GENERIC_TIMEZONE="America/Caracas"
+      - NODE_FUNCTION_ALLOW_EXTERNAL=luxon
+      - TZ="America/Caracas"
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+    env_file:
+      - .env
+
+  # localtunnel:
+  #   image: node:20-alpine
+  #   restart: always
+  #   network_mode: service:n8n
+  #   command: >
+  #     sh -c "npm install -g localtunnel && 
+  #            echo 'Localtunnel installed, starting...' && 
+  #            lt --port 5678 --subdomain ${WEBHOOK_SUBDOMAIN}"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel run --protocol http2

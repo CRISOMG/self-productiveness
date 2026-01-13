@@ -1,0 +1,2014 @@
+{
+  "name": "Yourfocus Telegram Binnacle Prod",
+  "nodes": [
+    {
+      "parameters": {
+        "numberInputs": 5,
+        "rules": {
+          "rule": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9a4c5c61-2068-470f-9564-4753f75c749a",
+                    "leftValue": "={{ $ifEmpty($json.limit_reached,1) }}",
+                    "rightValue": 1,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "modelIndex": 2,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b21a69b7-27b1-49aa-bab0-d6e4a20a04a7",
+                    "leftValue": "={{ $ifEmpty($json.limit_reached,0) }}",
+                    "rightValue": 2,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "modelIndex": 3,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f69880f3-ac0c-4a75-8550-c9ac1ee9995c",
+                    "leftValue": "={{ $ifEmpty($json.limit_reached,0) }}",
+                    "rightValue": 3,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "modelIndex": 4,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "dea35a72-0997-4b12-b844-9366cf757129",
+                    "leftValue": "={{ $ifEmpty($json.limit_reached,0) }}",
+                    "rightValue": 4,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "modelIndex": 5,
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fe3e6143-e997-436b-92d9-040aec2c4597",
+                    "leftValue": "={{ $ifEmpty($json.limit_reached,0) }}",
+                    "rightValue": 5,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.modelSelector",
+      "typeVersion": 1,
+      "position": [
+        960,
+        848
+      ],
+      "id": "2034572d-4dc7-4e92-9fd9-c471f1ec5b7e",
+      "name": "Model Selector",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('set chat from telegram1').item.json.audio.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        -160
+      ],
+      "id": "9ccbdcd7-1bf2-4515-8102-2cf41be8a4d4",
+      "name": "Get a file1",
+      "webhookId": "9894c7d8-4570-4f8d-bc0f-64bb3cff0989",
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        4384,
+        352
+      ],
+      "id": "11b1de82-8171-4b07-94e3-9f4a9d632589",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('config').item.json.chat_key }}",
+        "text": "={{$json.message}}",
+        "replyMarkup": "forceReply",
+        "forceReply": {},
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4064,
+        256
+      ],
+      "id": "4c17647b-be35-402c-9e67-10f180a057b1",
+      "name": "Send a text message3",
+      "webhookId": "e736bc35-7b41-4c83-a106-a5f8ac898fbf",
+      "alwaysOutputData": true,
+      "notesInFlow": false,
+      "retryOnFail": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{$json.message }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "={{ $json.system_prompt }}",
+          "maxIterations": 20,
+          "returnIntermediateSteps": true,
+          "passthroughBinaryImages": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1616,
+        416
+      ],
+      "id": "612dd5d9-ee60-4505-811b-678e90d2aa6d",
+      "name": "AI Agent1",
+      "alwaysOutputData": false,
+      "retryOnFail": false,
+      "maxTries": 5,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "8130067397",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1392,
+        672
+      ],
+      "id": "2e9f75de-f7b9-46db-b46e-6af18a52e0ac",
+      "name": "Postgres Chat Memory1",
+      "alwaysOutputData": false,
+      "credentials": {
+        "postgres": {
+          "id": "vPFMruktiYT6ArAM",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Utiliza este conocimiento para responder las preguntas sobre  la base de datos semantica de la bitacora.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        1648,
+        1184
+      ],
+      "id": "03589a74-9b97-4249-a0fb-3689a469d30b",
+      "name": "Supabase Vector Store3",
+      "credentials": {
+        "supabaseApi": {
+          "id": "lA0o46Q2tiFIVs6K",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b4765593-3e58-4275-9447-8d8e28d2c477",
+              "leftValue": "={{ $('config').item.json.chat_from }}",
+              "rightValue": "=telegram",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3696,
+        352
+      ],
+      "id": "06ef24de-ac6f-4660-81cc-64b951a5341f",
+      "name": "If3",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "message": "={{ $json?.message || '' }}",
+        "waitUserReply": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1,
+      "position": [
+        4064,
+        448
+      ],
+      "id": "360c9637-19ad-49cd-b5da-c76134bc95cf",
+      "name": "Respond to Chat1",
+      "executeOnce": false,
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Utiliza esta herramienta para CREAR una nueva tarjeta, ticket o tarea en Trello.\n\nREGLAS DE ACTIVACIÓN:\n- Solo activar si el usuario usa verbos de acción explícitos como \"crear\", \"agendar\", \"anotar\", \"nueva tarea\".\n- Si el usuario solo está contando una idea vaga sin pedir explícitamente que se guarde, NO actives esta herramienta.\n\nSi decides usarla, extrae el título y la descripción del contexto en español.",
+        "listId": "679107886ac61105a9205c91",
+        "name": "={{ $fromAI('title', 'title of the card or ticket','string', null) }}",
+        "description": "={{ $fromAI('description', 'description of the card or ticket','string', null) }}",
+        "additionalFields": {
+          "due": "={{ $fromAI('due_date', 'Specific due date in ISO 8601 format (YYYY-MM-DDThh:mm:ss.sZ). If the user says generic terms like \\\"tomorrow\\\", calculate the date based on the current date provided in the context.', 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.trelloTool",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        928
+      ],
+      "id": "629b55ab-7010-4cc7-b8ab-ab20c992b233",
+      "name": "Create a card in Trello1",
+      "credentials": {
+        "trelloApi": {
+          "id": "jOAUUGabQWa3DXVk",
+          "name": "Trello account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "438f9fa5-d5d2-4b39-ab40-410a433d541e",
+              "name": "chat_from",
+              "value": "telegram",
+              "type": "string"
+            },
+            {
+              "id": "2d943235-301a-4860-beaa-ef7d87360622",
+              "name": "audio",
+              "value": "={{ $json?.message?.audio || $json?.message?.voice   }}",
+              "type": "object"
+            },
+            {
+              "id": "72d7d538-3448-42cd-8942-d2e18e76a872",
+              "name": "chat_key",
+              "value": "={{ $json?.message?.chat?.id }}",
+              "type": "string"
+            },
+            {
+              "id": "907eb29d-0239-4134-adbe-900f1b65b73a",
+              "name": "message",
+              "value": "={{ $json?.message?.text }}",
+              "type": "string"
+            },
+            {
+              "id": "3108b228-5fbd-4baa-ad00-53bd5cc9ad53",
+              "name": "date",
+              "value": "={{ $json.message.date }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -800,
+        -16
+      ],
+      "id": "9464a7b8-c434-4d2a-8730-5a6d2c668db8",
+      "name": "set chat from telegram1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "632981a9-983f-4b6b-bdfa-13ce431603c3",
+              "name": "chat_from",
+              "value": "n8n",
+              "type": "string"
+            },
+            {
+              "id": "6efbcb20-6796-4c86-a924-a7c34d1eaa81",
+              "name": "has_audio",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "75172f97-667a-47e6-8bc5-567bcff2a390",
+              "name": "chat_key",
+              "value": "n8n_chat",
+              "type": "string"
+            },
+            {
+              "id": "9aa613bd-a776-4343-9156-63ed874488a0",
+              "name": "message",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        352
+      ],
+      "id": "55551996-0620-4a7a-83d4-108684867892",
+      "name": "set chat from n8n1"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true,
+          "chatIds": "8130067397"
+        }
+      },
+      "id": "e5c02d27-37eb-410f-a9af-1531dff5fa63",
+      "name": "telegram_chat1",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -976,
+        -16
+      ],
+      "webhookId": "2c5c8c9b-fa93-4fe8-b6de-3e8bf12bbc06",
+      "alwaysOutputData": true,
+      "notesInFlow": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -720,
+        352
+      ],
+      "id": "a6989984-b1b5-474f-8149-8c62cbd74d7a",
+      "name": "n8n_chat",
+      "webhookId": "74ccbe85-8cc2-4a29-bc30-ae06966c71ec"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "42f7b9b1-192f-46d2-ad5f-5d0e3a85f8bd",
+              "name": "system_prompt",
+              "value": "={{ $('Merge_propmts').itemMatching(0).json.value }}",
+              "type": "string"
+            },
+            {
+              "id": "690434b6-6638-473d-8897-921e6190c9df",
+              "name": "transcript_prompt",
+              "value": "={{ $('Merge_propmts').itemMatching(1).json.value }}",
+              "type": "string"
+            },
+            {
+              "id": "4ddcbb65-1020-448a-9fcc-054911448985",
+              "name": "chat_key",
+              "value": "={{ $('config').item.json.chat_key }}",
+              "type": "string"
+            },
+            {
+              "id": "164baa7b-ae21-467d-93c7-f3da7f7d6e6d",
+              "name": "date",
+              "value": "={{ $('config').item.json.date }}",
+              "type": "number"
+            },
+            {
+              "id": "cff33a92-d7a7-4766-8e79-c79e5de98d89",
+              "name": "message",
+              "value": "={{ $('config').item.json.message }}",
+              "type": "string"
+            },
+            {
+              "id": "3f0eb989-eb03-4b7c-b1d6-d4101bae7915",
+              "name": "chat_from",
+              "value": "={{ $('config').item.json.chat_from }}",
+              "type": "string"
+            },
+            {
+              "id": "609a9891-4d23-4ffd-a323-e207881b070c",
+              "name": "chat_from",
+              "value": "={{ $('config').item.json.chat_from }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        896,
+        384
+      ],
+      "id": "d6208538-3412-45a4-bcd0-7a958b7714a8",
+      "name": "set_prompts",
+      "alwaysOutputData": false,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        208,
+        368
+      ],
+      "id": "77082503-82c4-47e2-a9fb-5f225ba847fc",
+      "name": "config"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "esta herramienta es para listar todo lo que hay en la lista BACKLOG de trello manejada por el agente inteligente en n8n.\n\nEL NOMBRE DE LA LISTA ES \"BACKLOG\".\n\nUtiliza esta herramienta EXCLUSIVAMENTE para LEER, CONSULTAR o RECUPERAR tarjetas existentes de la lista de Trello. \n\nUso OBLIGATORIO cuando el usuario pida:\n1. Listar tareas pendientes, tickets o cosas por hacer.\n2. Resumir la carga de trabajo actual o ver el estado del backlog.\n3. Verificar si una tarea específica YA existe (antes de intentar crear una nueva).\n4. Buscar detalles sobre una tarea conocida.\n5. Validar integridad de las tareas respecto a las operaciones del sistema inteligente n8n.\n\nNO uses esta herramienta para crear tarjetas nuevas. Solo es para lectura.",
+        "resource": "list",
+        "operation": "getCards",
+        "id": "679107886ac61105a9205c91",
+        "returnAll": true,
+        "additionalFields": {
+          "fields": "all"
+        }
+      },
+      "type": "n8n-nodes-base.trelloTool",
+      "typeVersion": 1,
+      "position": [
+        2032,
+        752
+      ],
+      "id": "68334cec-6e07-4e71-865e-4ccc4365d8ba",
+      "name": "Get all cards in a list in Trello",
+      "credentials": {
+        "trelloApi": {
+          "id": "jOAUUGabQWa3DXVk",
+          "name": "Trello account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Use the tool to think about something. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed.\n\nUsa esta herramienta para plasmar tu discernimiento sobre que usar, si la base de datos del chat, hacer una busqueda semantica de la bitacora, consultar la lista de tareas, crear una tarea, desarrollar un concepto complejo en base al contexto."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        1696,
+        656
+      ],
+      "id": "326e0d1c-5ba4-4b7c-a74f-0b91a92e9d5f",
+      "name": "Think"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        1296
+      ],
+      "id": "8aef70dc-3759-4909-98c2-5969a93509c3",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YA6qoMgCKF0zAZdp",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "xv4NDKPI4oLL38Li",
+          "mode": "list",
+          "cachedResultName": "yourfocus",
+          "cachedResultUrl": "/projects/HSI2YFhaaj8s42CC/datatables/xv4NDKPI4oLL38Li"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "key",
+              "keyValue": "system_prompt"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        320
+      ],
+      "id": "ad90ce0e-6141-4cab-819a-8956cf1ff324",
+      "name": "get_system_prompt",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "xv4NDKPI4oLL38Li",
+          "mode": "list",
+          "cachedResultName": "yourfocus",
+          "cachedResultUrl": "/projects/HSI2YFhaaj8s42CC/datatables/xv4NDKPI4oLL38Li"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "key",
+              "keyValue": "transcript_system_prompt"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        464
+      ],
+      "id": "69b042a1-6c0b-49a6-aa31-6b19c2e21ac6",
+      "name": "get_transcript_prompt",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        736,
+        384
+      ],
+      "id": "64392d7e-7ac0-41f0-bec2-46afc6ba8981",
+      "name": "Merge_propmts"
+    },
+    {
+      "parameters": {
+        "dataToSave": {
+          "values": [
+            {
+              "key": "system_prompt",
+              "value": "={{ $json.system_prompt }}"
+            },
+            {
+              "key": "transcript_prompt",
+              "value": "={{ $json.transcript_prompt }}"
+            },
+            {
+              "key": "chat_key",
+              "value": "={{ $json.chat_key }}"
+            },
+            {
+              "key": "date",
+              "value": "={{ $json.date }}"
+            },
+            {
+              "key": "message",
+              "value": "={{ $json.message }}"
+            },
+            {
+              "key": "chat_from",
+              "value": "={{ $json.chat_from }}"
+            },
+            {
+              "key": "limit_reached",
+              "value": "={{ $ifEmpty($json.limit_reached,1) }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executionData",
+      "typeVersion": 1.1,
+      "position": [
+        1456,
+        416
+      ],
+      "id": "d77d9cbb-4c8d-4ff3-b93c-edf3c30ad0a0",
+      "name": "Execution Data",
+      "alwaysOutputData": true,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cdbf9f39-bc5f-448b-93f4-4194152e9288",
+              "name": "limit_reached",
+              "value": "={{ (()=>{\n\nif ($json.limit_reached) {\n $json.limit_reached += 1\n}\n\nreturn $json?.limit_reached || 1\n})() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2048,
+        112
+      ],
+      "id": "c5f6db32-2ec4-4f8d-8540-87b97f27baa3",
+      "name": "limit_reached"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {
+          "maxOutputTokens": 40000,
+          "temperature": 0.4
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        544
+      ],
+      "id": "97fe0a52-482e-4589-b540-15b51531d981",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YA6qoMgCKF0zAZdp",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1296,
+        416
+      ],
+      "id": "66b64758-43f8-4883-ab32-de4a3eec4906",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "limit": 50,
+        "queryString": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query', ``, 'string') }}",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "filter": {
+          "driveId": {
+            "__rl": true,
+            "value": "My Drive",
+            "mode": "list",
+            "cachedResultName": "My Drive",
+            "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+          },
+          "folderId": {
+            "__rl": true,
+            "value": "1l4jeHY9VN-ihIVdS-T_4kzxfgVB-_2Pd",
+            "mode": "list",
+            "cachedResultName": "yourfocus",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1l4jeHY9VN-ihIVdS-T_4kzxfgVB-_2Pd"
+          },
+          "whatToSearch": "all"
+        },
+        "options": {
+          "fields": [
+            "id",
+            "version",
+            "name",
+            "exportLinks",
+            "webViewLink"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        1552,
+        704
+      ],
+      "id": "55648a49-3058-4dde-8de1-1cfe92c7af6b",
+      "name": "Search files and folders in Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "lsPXd0MTN6zgNB1b",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-pro-preview",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        784,
+        1024
+      ],
+      "id": "f2d1a28b-fa5d-4323-b6f2-aee43a69160c",
+      "name": "gemini-3-pro-preview",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YA6qoMgCKF0zAZdp",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        912,
+        1024
+      ],
+      "id": "a2ae324a-efd9-4305-9cb3-49f539bd69aa",
+      "name": "gemini-3-flash-preview",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MXOoYwy1e9qKRiYk",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-pro",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        1024
+      ],
+      "id": "8feec802-c779-4a0e-bd9f-402ba7257bcc",
+      "name": "gemini-2.5-pro",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MXOoYwy1e9qKRiYk",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-preview-09-2025",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        1024
+      ],
+      "id": "ee464079-6768-4b01-b0e3-630c13f57e99",
+      "name": "gemini-2.5-flash",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MXOoYwy1e9qKRiYk",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash-lite-preview-09-2025",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        1024
+      ],
+      "id": "3ba5c2b2-85a3-4f32-bbf0-1aa1af7a5a54",
+      "name": "gemini-2.5-flash-lite",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MXOoYwy1e9qKRiYk",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "981def9c-364f-4bab-ace6-03ac08c329f0",
+              "name": "message",
+              "value": "={{ $json?.output?.message || $json?.output || $json?.error || \"resultado inesperado\" }}",
+              "type": "string"
+            },
+            {
+              "id": "90599b7e-77d9-4a21-a074-946a152dd24d",
+              "name": "=obsidian",
+              "value": "={{ $json?.output?.obsidian }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2448,
+        416
+      ],
+      "id": "d997580e-2db6-431d-a159-55ae7bacf354",
+      "name": "set message or error"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "faa517e5-bba2-486f-8c88-a9aa2613596c",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "770ef070-ecc3-4ba5-b290-394f238002d2",
+              "leftValue": "={{ $json.limit_reached }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            },
+            {
+              "id": "77a950af-52f7-4707-85ec-dafccac57b4e",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2176,
+        112
+      ],
+      "id": "41c617c2-0d50-4dd8-83aa-fc50d0f6d38c",
+      "name": "If error",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "11da4327-8564-4f59-9344-61b270986651"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1d0d01f3-f465-416e-8893-3933ac2f2475",
+                    "leftValue": "={{$json?.obsidian }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "array",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2656,
+        432
+      ],
+      "id": "c84ed18b-03df-42ca-8734-1f63543a02fc",
+      "name": "Switch",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Iteramos sobre todos los items de entrada para no perder nada si llegan varios\nreturn $input.all().map(item => {\n    \n    // 1. Extracción segura con Optional Chaining (?.)\n    // Si no existe 'obsidian', usamos un objeto vacío para evitar crashes\n  // console.log(item, item.json)\n    const obsidian = item.json;\nconst folderMap = {\n\n    \"00 Inbox\": \"1pGKgl7hHrYJmF9yuExFddb-LnHem7atr\", \n\n    \"10 References\": \"1VUDKfGxaRvYIGAMV3Xn6xIoB-eNT0xV\",\n\n    \"20 Zettels\": \"1KtrzeLC3sbtH_fasVrY0Y2BCH8Ixf7Ns\"\n\n};\n\n    // Fallback a una carpeta por defecto si la IA alucina con el nombre\n    const targetFolderId = folderMap[obsidian.folder] || folderMap[\"00 Inbox\"];\n\n    // 3. Crear Buffer\n    const binaryData = Buffer.from(obsidian.content, 'utf8');\n    const fullFileName = `${obsidian.filename}.md`;\n\n    // 4. Retornar estructura estándar de n8n\n    return {\n        json: {\n            // Mantenemos info útil en el JSON\n            fileName: fullFileName,\n            targetFolderId: targetFolderId,\n            noteType: obsidian.folder,\n            processed: true\n        },\n        binary: {\n            // \"data\" es el nombre estándar de la propiedad binaria en n8n\n            data: {\n                data: binaryData.toString('base64'),\n                mimeType: 'text/markdown',\n                fileName: fullFileName,\n              targetFolderId: targetFolderId,\n                fileExtension: 'md'\n            }\n        }\n    };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2992,
+        624
+      ],
+      "id": "286539cf-8a77-478d-90ae-86cb4f350ee2",
+      "name": "Code in JavaScript",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "name": "={{ $json.fileName}}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.targetFolderId }}",
+          "mode": "id"
+        },
+        "options": {
+          "propertiesUi": {
+            "propertyValues": [
+              {
+                "key": "to_folder",
+                "value": "={{ $json.targetFolderId }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3216,
+        528
+      ],
+      "id": "e916ce2c-edeb-443e-b135-249d91d70a6a",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "lsPXd0MTN6zgNB1b",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "fwUWhko8EvJGhudZ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/fwUWhko8EvJGhudZ",
+          "cachedResultName": "upload binary txt file to supabase vector store for rag"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3408,
+        800
+      ],
+      "id": "c926e08f-f8a7-455d-a888-e7bd6dd1adfa",
+      "name": "supabase vector store for rag"
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $input.item.json.chat_key }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        -16
+      ],
+      "id": "bfa2a4d7-3fff-4e5d-8f37-6ab2ad783d8b",
+      "name": "start typing",
+      "webhookId": "26826421-b3a8-43c4-a4d1-3dccbaf10c7b",
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "13b6efc7-dd43-4a2f-96a1-b4db610cb7f8",
+              "leftValue": "={{ $('set chat from telegram1').item.json.audio }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -416,
+        80
+      ],
+      "id": "f1bde12e-7773-4406-8973-06fde510d9e6",
+      "name": "If",
+      "executeOnce": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\n// Asumiendo modo \"Run for Each Item\"\nconst item = $json.audio_item;\n\nconsole.log({\n  i: $input,\n  j: $json,\n  b: $binary\n})\n\nconsole.log(item)\nconst date = item.date;\nconst offsetVET = 4 * 60 * 60 * 1000;\nconst dateVET = new Date((date * 1000) - offsetVET);\n\n// 3. Formateo manual usando métodos UTC\n// Como ya restamos las 4 horas manualmente, usamos getUTC... para obtener los números correctos\nconst year = dateVET.getUTCFullYear();\n// getUTCMonth devuelve 0-11, así que sumamos 1 y aseguramos 2 dígitos con padStart\nconst month =String(dateVET.getUTCMonth() + 1).padStart(2, '0');\nconst day = String(dateVET.getUTCDate()).padStart(2, '0');\nconst hours = String(dateVET.getUTCHours()).padStart(2, '0');\nconst minutes = String(dateVET.getUTCMinutes()).padStart(2, '0');\n\nconst custom_date = `${year}_${month}_${day}`;\nconst custom_time = `${hours}.${minutes}`;\n\n// Debug (opcional, lo verás en la consola del navegador)\nconsole.log(`Fecha Original: ${new Date(date*1000).toISOString()}`);\nconsole.log(`Fecha VET: ${year}-${month}-${day} ${hours}:${minutes}`);\n\n\nconst audio_file =item.audio\n// 4. Mimetype\nconst mimetype =audio_file && audio_file.mime_type\n  ?audio_file.mime_type.split(\"/\").pop()\n  : \"ogg\";\n\nconst customFileName = `${custom_date}.${custom_time}`;\nconst fileName = `${customFileName}.${mimetype}`;\n\n\nfunction getBitacoraData(fechaAjustada) {\n    \n    // A. Obtener día de la semana\n    // Usamos 'timeZone: UTC' porque 'fechaAjustada' ya es un objeto Date \n    // desplazado manualmente a la hora deseada. Si no forzamos UTC aquí, \n    // toLocaleDateString intentará reconvertir a la zona del servidor.\n    const diaSemana = fechaAjustada.toLocaleDateString('es-ES', { \n        weekday: 'long', \n        timeZone: 'UTC' \n    });\n\n    // B. Determinar Jornada usando getUTCHours \n    // (usamos UTC porque ya movimos el reloj -4 horas manualmente)\n    const hora = fechaAjustada.getUTCHours();\n    let jornada = '';\n\n    if (hora >= 6 && hora < 12) {\n        jornada = 'matutino';\n    } else if (hora >= 12 && hora < 15) {\n        jornada = 'meridiano';\n    } else if (hora >= 15 && hora < 20) {\n        jornada = 'vespertino';\n    } else {\n        jornada = 'nocturno';\n    }\n\n    // C. Formatear Fecha DD-MM-YYYY\n    const diaStr = String(fechaAjustada.getUTCDate()).padStart(2, '0');\n    const mesStr = String(fechaAjustada.getUTCMonth() + 1).padStart(2, '0');\n    const anioStr = fechaAjustada.getUTCFullYear();\n    const fechaFormateada = `${diaStr}-${mesStr}-${anioStr}`;\n\n    return [diaSemana, jornada, fechaFormateada];\n}\n\n// Llamamos a la función pasando la fecha VET calculada al inicio\nconst bitacoraInfo = getBitacoraData(dateVET);\n\n$input.item.binary = $binary\nreturn {\n  json:  {\n    ...$json.audio_item,\n    mimetype,\n    customFileName,\n  custom_date,\n  bitacora_date: bitacoraInfo.join(',  '),\n  fileName,\n    file_id: audio_file.file_id\n},\n  binary: $binary\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        -160
+      ],
+      "id": "2b0c7732-178d-4225-a19f-28b714df166e",
+      "name": "filename1",
+      "alwaysOutputData": true,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4963aef1-788e-4d84-88f4-60565b79905b",
+              "name": "audio_item",
+              "value": "={{ $('set chat from telegram1').item.json }}",
+              "type": "object"
+            },
+            {
+              "id": "d7dfd880-873d-43e8-8179-151a0a745c10",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        -160
+      ],
+      "id": "ee585f47-743a-4689-9106-33999da24588",
+      "name": "set_audio_item1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "dbwHIYx23nK6youy",
+          "mode": "list",
+          "cachedResultName": "My Sub-Workflow 1",
+          "cachedResultUrl": "/workflow/dbwHIYx23nK6youy"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        -160
+      ],
+      "id": "28b678e7-57ad-4074-914c-be69dd4ab057",
+      "name": "Call 'My Sub-Workflow 1'"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $('set chat from telegram1').item.json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -208,
+        176
+      ],
+      "id": "a06a478c-05e1-46e3-9d83-e583a9352fe5",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-pro-preview",
+        "options": {
+          "maxOutputTokens": 40000,
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        576
+      ],
+      "id": "2b943dc3-4052-4c60-ba44-41c19e6d8a7a",
+      "name": "gemini-3-pro-preview1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YA6qoMgCKF0zAZdp",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={\n \"output\": \"{{ $json.output }}\"\n}",
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"message\": {\n      \"type\": \"string\",\n      \"description\": \"La respuesta conversacional para el usuario.\"\n    },\n    \"obsidian\": {\n      \"type\": \"array\",\n      \"description\": \"OPCIONAL. Generar esta lista SOLO si el usuario ha confirmado explícitamente con un 'SÍ' que desea guardar las notas. Contiene una lista de objetos, donde cada objeto es una nota individual.\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"filename\": {\n            \"type\": \"string\",\n            \"description\": \"El nombre del archivo sin extensión. Debe ser breve y descriptivo.\"\n          },\n          \"content\": {\n            \"type\": \"string\",\n            \"description\": \"El contenido COMPLETO de la nota en formato Markdown. Debe incluir frontmatter (YAML) si es necesario, encabezados y #tags.\"\n          },\n          \"folder\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"00 Inbox\",\n              \"10 References\",\n              \"20 Zettels\"\n            ],\n            \"description\": \"La carpeta de destino. Por defecto '00 Inbox' si es una nota rápida, '20 Zettels' si es una idea desarrollada.\"\n          }\n        },\n        \"required\": [\n          \"filename\",\n          \"content\"\n        ]\n      }\n    }\n  },\n  \"required\": [\n    \"message\"\n  ]\n}",
+        "options": {
+          "systemPromptTemplate": "=You are an expert extraction algorithm, you live in a n8n  \"Information Extractor\" node.\n\nOnly extract relevant information from the text in output key.\n\n\nasegurate que el output cumpla con el json schema.\n\nIf you do not know the value of an attribute asked to extract, you may omit the attribute's value."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        2032,
+        400
+      ],
+      "id": "74a74c6d-226e-4352-96c8-667283309132",
+      "name": "Information Extractor1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "obsidian",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2832,
+        528
+      ],
+      "id": "60ccdb1f-f7f5-4fe7-b4df-5c1c31ea0ce9",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3408,
+        496
+      ],
+      "id": "c1e358c5-f51e-4ab3-8e93-f40b21c4e291",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        3216,
+        720
+      ],
+      "id": "6df98cd9-7e7b-444e-aa5b-aef6603bc1cf",
+      "name": "Loop Over Items"
+    }
+  ],
+  "connections": {
+    "Model Selector": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get a file1": {
+      "main": [
+        [
+          {
+            "node": "set_audio_item1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message3": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "limit_reached",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store3": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Chat1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Chat1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a card in Trello1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set chat from telegram1": {
+      "main": [
+        [
+          {
+            "node": "start typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set chat from n8n1": {
+      "main": [
+        [
+          {
+            "node": "config",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "telegram_chat1": {
+      "main": [
+        [
+          {
+            "node": "set chat from telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n_chat": {
+      "main": [
+        [
+          {
+            "node": "set chat from n8n1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_prompts": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "config": {
+      "main": [
+        [
+          {
+            "node": "get_system_prompt",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get_transcript_prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all cards in a list in Trello": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store3",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_system_prompt": {
+      "main": [
+        [
+          {
+            "node": "Merge_propmts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_transcript_prompt": {
+      "main": [
+        [
+          {
+            "node": "Merge_propmts",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge_propmts": {
+      "main": [
+        [
+          {
+            "node": "set_prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execution Data": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "limit_reached": {
+      "main": [
+        [
+          {
+            "node": "If error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Execution Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders in Google Drive": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gemini-3-pro-preview": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Model Selector",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gemini-3-flash-preview": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Model Selector",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "gemini-2.5-pro": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Model Selector",
+            "type": "ai_languageModel",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "gemini-2.5-flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Model Selector",
+            "type": "ai_languageModel",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "gemini-2.5-flash-lite": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Model Selector",
+            "type": "ai_languageModel",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "set message or error": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If error": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "set message or error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "start typing": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get a file1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_audio_item1": {
+      "main": [
+        [
+          {
+            "node": "filename1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "filename1": {
+      "main": [
+        [
+          {
+            "node": "Call 'My Sub-Workflow 1'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'My Sub-Workflow 1'": {
+      "main": [
+        [
+          {
+            "node": "config",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gemini-3-pro-preview1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor1": {
+      "main": [
+        [
+          {
+            "node": "set message or error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "supabase vector store for rag": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "supabase vector store for rag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "saveExecutionProgress": true,
+    "errorWorkflow": "mC7e0k60AcN04k7H"
+  },
+  "staticData": {
+    "node:Google Drive Trigger": {
+      "lastTimeChecked": "2026-01-07T23:04:23Z"
+    }
+  },
+  "pinData": {},
+  "triggerCount": 3,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "active": false,
+  "versionId": "30e0c656-3397-426d-9fbc-e10041783c8d"
+}

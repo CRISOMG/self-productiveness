@@ -48,5 +48,8 @@ supabase/db/volumes/
 .obsidian/themes/
 .DS_Store
 
+.antigravity/mcp_config.json
+
+
 # Archivos de sincronización de otros sistemas (si los usas)
 *.sync-conflict.*
