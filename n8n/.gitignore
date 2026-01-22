@@ -1,6 +1,13 @@
-# n8n configuration and data
+# .n8n configuration and data (legacy)
 .n8n/binaryData/**
 .n8n-files/**
+
+# New environment data directories
+.n8n-prod/
+.n8n-files-prod/
+.n8n-dev/
+.n8n-files-dev/
+
 # Environment variables
 .env
 

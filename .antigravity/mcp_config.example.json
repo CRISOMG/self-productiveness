@@ -21,6 +21,39 @@
                 "--header",
                 "authorization:Bearer <YOUR_ACCESS_TOKEN_HERE>"
             ]
+        },
+        "n8n-local": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "supergateway",
+                "--streamableHttp",
+                "http://localhost:5678/mcp-server/http",
+                "--header",
+                "authorization: Bearer "
+            ]
+        },
+        "n8n-docker": {
+            "command": "docker",
+            "args": [
+                "run",
+                "-i",
+                "--rm",
+                "--init",
+                "-e",
+                "MCP_MODE=stdio",
+                "-e",
+                "LOG_LEVEL=error",
+                "-e",
+                "DISABLE_CONSOLE_OUTPUT=true",
+                "-e",
+                "N8N_API_URL=http://host.docker.internal:5678",
+                "-e",
+                "N8N_API_KEY=",
+                "-e",
+                "WEBHOOK_SECURITY_MODE=moderate",
+                "ghcr.io/czlonkowski/n8n-mcp:latest"
+            ]
         }
     }
 }
