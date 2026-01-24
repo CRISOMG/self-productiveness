@@ -49,7 +49,9 @@
         :modal="false"
         :handle="false"
         :ui="{
-          container: 'p-0 m-0  ',
+          body: '',
+          content: 'w-full max-w-full sm:max-w-[35vw] ',
+          container: 'p-0 m-0',
         }"
       >
         <UButton
@@ -63,15 +65,19 @@
         />
 
         <template #body>
-          <div class="flex">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-lucide-chevron-right"
-              @click="openChatDrawer = false"
-              class="h-screen"
-            />
-            <div class="flex h-screen relative bottom-0 select-text">
+          <div class="flex flex-col w-full">
+            <div class="h-8 w-fit ml-auto">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-x"
+                @click="openChatDrawer = false"
+                class="ml-auto"
+              />
+            </div>
+            <div
+              class="flex h-[calc(100vh-2rem)] relative bottom-0 select-text"
+            >
               <ChatContainer />
             </div>
           </div>
@@ -98,7 +104,7 @@ import TimelineModal from "~/components/timeline-modal .vue";
 
 const profileController = useProfileController();
 
-const openChatDrawer = ref(false);
+const openChatDrawer = ref(true);
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const user_id = computed(() => {
