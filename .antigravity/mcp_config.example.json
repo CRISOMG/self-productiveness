@@ -54,6 +54,15 @@
                 "WEBHOOK_SECURITY_MODE=moderate",
                 "ghcr.io/czlonkowski/n8n-mcp:latest"
             ]
+        },
+        "TestSprite": {
+            "command": "npx",
+            "args": [
+                "@testsprite/testsprite-mcp@latest"
+            ],
+            "env": {
+                "API_KEY": "your-api-key"
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 <template>
-  <UContainer class="max-w-4xl">
+  <UContainer class="">
     <div class="py-4 flex items-baseline justify-between">
       <div class="flex items-baseline">
         <i class="mr-1 w-6 flex self-center"
@@ -34,8 +34,49 @@
       </div>
     </div>
     <USeparator />
-    <div>
-      <PomofocusClone :user_id="user_id" />
+
+    <!-- body -->
+    <div class="flex-1 flex justify-center">
+      <div class="">
+        <YourfocusTimer :user_id="user_id" />
+      </div>
+
+      <UDrawer
+        v-model:open="openChatDrawer"
+        :overlay="false"
+        direction="right"
+        :dismissible="false"
+        :modal="false"
+        :handle="false"
+        :ui="{
+          container: 'p-0 m-0  ',
+        }"
+      >
+        <UButton
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-brain"
+          class="absolute bottom-4 right-4 rounded-4xl"
+          :ui="{
+            leadingIcon: 'w-12 h-12',
+          }"
+        />
+
+        <template #body>
+          <div class="flex">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-chevron-right"
+              @click="openChatDrawer = false"
+              class="h-screen"
+            />
+            <div class="flex h-screen relative bottom-0 select-text">
+              <ChatContainer />
+            </div>
+          </div>
+        </template>
+      </UDrawer>
     </div>
 
     <template v-if="openProfileModal">
@@ -57,6 +98,7 @@ import TimelineModal from "~/components/timeline-modal .vue";
 
 const profileController = useProfileController();
 
+const openChatDrawer = ref(false);
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const user_id = computed(() => {
