@@ -1,0 +1,8 @@
+{
+  "name": "installed-nodes",
+  "private": true,
+  "dependencies": {
+    "n8n-nodes-tmpfiles": "2.0.0",
+    "n8n-nodes-telegram-mtproto": "0.1.19"
+  }
+}

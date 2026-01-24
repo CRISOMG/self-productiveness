@@ -20,7 +20,7 @@ export const usePomodoroRepository = () => {
             pomodoros (*)
           ),
           tags (*)
-          `
+          `,
       )
       .eq("cycle.state", "current");
 
@@ -40,7 +40,7 @@ export const usePomodoroRepository = () => {
             pomodoros (*)
           ),
           tags (*)
-          `
+          `,
       )
       .maybeSingle()
       .throwOnError();
@@ -60,7 +60,7 @@ export const usePomodoroRepository = () => {
             pomodoros (*)
           ),
           tags (*)
-          `
+          `,
       )
       .order("created_at", { ascending: false })
       .maybeSingle()
@@ -79,7 +79,7 @@ export const usePomodoroRepository = () => {
             pomodoros (*)
           ),
           tags (*)
-          `
+          `,
       )
       .neq("state", "finished")
       .maybeSingle();
@@ -100,7 +100,7 @@ export const usePomodoroRepository = () => {
           )
         ),
         tags (*)
-      `
+      `,
       )
       .eq("id", id)
       .maybeSingle();
@@ -124,13 +124,13 @@ export const usePomodoroRepository = () => {
             pomodoros (*)
           ),
           tags (*)
-          `
+          `,
       )
       .gte("started_at", today.toISOString())
       .lt("started_at", tomorrow.toISOString())
       .throwOnError();
 
-    return data as TPomodoro[];
+    return (data as TPomodoro[]) || [];
   }
   async function addTag(pomodoroId: number, tagId: number, userId: string) {
     const { data } = await supabase
@@ -218,7 +218,7 @@ export const usePomodoroCycleRepository = () => {
               *,
               tags (*)
             )
-          `
+          `,
       )
       .filter("state", "eq", "current")
       .maybeSingle();
@@ -261,7 +261,7 @@ export const usePomodoroCycleRepository = () => {
               *,
               tags (*)
             )
-          `
+          `,
       )
       .eq("id", id)
       .maybeSingle()

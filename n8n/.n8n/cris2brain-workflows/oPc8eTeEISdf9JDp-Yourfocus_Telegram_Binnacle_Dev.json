@@ -1,0 +1,445 @@
+{
+  "name": "Yourfocus Telegram Binnacle Dev",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "id": "9775115c-c120-4258-b4a3-4a1d14d420a6",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -704,
+        224
+      ],
+      "webhookId": "a65ea0b8-8ca9-4b26-b300-a194228cdba4",
+      "alwaysOutputData": true,
+      "notesInFlow": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "E2eLCNXv3njOWfGK",
+          "name": "Yourfocus Telegram Binnacle Dev"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "567fd0ba-4ae7-4e15-ab1b-6287b2b88f17",
+              "name": "driveFolderId",
+              "value": "1kfJUFI2-kGFfpCY9r0XdYc5D-7aKAbzz",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "5efffb35-e61d-400f-ae82-c8472f657453",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        432,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{$('Code in JavaScript').item.json.custom_filename }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.driveFolderId }}"
+        },
+        "options": {}
+      },
+      "id": "66c12c9b-d333-48af-9868-6c32ff01ff28",
+      "name": "Upload to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        736,
+        0
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "lsPXd0MTN6zgNB1b",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        32
+      ],
+      "id": "8a5c0f5c-6fb3-41bf-9153-c0b8ce3f9361",
+      "name": "Get a file",
+      "webhookId": "a23406de-4bb1-4473-a4ad-526bf3bb178d",
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ `archivo ${$('Code in JavaScript').item.json.custom_filename} subido a drive.` }}",
+        "replyMarkup": "forceReply",
+        "forceReply": {},
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        0
+      ],
+      "id": "c5bd4733-0abc-4d56-a3e3-827480d124b8",
+      "name": "Send a text message",
+      "webhookId": "c70db2ba-f652-4458-932c-7a7950e7b456",
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\n// Asumiendo modo \"Run for Each Item\"\nconst t = $input.item.json.message;\nconst offsetVET = 4 * 60 * 60 * 1000;\nconst dateVET = new Date((t.date * 1000) - offsetVET);\n\n// 3. Formateo manual usando métodos UTC\n// Como ya restamos las 4 horas manualmente, usamos getUTC... para obtener los números correctos\nconst year = dateVET.getUTCFullYear();\n// getUTCMonth devuelve 0-11, así que sumamos 1 y aseguramos 2 dígitos con padStart\nconst month =String(dateVET.getUTCMonth() + 1).padStart(2, '0');\nconst day = String(dateVET.getUTCDate()).padStart(2, '0');\nconst hours = String(dateVET.getUTCHours()).padStart(2, '0');\nconst minutes = String(dateVET.getUTCMinutes()).padStart(2, '0');\n\nconst custom_date = `${year}_${month}_${day}`;\nconst custom_time = `${hours}.${minutes}`;\n\n// Debug (opcional, lo verás en la consola del navegador)\nconsole.log(`Fecha Original: ${new Date(t.date*1000).toISOString()}`);\nconsole.log(`Fecha VET: ${year}-${month}-${day} ${hours}:${minutes}`);\n\n\nconst audio_file = t.voice || t.audio\n// 4. Mimetype\nconst mimetype =audio_file && audio_file.mime_type\n  ?audio_file.mime_type.split(\"/\").pop()\n  : \"ogg\";\n\nconst string = `${custom_date}.${custom_time}.telegram.${mimetype}`;\n\n  \nreturn {\n    custom_filename: string,\n    file_id: audio_file.file_id\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -192
+      ],
+      "id": "0a26af9a-699a-413c-9284-fc314fb37e9e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        0
+      ],
+      "id": "2d9093a0-b09a-4596-ada9-6cc3a5ff905a",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "13b6efc7-dd43-4a2f-96a1-b4db610cb7f8",
+              "leftValue": "={{ $json?.message?.audio }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2ae715be-deb3-49d4-a634-d4146cf1a138",
+              "leftValue": "={{ $json?.message?.voice }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -352,
+        320
+      ],
+      "id": "3a12018b-38fd-42c1-b6ba-864017b54a70",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "={{ $('Get row(s)').item.json.value }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        176,
+        544
+      ],
+      "id": "d0aa52d5-a814-4058-8175-a393ad5a2d64",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        176,
+        736
+      ],
+      "id": "659de8e4-9f6a-4b23-952f-e52e220417cc",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YA6qoMgCKF0zAZdp",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "xv4NDKPI4oLL38Li",
+          "mode": "list",
+          "cachedResultName": "yourfocus",
+          "cachedResultUrl": "/projects/HSI2YFhaaj8s42CC/datatables/xv4NDKPI4oLL38Li"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "key",
+              "keyValue": "system_prompt"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        464
+      ],
+      "id": "57c35d14-d68f-467a-8df7-9c1860cfcf60",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.text }}",
+        "replyMarkup": "forceReply",
+        "forceReply": {
+          "force_reply": false
+        },
+        "additionalFields": {
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        592
+      ],
+      "id": "1b81426f-7c18-4f6f-af33-57e056fbb6b4",
+      "name": "Send a text message1",
+      "webhookId": "ce5180b1-e4bc-43b6-8b65-8651b5ecf879",
+      "alwaysOutputData": true,
+      "notesInFlow": false,
+      "retryOnFail": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "XALExDyyrXoZFWD9",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Upload to Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 1,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "active": false,
+  "versionId": "2561b00e-2d36-4dcf-b38b-08c894ce2e94"
+}

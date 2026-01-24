@@ -21,9 +21,16 @@ export default defineNuxtConfig({
     "@nuxtjs/i18n",
     "@nuxtjs/supabase",
     "@nuxt/test-utils/module",
+    "@nuxtjs/mdc",
+    "@vueuse/nuxt",
   ],
+
   css: ["~/assets/css/main.css"],
   imports: {
+    scan: true,
+    global: true,
+    autoImport: true,
+
     dirs: [
       "~/composables",
       "~/composables/*/index.{ts,js,mjs,mts}",
@@ -34,8 +41,15 @@ export default defineNuxtConfig({
     public: {
       test_email: process.env.TEST_EMAIL || "",
       head_app_name: process.env.HEAD_APP_NAME || "Pomodoro",
+      n8nGoogleDriveInboxWebhookUrl:
+        process.env.N8N_GOOGLE_DRIVE_INBOX_WEBHOOK_URL,
+      n8nAuthHeader: process.env.N8N_AUTH_HEADER,
     },
+    n8nWebhookUrl: process.env.N8N_WEBHOOK_URL,
+    n8nAuthHeader: process.env.N8N_AUTH_HEADER,
+    n8nPostgresUrl: process.env.N8N_POSTGRES_URL,
   },
+
   router: {
     options: {},
   },
@@ -52,5 +66,40 @@ export default defineNuxtConfig({
       include: ["/"],
       exclude: ["/request-reset-password", "/update-password", "/sign-up"],
     },
+    cookieOptions: {
+      secure: false, // Importante para desarrollo local sin HTTPS
+    },
+  },
+
+  mdc: {
+    headings: {
+      anchorLinks: false,
+    },
+    highlight: {
+      // noApiRoute: true
+      shikiEngine: "javascript",
+    },
+  },
+
+  vite: {
+    server: {
+      allowedHosts: [
+        "localhost",
+        "0.0.0.0",
+        "127.0.0.1",
+        "::1",
+        "adminis-odr46p5.local",
+        ".local",
+        "10.146.219.47",
+        "10.0.0.15",
+        "10.0.0.17",
+        "10.0.0.14",
+        "10.0.0.8",
+      ],
+    },
+  },
+
+  experimental: {
+    asyncContext: true,
   },
 });

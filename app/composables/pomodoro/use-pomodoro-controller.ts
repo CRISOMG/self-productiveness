@@ -90,7 +90,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
   async function handleStartPomodoro(
     user_id: string,
     type?: string,
-    state?: "current" | "paused"
+    state?: "current" | "paused",
   ) {
     if (snapshot.value.context.pomodoro) {
       send({ type: "RESUME" });
@@ -113,7 +113,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
   async function handleResetPomodoro() {
     if (
       !confirm(
-        "Are you sure you want to reset the pomodoro? this will finish the current cycle."
+        "Are you sure you want to reset the pomodoro? this will finish the current cycle.",
       )
     )
       return;
@@ -127,7 +127,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     await pomodoroService.finishCurrentCycle();
 
     timeController.setClockInSeconds(
-      PomodoroDurationInSecondsByDefaultCycleConfiguration[TagIdByType.FOCUS]
+      PomodoroDurationInSecondsByDefaultCycleConfiguration[TagIdByType.FOCUS],
     );
     send({ type: "RESET" });
     localStorage.removeItem("currPomodoro.value");
@@ -143,10 +143,10 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     await pomodoroService.addTagToPomodoro(
       snapshot.value.context.pomodoro.id,
       tagId,
-      snapshot.value.context.pomodoro.user_id
+      snapshot.value.context.pomodoro.user_id,
     );
     const fresh = await pomodoroService.getOne(
-      snapshot.value.context.pomodoro.id
+      snapshot.value.context.pomodoro.id,
     );
     send({ type: "TAGS.UPDATE", pomodoro: fresh });
   }
@@ -155,10 +155,10 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     if (!snapshot.value.context.pomodoro) return;
     await pomodoroService.removeTagFromPomodoro(
       snapshot.value.context.pomodoro.id,
-      tagId
+      tagId,
     );
     const fresh = await pomodoroService.getOne(
-      snapshot.value.context.pomodoro.id
+      snapshot.value.context.pomodoro.id,
     );
     send({ type: "TAGS.UPDATE", pomodoro: fresh });
   }
@@ -190,7 +190,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
         localStorage.removeItem("currPomodoro.value");
       }
     },
-    { deep: true }
+    { deep: true },
   );
 
   //#endregion
@@ -213,7 +213,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     getTaskIdsForCurrentPomodoro: async () => {
       if (!snapshot.value.context.pomodoro) return [];
       return await pomodoroService.getTaskIdsFromPomodoro(
-        snapshot.value.context.pomodoro.id
+        snapshot.value.context.pomodoro.id,
       );
     },
     addTaskToCurrentPomodoro: async (taskId: string) => {
@@ -221,14 +221,14 @@ export const usePomodoroController = defineStore("pomodoro", () => {
       return await pomodoroService.addTaskToPomodoro(
         snapshot.value.context.pomodoro.id,
         taskId,
-        snapshot.value.context.pomodoro.user_id
+        snapshot.value.context.pomodoro.user_id,
       );
     },
     removeTaskFromCurrentPomodoro: async (taskId: string) => {
       if (!snapshot.value.context.pomodoro) return;
       return await pomodoroService.removeTaskFromPomodoro(
         snapshot.value.context.pomodoro.id,
-        taskId
+        taskId,
       );
     },
   };

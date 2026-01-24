@@ -1,0 +1,46 @@
+services:
+
+  n8n:
+    container_name: n8n
+    # image: docker.n8n.io/n8nio/n8n:2.1.4
+    build:
+      context: ./docker/n8n
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./.n8n:/home/node/.n8n
+      - ./.n8n-files:/home/node/.n8n-files
+    environment:
+      # - DB_TYPE=postgresdb
+      # - DB_POSTGRESDB_HOST=host.docker.internal
+      # - DB_POSTGRESDB_PORT=${SUPABASE_LOCAL_PORT:-54322}
+      # - DB_POSTGRESDB_DATABASE=${SUPABASE_LOCAL_DATABASE:-postgres}
+      # - DB_POSTGRESDB_USER=${SUPABASE_LOCAL_USER:-postgres}
+      # - DB_POSTGRESDB_PASSWORD=${SUPABASE_LOCAL_PASSWORD:-postgres}
+      
+      # - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+
+      - WEBHOOK_URL=https://${WEBHOOK_SUBDOMAIN}.${WEBHOOK_DOMAIN} 
+      - N8N_EDITOR_BASE_URL=https://${WEBHOOK_SUBDOMAIN}.${WEBHOOK_DOMAIN}
+      - N8N_HOST=${WEBHOOK_SUBDOMAIN}.${WEBHOOK_DOMAIN}
+      - N8N_PROXY_HOPS=1
+      - GENERIC_TIMEZONE="America/Caracas"
+      - NODE_FUNCTION_ALLOW_BUILTIN="fs,path"
+      - NODE_FUNCTION_ALLOW_EXTERNAL="luxon,n8n-nodes-telegram-mtproto,telegram,telegram/sessions"
+      - TZ="America/Caracas"
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_PAYLOAD_SIZE_MAX=100
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
+
+  cloudflared:
+    container_name: cloudflared
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel run --protocol http2

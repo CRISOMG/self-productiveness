@@ -10,7 +10,7 @@
             class="cursor-pointer text-md p-2 py-1 rounded-md select-none"
             :class="{
               'bg-black/20':
-                pomodoroController.currPomodoro?.type === PomodoroType.FOCUS,
+                pomodoroController?.currPomodoro?.type === PomodoroType.FOCUS,
             }"
           >
             Pomodoro
@@ -20,7 +20,7 @@
             class="cursor-pointer text-md p-2 py-1 rounded-md select-none"
             :class="{
               'bg-black/20':
-                pomodoroController.currPomodoro?.type === PomodoroType.BREAK,
+                pomodoroController?.currPomodoro?.type === PomodoroType.BREAK,
             }"
           >
             Short Break
@@ -30,7 +30,7 @@
             class="cursor-pointer text-md p-2 py-1 rounded-md select-none"
             :class="{
               'bg-black/20':
-                pomodoroController.currPomodoro?.type ===
+                pomodoroController?.currPomodoro?.type ===
                 PomodoroType.LONG_BREAK,
             }"
           >
@@ -79,7 +79,7 @@
               <UTooltip text="Manage Tag">
                 <UButton
                   :disabled="
-                    (pomodoroController.currPomodoro?.tags?.length || 0) > 10
+                    (pomodoroController?.currPomodoro?.tags?.length || 0) > 10
                   "
                   icon="i-lucide-tag"
                   size="xs"
@@ -91,10 +91,10 @@
             </div>
             <div
               class="flex items-center gap-1"
-              v-if="pomodoroController.currPomodoro?.tags"
+              v-if="pomodoroController?.currPomodoro?.tags"
             >
               <UBadge
-                v-for="tag in pomodoroController.currPomodoro.tags"
+                v-for="tag in pomodoroController?.currPomodoro.tags"
                 :key="tag.id"
                 size="sm"
                 variant="soft"
@@ -144,13 +144,13 @@ const taskController = useTaskController();
 const manageTagModal = ref(false);
 
 const pomodoroFocusCompletedToday = computed(() => {
-  if (!pomodoroController.pomodorosListToday) {
+  if (!pomodoroController?.pomodorosListToday) {
     return 0;
   }
 
-  const pl = pomodoroController.pomodorosListToday;
+  const pl = pomodoroController?.pomodorosListToday;
   return pl.filter(
-    (p) => p.type === PomodoroType.FOCUS && p.state == PomodoroState.FINISHED
+    (p) => p.type === PomodoroType.FOCUS && p.state == PomodoroState.FINISHED,
   ).length;
 });
 
@@ -166,14 +166,14 @@ const {
   timeController,
 } = usePomodoroController();
 
-const currentPomodoroId = computed(() => pomodoroController.currPomodoro?.id);
+const currentPomodoroId = computed(() => pomodoroController?.currPomodoro?.id);
 
 watch(currentPomodoroId, () => {
   handleListPomodoros();
 });
 
 const handlePomodoroTypeChange = (type: PomodoroType) => {
-  if (pomodoroController.currPomodoro?.type === type) {
+  if (pomodoroController?.currPomodoro?.type === type) {
     return alert("You are already in " + type);
   }
   handleFinishPomodoro({
@@ -186,11 +186,11 @@ const handlePomodoroTypeChange = (type: PomodoroType) => {
 
 defineShortcuts({
   " ": () => {
-    if (pomodoroController.currPomodoro?.state !== "current") {
+    if (pomodoroController?.currPomodoro?.state !== "current") {
       handleStartPomodoro(
         props.user_id,
-        pomodoroController.currPomodoro?.type,
-        "current"
+        pomodoroController?.currPomodoro?.type,
+        "current",
       );
       pomodoroBottonIsPlay.value = false;
     } else {
@@ -217,18 +217,18 @@ const props = defineProps({
 });
 
 watch(
-  () => pomodoroController.currPomodoro,
+  () => pomodoroController?.currPomodoro,
   () => {
-    if (pomodoroController.currPomodoro?.state === "current") {
+    if (pomodoroController?.currPomodoro?.state === "current") {
       pomodoroBottonIsPlay.value = false;
     } else {
       pomodoroBottonIsPlay.value = true;
     }
     localStorage.setItem(
       "currPomodoro",
-      JSON.stringify(pomodoroController.currPomodoro)
+      JSON.stringify(pomodoroController?.currPomodoro),
     );
   },
-  { deep: true }
+  { deep: true },
 );
 </script>
