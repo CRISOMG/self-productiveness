@@ -127,25 +127,28 @@
         <template #footer>
           <div class="flex items-center gap-1">
             <FileUploadButton @files-selected="handleFilesSelected" />
+            <AudioRecorderButton @uploaded="handleAudioUploaded" />
           </div>
-          <UButton
-            size="xs"
-            class="w-16 flex justify-center"
-            :variant="isPro ? 'solid' : 'outline'"
-            :color="isPro ? 'success' : 'neutral'"
-            @click="isPro = !isPro"
-          >
-            {{ isPro ? "Pro" : "Flash" }}
-          </UButton>
+          <div class="flex items-center gap-1">
+            <UButton
+              size="xs"
+              class="w-16 flex justify-center"
+              :variant="isPro ? 'solid' : 'outline'"
+              :color="isPro ? 'success' : 'neutral'"
+              @click="isPro = !isPro"
+            >
+              {{ isPro ? "Pro" : "Flash" }}
+            </UButton>
 
-          <UChatPromptSubmit
-            :status="chat.status"
-            :disabled="isUploading"
-            color="neutral"
-            size="sm"
-            @stop="chat.stop()"
-            @reload="chat.regenerate()"
-          />
+            <UChatPromptSubmit
+              :status="chat.status"
+              :disabled="isUploading"
+              color="neutral"
+              size="sm"
+              @stop="chat.stop()"
+              @reload="chat.regenerate()"
+            />
+          </div>
         </template>
       </UChatPrompt>
     </div>
@@ -326,6 +329,22 @@ async function handleFilesSelected(files: File[]) {
     isPro.value = true;
   }
 }
+
+function handleAudioUploaded(response: {
+  audio?: {
+    id: string;
+    webViewLink?: string;
+    mimeType?: string;
+    name?: string;
+  };
+  message?: string;
+}) {
+  if (response.message) {
+    input.value = response.message;
+    isPro.value = true;
+  }
+}
+
 const copied = ref(false);
 
 function copy(e: MouseEvent, message: UIMessage) {
