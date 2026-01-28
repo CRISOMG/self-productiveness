@@ -145,20 +145,24 @@ const handlePomodoroTypeChange = (type: PomodoroType) => {
   if (pomodoroController?.currPomodoro?.type === type) {
     return alert("You are already in " + type);
   }
-  handleFinishPomodoro({
-    clockInSeconds: PomodoroDurationInSecondsByDefaultCycleConfiguration[type],
-    withNext: false,
-  }).then(() => {
+
+  if (pomodoroController?.currPomodoro?.state === PomodoroState.CURRENT) {
+    handleFinishPomodoro({
+      withNext: false,
+    }).then(() => {
+      handleSelectPomodoro(props.user_id, type);
+    });
+  } else {
     handleSelectPomodoro(props.user_id, type);
-  });
+  }
 };
 
 const handlePlayPausePomodoro = () => {
-  if (pomodoroController?.currPomodoro?.state !== "current") {
+  if (pomodoroController?.currPomodoro?.state !== PomodoroState.CURRENT) {
     handleStartPomodoro(
       props.user_id,
       pomodoroController?.currPomodoro?.type,
-      "current",
+      PomodoroState.CURRENT,
     );
     pomodoroBottonIsPlay.value = false;
   } else {
