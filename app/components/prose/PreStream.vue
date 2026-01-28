@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ShikiCachedRenderer } from "shiki-stream/vue";
+import ShikiLinkifiedRenderer from "./ShikiLinkifiedRenderer.vue";
 import { useHighlighter } from "~/composables/useHighlighter";
 
 const colorMode = useColorMode();
@@ -42,7 +42,7 @@ const key = computed(() => {
 
 <template>
   <ProsePre v-bind="props">
-    <ShikiCachedRenderer
+    <ShikiLinkifiedRenderer
       :key="key"
       :highlighter="highlighter"
       :code="trimmedCode"
