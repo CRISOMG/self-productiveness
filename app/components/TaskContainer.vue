@@ -80,7 +80,18 @@
       </UButton>
     </template>
     <!-- #endregion -->
-    <!-- #regiond List of Tasks -->
+
+    <!-- #region Search task input  -->
+    <UInput
+      v-model="searchTask"
+      placeholder="Search Task"
+      size="sm"
+      icon="i-lucide-search"
+      class="mt-4"
+    />
+    <!-- #endregion -->
+
+    <!-- #region List of Tasks -->
     <div
       class="w-full max-w-sm mt-4 mb-4 gap-2 flex flex-col max-h-screen overflow-y-auto custom-scrollbar"
     >
@@ -215,8 +226,37 @@ const taskController = useTaskController();
 const tagController = useTagController();
 const { currPomodoro } = usePomodoroController();
 
+const route = useRoute();
+const router = useRouter();
+
+const searchTask = computed({
+  get: () => (route.query.q as string) || "",
+  set: (value: string) => {
+    router.replace({
+      query: {
+        ...route.query,
+        q: value || undefined,
+      },
+    });
+  },
+});
+
 const sortedTasks = computed(() => {
-  return [...taskController.tasks.value].sort((a, b) => {
+  // Filter by search term (title or description)
+  const searchTerm = searchTask.value.toLowerCase().trim();
+  let tasks = [...taskController.tasks.value];
+
+  if (searchTerm) {
+    tasks = tasks.filter((task) => {
+      const titleMatch = task.title?.toLowerCase().includes(searchTerm);
+      const descriptionMatch = task.description
+        ?.toLowerCase()
+        .includes(searchTerm);
+      return titleMatch || descriptionMatch;
+    });
+  }
+
+  return tasks.sort((a, b) => {
     // 1. Assigned to Current Pomodoro (keep=true) (First)
     const aAssigned = a.keep;
     const bAssigned = b.keep;
@@ -228,8 +268,10 @@ const sortedTasks = computed(() => {
     if (a.done && !b.done) return 1;
     if (!a.done && b.done) return -1;
 
-    // 3. Default (Created At desc or similar, assuming list is already sorted)
-    return 0;
+    // 3. Sort by created_at (newest first)
+    const aDate = new Date(a.created_at || 0).getTime();
+    const bDate = new Date(b.created_at || 0).getTime();
+    return bDate - aDate;
   });
 });
 

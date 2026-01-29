@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     },
   ],
   compatibilityDate: "2025-07-15",
-  ssr: false,
+  ssr: true,
   devtools: { enabled: true },
   modules: [
     "@nuxt/ui",
@@ -37,6 +37,7 @@ export default defineNuxtConfig({
       "~/composables/**",
     ],
   },
+
   runtimeConfig: {
     public: {
       test_email: process.env.TEST_EMAIL || "",
@@ -69,7 +70,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: "/login",
       callback: "/callback",
-      include: ["/"],
+      include: ["/", "/note/:path*"],
       exclude: ["/request-reset-password", "/update-password", "/sign-up"],
     },
     cookieOptions: {

@@ -3,7 +3,7 @@ import {
   FILE_UPLOAD_CONFIG,
   type GoogleDriveFile,
   ensureCorrectMimeType,
-} from "../../shared/utils/file";
+} from "~~/shared/utils/file";
 
 type FileUploadResponseFromN8NGoogleDriveInboxWebhook = {
   audio: GoogleDriveFile;

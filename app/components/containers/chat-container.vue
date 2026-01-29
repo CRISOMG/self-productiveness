@@ -180,7 +180,7 @@ const components = {
 type MessageComponent =
   | { type: "text"; content: string; log?: never }
   | { type: "log"; log: any; content?: never };
-import { parseMessageComponents } from "../../../shared/utils/messageParser";
+import { parseMessageComponents } from "~~/shared/utils/messageParser";
 
 const route = useRoute();
 
