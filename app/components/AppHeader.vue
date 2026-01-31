@@ -6,10 +6,12 @@ const props = withDefaults(
   defineProps<{
     showTimeline?: boolean;
     showProfile?: boolean;
+    showNotes?: boolean;
   }>(),
   {
     showTimeline: true,
     showProfile: true,
+    showNotes: true,
   },
 );
 
@@ -20,6 +22,7 @@ const emit = defineEmits<{
   (e: "openShortcuts"): void;
   (e: "openWebhook"): void;
   (e: "openPersonalAccessToken"): void;
+  (e: "openNotes"): void;
 }>();
 
 const profileController = useProfileController();
@@ -87,7 +90,18 @@ const items = ref<DropdownMenuItem[][]>([
       <p class="font-bold">Yourfocus</p>
     </NuxtLink>
 
-    <div class="flex self-end gap-2" v-if="showTimeline || showProfile">
+    <div
+      class="flex self-end gap-2"
+      v-if="showTimeline || showProfile || showNotes"
+    >
+      <UButton
+        v-if="showNotes"
+        @click="emit('openNotes')"
+        icon="i-lucide:file-text"
+      >
+        Notas
+      </UButton>
+
       <UButton
         v-if="showTimeline"
         @click="emit('openTimeline')"

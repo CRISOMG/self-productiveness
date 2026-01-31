@@ -6,6 +6,7 @@ const openTimelineModal = ref(false);
 const openShortcutsModal = ref(false);
 const openWebhookModal = ref(false);
 const openPersonalAccessTokenModal = ref(false);
+const openNotesModal = ref(false);
 </script>
 
 <template>
@@ -16,6 +17,7 @@ const openPersonalAccessTokenModal = ref(false);
       @open-shortcuts="openShortcutsModal = true"
       @open-webhook="openWebhookModal = true"
       @open-personal-access-token="openPersonalAccessTokenModal = true"
+      @open-notes="openNotesModal = true"
     />
     <USeparator />
 
@@ -31,5 +33,6 @@ const openPersonalAccessTokenModal = ref(false);
     <ShortcutsModal v-model="openShortcutsModal" />
     <WebhookModal v-model="openWebhookModal" />
     <PersonalAccessTokenModal v-model="openPersonalAccessTokenModal" />
+    <NotesModal v-model="openNotesModal" />
   </UContainer>
 </template>

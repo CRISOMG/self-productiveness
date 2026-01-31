@@ -10,7 +10,7 @@ const id = computed(() => route.params.id as string);
 
 // Fetch con mejor manejo de estados
 const { data, status, error } = await useFetch(
-  () => `/api/google-drive/search?name=${id.value}`,
+  () => `/api/google-drive/content/${id.value}`,
   {
     key: `note-${id.value}`,
     lazy: false,
