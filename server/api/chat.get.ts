@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
       FROM n8n_chat_histories
       WHERE session_id = ${userId}
       ORDER BY id DESC
-      LIMIT 20
+      LIMIT 40
     ) AS subquery
     ORDER BY id ASC
   `;

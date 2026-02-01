@@ -18,5 +18,9 @@
 <script setup lang="ts">
 const pomodoroController = usePomodoroController();
 
+onMounted(() => {
+  pomodoroController.handleListPomodoros();
+});
+
 const isOpen = defineModel<boolean>({ default: false });
 </script>
