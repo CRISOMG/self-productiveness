@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -58,6 +63,45 @@ export type Database = {
         }
         Relationships: []
       }
+      documents: {
+        Row: {
+          content: string | null
+          embedding: string | null
+          id: number
+          metadata: Json | null
+        }
+        Insert: {
+          content?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
+        }
+        Update: {
+          content?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
+      n8n_chat_histories: {
+        Row: {
+          id: number
+          message: Json
+          session_id: string
+        }
+        Insert: {
+          id?: number
+          message: Json
+          session_id: string
+        }
+        Update: {
+          id?: number
+          message?: Json
+          session_id?: string
+        }
+        Relationships: []
+      }
       pomodoros: {
         Row: {
           created_at: string
@@ -67,10 +111,10 @@ export type Database = {
           finished_at: string | null
           id: number
           started_at: string | null
-          state: Database["public"]["Enums"]["pomodoro-state"]
+          state: Database["public"]["Enums"]["pomodoro_state"]
           timelapse: number
           toggle_timeline: Json | null
-          type: Database["public"]["Enums"]["pomodoro-type"]
+          type: Database["public"]["Enums"]["pomodoro_type"]
           user_id: string
         }
         Insert: {
@@ -81,10 +125,10 @@ export type Database = {
           finished_at?: string | null
           id?: number
           started_at?: string | null
-          state?: Database["public"]["Enums"]["pomodoro-state"]
+          state?: Database["public"]["Enums"]["pomodoro_state"]
           timelapse?: number
           toggle_timeline?: Json | null
-          type?: Database["public"]["Enums"]["pomodoro-type"]
+          type?: Database["public"]["Enums"]["pomodoro_type"]
           user_id: string
         }
         Update: {
@@ -95,10 +139,10 @@ export type Database = {
           finished_at?: string | null
           id?: number
           started_at?: string | null
-          state?: Database["public"]["Enums"]["pomodoro-state"]
+          state?: Database["public"]["Enums"]["pomodoro_state"]
           timelapse?: number
           toggle_timeline?: Json | null
-          type?: Database["public"]["Enums"]["pomodoro-type"]
+          type?: Database["public"]["Enums"]["pomodoro_type"]
           user_id?: string
         }
         Relationships: [
@@ -116,21 +160,21 @@ export type Database = {
           created_at: string
           id: number
           required_tags: string[] | null
-          state: Database["public"]["Enums"]["pomodoro-state"] | null
+          state: Database["public"]["Enums"]["pomodoro_state"] | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: number
           required_tags?: string[] | null
-          state?: Database["public"]["Enums"]["pomodoro-state"] | null
+          state?: Database["public"]["Enums"]["pomodoro_state"] | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: number
           required_tags?: string[] | null
-          state?: Database["public"]["Enums"]["pomodoro-state"] | null
+          state?: Database["public"]["Enums"]["pomodoro_state"] | null
           user_id?: string | null
         }
         Relationships: []
@@ -237,6 +281,30 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          created_at: string | null
+          device_info: string | null
+          id: string
+          subscription: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          device_info?: string | null
+          id?: string
+          subscription: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          device_info?: string | null
+          id?: string
+          subscription?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           created_at: string
@@ -321,9 +389,47 @@ export type Database = {
           },
         ]
       }
+      webhook_trace: {
+        Row: {
+          id: number
+          net_request_id: number | null
+          pgmq_msg_id: number | null
+          processed_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: number
+          net_request_id?: number | null
+          pgmq_msg_id?: number | null
+          processed_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: number
+          net_request_id?: number | null
+          pgmq_msg_id?: number | null
+          processed_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      v_webhook_status: {
+        Row: {
+          enqueued_at: string | null
+          error_msg: string | null
+          event_type: string | null
+          full_payload: Json | null
+          msg_id: number | null
+          processed_at: string | null
+          response_body: string | null
+          status_code: number | null
+          target_url: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       auto_finish_expired_pomodoros: { Args: never; Returns: undefined }
@@ -332,10 +438,20 @@ export type Database = {
         Returns: number
       }
       is_valid_personal_access_token: { Args: never; Returns: boolean }
+      match_documents: {
+        Args: { filter?: Json; match_count?: number; query_embedding: string }
+        Returns: {
+          content: string
+          id: number
+          metadata: Json
+          similarity: number
+        }[]
+      }
+      procesar_webhooks_pomodoro: { Args: never; Returns: undefined }
     }
     Enums: {
-      "pomodoro-state": "current" | "paused" | "finished"
-      "pomodoro-type": "focus" | "break" | "long-break"
+      pomodoro_state: "current" | "paused" | "finished"
+      pomodoro_type: "focus" | "break" | "long-break"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -466,9 +582,8 @@ export const Constants = {
   },
   public: {
     Enums: {
-      "pomodoro-state": ["current", "paused", "finished"],
-      "pomodoro-type": ["focus", "break", "long-break"],
+      pomodoro_state: ["current", "paused", "finished"],
+      pomodoro_type: ["focus", "break", "long-break"],
     },
   },
 } as const
-

@@ -7,6 +7,7 @@ const openShortcutsModal = ref(false);
 const openWebhookModal = ref(false);
 const openPersonalAccessTokenModal = ref(false);
 const openNotesModal = ref(false);
+const openPushNotificationsModal = ref(false);
 </script>
 
 <template>
@@ -18,6 +19,7 @@ const openNotesModal = ref(false);
       @open-webhook="openWebhookModal = true"
       @open-personal-access-token="openPersonalAccessTokenModal = true"
       @open-notes="openNotesModal = true"
+      @open-push-notifications="openPushNotificationsModal = true"
     />
     <USeparator />
 
@@ -34,5 +36,6 @@ const openNotesModal = ref(false);
     <WebhookModal v-model="openWebhookModal" />
     <PersonalAccessTokenModal v-model="openPersonalAccessTokenModal" />
     <NotesModal v-model="openNotesModal" />
+    <PushNotificationsModal v-model="openPushNotificationsModal" />
   </UContainer>
 </template>

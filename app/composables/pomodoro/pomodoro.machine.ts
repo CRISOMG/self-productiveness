@@ -239,11 +239,11 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
           });
       },
       notifyFinish: () => {
-        notificationController.notify("Pomodoro finished!", {
-          body: "Time to take a break!",
-          icon: "/favicon.ico",
-          requireInteraction: true,
-        });
+        // notificationController.notify("Pomodoro finished!", {
+        //   body: "Time to take a break!",
+        //   icon: "/favicon.ico",
+        //   requireInteraction: true,
+        // });
       },
       refreshList: () => handleListPomodoros(),
     },

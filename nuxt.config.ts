@@ -42,6 +42,7 @@ export default defineNuxtConfig({
     public: {
       test_email: process.env.TEST_EMAIL || "",
       head_app_name: process.env.HEAD_APP_NAME || "Pomodoro",
+      vapidPublicKey: process.env.VAPID_PUBLIC_KEY || "",
       n8nGoogleDriveInboxWebhookUrl:
         process.env.N8N_GOOGLE_DRIVE_INBOX_WEBHOOK_URL,
       n8nAuthHeader: process.env.N8N_AUTH_HEADER,

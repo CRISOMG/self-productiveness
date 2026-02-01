@@ -23,6 +23,7 @@ const emit = defineEmits<{
   (e: "openWebhook"): void;
   (e: "openPersonalAccessToken"): void;
   (e: "openNotes"): void;
+  (e: "openPushNotifications"): void;
 }>();
 
 const profileController = useProfileController();
@@ -59,6 +60,13 @@ const items = ref<DropdownMenuItem[][]>([
       icon: "i-lucide-webhook",
       onSelect: () => {
         emit("openWebhook");
+      },
+    },
+    {
+      label: "Push Notifications",
+      icon: "i-lucide-bell",
+      onSelect: () => {
+        emit("openPushNotifications");
       },
     },
   ],
