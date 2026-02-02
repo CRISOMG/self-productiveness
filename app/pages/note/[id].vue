@@ -8,9 +8,9 @@ definePageMeta({
 const route = useRoute();
 const id = computed(() => route.params.id as string);
 
-// Fetch con mejor manejo de estados
-const { data, status, error } = await useFetch(
-  () => `/api/google-drive/content/${id.value}`,
+// Unified endpoint - server decides which storage to use
+const { data, status, error } = await useFetch<{ content: string }>(
+  () => `/api/notes/content/${id.value}`,
   {
     key: `note-${id.value}`,
     lazy: false,
@@ -18,7 +18,7 @@ const { data, status, error } = await useFetch(
 );
 
 // Parse markdown con dependencia en data
-const { data: ast, status: astStatus } = await useAsyncData(
+const { data: ast } = await useAsyncData(
   `markdown-${id.value}`,
   () => parseMarkdown(data.value?.content || ""),
   { watch: [data] },
