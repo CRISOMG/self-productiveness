@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 
+const user = useSupabaseUser();
+const isLoggedIn = computed(() => !!user.value?.sub);
 // Props para configuración futura de acceso público
 const props = withDefaults(
   defineProps<{
@@ -98,10 +100,7 @@ const items = ref<DropdownMenuItem[][]>([
       <p class="font-bold">Yourfocus</p>
     </NuxtLink>
 
-    <div
-      class="flex self-end gap-2"
-      v-if="showTimeline || showProfile || showNotes"
-    >
+    <div class="flex self-end gap-2" v-if="isLoggedIn">
       <UButton
         v-if="showNotes"
         @click="emit('openNotes')"
