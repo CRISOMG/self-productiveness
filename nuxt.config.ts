@@ -39,6 +39,7 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    googleAiApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
     public: {
       test_email: process.env.TEST_EMAIL || "",
       head_app_name: process.env.HEAD_APP_NAME || "Pomodoro",

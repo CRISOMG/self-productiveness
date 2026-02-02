@@ -1,0 +1,1468 @@
+{
+    "nodes": [
+        {
+            "parameters": {},
+            "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                1104,
+                1008
+            ],
+            "id": "5cb4d36a-b999-4a51-8b62-e5a703354438",
+            "name": "Embeddings Google Gemini",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "y2zMJYAe7W3YDewZ",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "description": "Use the tool to think about something. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed.\n\nUsa esta herramienta para plasmar tu discernimiento sobre que usar, si la base de datos del chat, hacer una busqueda semantica de la bitacora, consultar la lista de tareas, crear una tarea, desarrollar un concepto complejo en base al contexto."
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolThink",
+            "typeVersion": 1.1,
+            "position": [
+                928,
+                800
+            ],
+            "id": "bcd1d970-255e-4487-bee4-df945857e229",
+            "name": "Think"
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "={{$json.message }}",
+                "options": {
+                    "systemMessage": "=user_folder_id={{ $json.user_folder_id }}\n\n{{ $('Get system_prompt').item.json.value.replaceAll('SYSTEM_PROMPT_PAYLOAD_PLACEHOLDER', $('set body').item.json.system_message) }}",
+                    "maxIterations": 20,
+                    "returnIntermediateSteps": true,
+                    "passthroughBinaryImages": true,
+                    "enableStreaming": true
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3.1,
+            "position": [
+                1456,
+                96
+            ],
+            "id": "dc674de2-a4d3-4ceb-a989-901682245b73",
+            "name": "AI Agent1",
+            "alwaysOutputData": false,
+            "retryOnFail": true,
+            "maxTries": 5
+        },
+        {
+            "parameters": {
+                "mode": "retrieve-as-tool",
+                "toolDescription": "Utiliza este conocimiento para responder las preguntas sobre  la base de datos semantica de la bitacora o para obtener contexto de ejecucion a largo plazo.",
+                "tableName": {
+                    "__rl": true,
+                    "value": "documents",
+                    "mode": "list",
+                    "cachedResultName": "documents"
+                },
+                "topK": 20,
+                "options": {
+                    "metadata": {
+                        "metadataValues": [
+                            {
+                                "name": "=user_id",
+                                "value": "={{ $('set').item.json.user_id }}"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+            "typeVersion": 1.3,
+            "position": [
+                1104,
+                832
+            ],
+            "id": "5085be85-34af-43c1-a4fd-3ad00bac36ea",
+            "name": "Supabase Vector Store",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "r628nMXgiYtcaoDn",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "descriptionType": "manual",
+                "toolDescription": "=Use this tool to SEARCH files and folders in Google Drive. You must generate a valid Google Drive Query String (q).\n\nExamples of query logic you can construct:\n- By name: \"name contains 'contract'\"\n- Inside a folder: \"'FOLDER_ID' in parents\"\n- Only folders: \"mimeType = 'application/vnd.google-apps.folder'\"\n- Not in trash (ALWAYS RECOMMEND): \"trashed = false\"\n- By date: \"modifiedTime > '2024-01-01'\"\n\nCombine them with 'and' / 'or':\n\"name contains 'budget' and 'FOLDER_ID' in parents and trashed = false\"\n\nES IMPERATIVO que uses el user_folder_id ({{ $json.user_folder_id }}) como raiz o referencia en \"'{{ $json.user_folder_id }}' in parents\" para optener los id de las carpetas bitacora, notas e inbox del usuario.\n\nES IMPERATIVO que uses el user_folder_id ({{ $json.user_folder_id }}) como raiz o referencia en \"'{{ $json.user_folder_id }}' in parents\" para optener los id de las carpetas bitacora, notas e inbox del usuario.\n\nES IMPERATIVO que uses el user_folder_id ({{ $json.user_folder_id }}) como raiz o referencia en \"'{{ $json.user_folder_id }}' in parents\" para optener los id de las carpetas bitacora, notas e inbox del usuario.",
+                "resource": "fileFolder",
+                "searchMethod": "query",
+                "queryString": "={{ $fromAI('q_string_search', `Query string to filter files. MUST use valid operators (contains, =, >, <, in, and, or). Example: name contains 'report' and trashed = false`, 'string') }}",
+                "returnAll": true,
+                "filter": {
+                    "driveId": {
+                        "mode": "list",
+                        "value": "My Drive"
+                    },
+                    "whatToSearch": "all"
+                },
+                "options": {
+                    "fields": "={{ [\"name\",\"kind\",\"mimeType\",\"webViewLink\",\"id\",\"parents\",\"createdTime\",\"modifiedTime\"] }}"
+                }
+            },
+            "type": "n8n-nodes-base.googleDriveTool",
+            "typeVersion": 3,
+            "position": [
+                1488,
+                704
+            ],
+            "id": "43e8f800-775a-444d-b952-8a555e2c1e83",
+            "name": "Search files and folders in Google Drive1",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "description": "Usa esta herramienta cuando quieras saber el contenido de la transcripcion de una bitacora o nota.\n\nUsa la herramienta de busqueda avanzada \"Search files and folders in Google Drive1\" para obtener el id en base a alguna descripcion del usuario, sino tienes alguna referencia, solicitala.",
+                "workflowId": {
+                    "__rl": true,
+                    "value": "tSrw9Pq6O42k50nu",
+                    "mode": "list",
+                    "cachedResultUrl": "/workflow/tSrw9Pq6O42k50nu",
+                    "cachedResultName": "tool download and transcribe from google drive by id"
+                },
+                "workflowInputs": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "file_id": "={{ $fromAI('file_id', `file id of the txt file in google drive, id like \"1F-MKaUuPmrTY8Uuw9PblcLLr6j1BXcqu\"`, 'string') }}"
+                    },
+                    "matchingColumns": [
+                        "file_id"
+                    ],
+                    "schema": [
+                        {
+                            "id": "file_id",
+                            "displayName": "file_id",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+            "typeVersion": 2.2,
+            "position": [
+                2112,
+                704
+            ],
+            "id": "d8c4ccaa-0cca-4110-90cf-43ae982b0e8d",
+            "name": "tool download and transcribe from google drive by id"
+        },
+        {
+            "parameters": {
+                "description": "Usa esta herramienta cuando se necesite subir un archivo nuevo a alguna carpeta determinada.\n\nUsa la herramienta de busqueda avanzada \"Search files and folders in Google Drive1\" para obtener el parent_folder en base a alguna descripcion del usuario, sino tienes alguna referencia, solicitala.",
+                "workflowId": {
+                    "__rl": true,
+                    "value": "1fg1Fd9cLLvZluNe",
+                    "mode": "list",
+                    "cachedResultUrl": "/workflow/1fg1Fd9cLLvZluNe",
+                    "cachedResultName": "upload a text file to google drive"
+                },
+                "workflowInputs": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "filename": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('filename', ``, 'string') }}",
+                        "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('content', ``, 'string') }}",
+                        "parent_folder": "={{ $fromAI('parent_folder', `folder id of the folder where upload the file in google drive, id like \"1l5gZrVyBBnrARUTLZUPU1Acn7hRaG4PN\"`, 'string') }}",
+                        "file_extension": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('file_extension', `file extension, extension del archivo de texto. puede ser .txt o .md o cualquier \"text/*\"`, 'string') }}",
+                        "user_id": "={{ $json.user_id }}"
+                    },
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "filename",
+                            "displayName": "filename",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "content",
+                            "displayName": "content",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "parent_folder",
+                            "displayName": "parent_folder",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "file_extension",
+                            "displayName": "file_extension",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "user_id",
+                            "displayName": "user_id",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+            "typeVersion": 2.2,
+            "position": [
+                1712,
+                704
+            ],
+            "id": "eb5c0e1e-9fb0-49bb-b949-85f31e111eb7",
+            "name": "Call 'upload a text file to google drive'"
+        },
+        {
+            "parameters": {
+                "workflowId": {
+                    "__rl": true,
+                    "value": "xKXVDzGRCvnui8Rm",
+                    "mode": "list",
+                    "cachedResultUrl": "/workflow/xKXVDzGRCvnui8Rm",
+                    "cachedResultName": "update file in google drive by text and id"
+                },
+                "workflowInputs": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "file_extension": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('file_extension', ``, 'string') }}",
+                        "file_id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('file_id', ``, 'string') }}",
+                        "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('content', ``, 'string') }}",
+                        "filename": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('filename', ``, 'string') }}"
+                    },
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "filename",
+                            "displayName": "filename",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "content",
+                            "displayName": "content",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "file_id",
+                            "displayName": "file_id",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "file_extension",
+                            "displayName": "file_extension",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+            "typeVersion": 2.2,
+            "position": [
+                1904,
+                704
+            ],
+            "id": "3b89ea93-1eae-4662-94ae-40c3ec5bf0a1",
+            "name": "Call 'update file in google drive by text and id'"
+        },
+        {
+            "parameters": {
+                "operation": "get",
+                "dataTableId": {
+                    "__rl": true,
+                    "value": "hlWPFHtnMXAkfme8",
+                    "mode": "list",
+                    "cachedResultName": "yourfocus",
+                    "cachedResultUrl": "/projects/Lt4LnsTeZaXUZ35g/datatables/hlWPFHtnMXAkfme8"
+                },
+                "filters": {
+                    "conditions": [
+                        {
+                            "keyName": "key",
+                            "keyValue": "system_prompt"
+                        }
+                    ]
+                },
+                "limit": 1
+            },
+            "type": "n8n-nodes-base.dataTable",
+            "typeVersion": 1.1,
+            "position": [
+                160,
+                -96
+            ],
+            "id": "37043109-1f2f-47d9-9767-f90fb070f7c0",
+            "name": "Get system_prompt"
+        },
+        {
+            "parameters": {
+                "sessionIdType": "customKey",
+                "sessionKey": "={{ $('set').item.json.user_id }}",
+                "contextWindowLength": 40
+            },
+            "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+            "typeVersion": 1.3,
+            "position": [
+                784,
+                768
+            ],
+            "id": "420eaeac-f1a6-4a80-b09f-7d27d69ebd7c",
+            "name": "Postgres Chat Memory1",
+            "alwaysOutputData": false,
+            "credentials": {
+                "postgres": {
+                    "id": "NOIoeiOjFmrltENm",
+                    "name": "Postgres account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "amount": 3
+            },
+            "type": "n8n-nodes-base.wait",
+            "typeVersion": 1.1,
+            "position": [
+                -16,
+                -96
+            ],
+            "id": "55b9f8ce-a746-4085-a7b7-662c49318c18",
+            "name": "Wait",
+            "webhookId": "ca045e68-8133-4a54-b65b-103834bff3e0"
+        },
+        {
+            "parameters": {
+                "rules": {
+                    "rule": [
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "64280134-2ea1-487d-8f73-443a77db4b3d",
+                                        "leftValue": "={{ $json.message }}",
+                                        "rightValue": "[use pro]",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "contains"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            }
+                        },
+                        {
+                            "modelIndex": 2,
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "49f6a7ef-77f8-4fd6-bbd5-bb38b4f80987",
+                                        "leftValue": "={{ $json.message }}",
+                                        "rightValue": "[use pro]",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "notContains"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            }
+                        }
+                    ]
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.modelSelector",
+            "typeVersion": 1,
+            "position": [
+                704,
+                272
+            ],
+            "id": "a78596b4-1e65-407d-878e-d22741e5331b",
+            "name": "Model Selector"
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-3-flash-preview",
+                "options": {
+                    "maxOutputTokens": 80000,
+                    "temperature": 0.5
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                768,
+                432
+            ],
+            "id": "b26e8128-32c1-4288-bca5-7990b8d1abee",
+            "name": "gemini-3-flash-preview1",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "y2zMJYAe7W3YDewZ",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-3-pro-preview",
+                "options": {
+                    "maxOutputTokens": 80000,
+                    "temperature": 0.5
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                640,
+                416
+            ],
+            "id": "fc44d153-016a-485a-a7a8-f2ba48994367",
+            "name": "gemini-3-pro-preview",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "y2zMJYAe7W3YDewZ",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "9ee4d835-673f-4a8e-bc6b-7a5f3721098c",
+                "authentication": "basicAuth",
+                "responseMode": "streaming",
+                "options": {
+                    "binaryPropertyName": "data"
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -368,
+                -96
+            ],
+            "id": "6471fed9-e777-4128-8e19-75ecf0cc0cae",
+            "name": "Webhook",
+            "webhookId": "9ee4d835-673f-4a8e-bc6b-7a5f3721098c",
+            "credentials": {
+                "httpBasicAuth": {
+                    "id": "IFR7pxwPRobgi89k",
+                    "name": "basic yourfocus auth"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "\nconst item = $input.first()\n\nreturn [\n  {\n    json: item.json.body,\n    binary: item.binary\n  }\n]"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -192,
+                -96
+            ],
+            "id": "f670921f-aa71-4027-b17c-8fefabdc484b",
+            "name": "set body"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "0169b505-dfbc-47f3-8bae-8bfed6a3f28b",
+                            "name": "=message",
+                            "value": "={{ $('set body').item.json.chatInput }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "1fae4eb2-52ed-4fb7-98a1-86f709e07f64",
+                            "name": "user_id",
+                            "value": "={{ $('set body').item.json.user_id }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "80b0ead2-7c14-4b30-af92-a57ab7acbaa7",
+                            "name": "user_folder_id",
+                            "value": "={{ $json.id }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                1280,
+                96
+            ],
+            "id": "940f8037-1639-4351-8279-deedd5b88bb0",
+            "name": "set"
+        },
+        {
+            "parameters": {
+                "description": "# YOURFOCUS POMODORO TASKS\n\nUtiliza esta herramienta para CREAR una nueva tarjeta, ticket o tarea.\n\nREGLAS DE ACTIVACIÓN:\n- Solo activar si el usuario usa verbos de acción explícitos como \"crear\", \"agendar\", \"anotar\", \"nueva tarea\".\n- Si el usuario solo está contando una idea vaga sin pedir explícitamente que se guarde, NO actives esta herramienta.\n\nSi decides usarla, extrae el título y la descripción del contexto en español.\n",
+                "workflowId": {
+                    "__rl": true,
+                    "value": "wKfROYZ3Jsnx9r5z",
+                    "mode": "list",
+                    "cachedResultUrl": "/workflow/wKfROYZ3Jsnx9r5z",
+                    "cachedResultName": "supabase create tasks"
+                },
+                "workflowInputs": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "done": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('done', `default false`, 'boolean') }}",
+                        "archived": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('archived', `default false`, 'boolean') }}",
+                        "user_id": "={{ $('set').item.json.user_id }}",
+                        "title": "={{ $fromAI('title', 'title of the card or ticket','string', null) }}",
+                        "description": "={{ $fromAI('description', 'description of the card or ticket','string', null) }}"
+                    },
+                    "matchingColumns": [
+                        "action"
+                    ],
+                    "schema": [
+                        {
+                            "id": "title",
+                            "displayName": "title",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "description",
+                            "displayName": "description",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "user_id",
+                            "displayName": "user_id",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "done",
+                            "displayName": "done",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "boolean",
+                            "removed": false
+                        },
+                        {
+                            "id": "archived",
+                            "displayName": "archived",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "boolean",
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+            "typeVersion": 2.2,
+            "position": [
+                1840,
+                304
+            ],
+            "id": "1583126e-6d61-47b0-a02e-c064bc2f9f6a",
+            "name": "Call supabase create tasks"
+        },
+        {
+            "parameters": {
+                "description": "# YOURFOCUS POMODORO TASKS\n\n\nesta herramienta es para listar todo lo que hay en la lista de tareas del pomodoro.\n\nUtiliza esta herramienta EXCLUSIVAMENTE para LEER, CONSULTAR o RECUPERAR tareas existentes. \n\nUso OBLIGATORIO cuando el usuario pida:\n1. Listar tareas pendientes, tickets o cosas por hacer.\n2. Resumir la carga de trabajo actual o ver el estado del backlog.\n3. Verificar si una tarea específica YA existe (antes de intentar crear una nueva).\n4. Buscar detalles sobre una tarea conocida.\n5. Validar integridad de las tareas respecto a las operaciones del sistema inteligente.\n\nNO uses esta herramienta para crear tarjetas nuevas. Solo es para lectura.\n\n",
+                "workflowId": {
+                    "__rl": true,
+                    "value": "KZ6eMXXPuZn3HWPu",
+                    "mode": "list",
+                    "cachedResultUrl": "/workflow/KZ6eMXXPuZn3HWPu",
+                    "cachedResultName": "supabase get tasks"
+                },
+                "workflowInputs": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "user_id": "={{ $('set').item.json.user_id }}"
+                    },
+                    "matchingColumns": [
+                        "action"
+                    ],
+                    "schema": [
+                        {
+                            "id": "user_id",
+                            "displayName": "user_id",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+            "typeVersion": 2.2,
+            "position": [
+                2160,
+                304
+            ],
+            "id": "a30017a1-93a6-4eea-8b53-219038dd23f2",
+            "name": "Call supabase get tasks"
+        },
+        {
+            "parameters": {
+                "description": "# YOURFOCUS POMODORO TASKS\n\nutiliza la tool \"Call supabase get tasks\" para obtener el id de la task que quieres actualizar.",
+                "workflowId": {
+                    "__rl": true,
+                    "value": "OazqOUn72MC4pUx6",
+                    "mode": "list",
+                    "cachedResultUrl": "/workflow/OazqOUn72MC4pUx6",
+                    "cachedResultName": "supabase update task"
+                },
+                "workflowInputs": {
+                    "mappingMode": "defineBelow",
+                    "value": {
+                        "done": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('done', `default false`, 'boolean') }}",
+                        "archived": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('archived', `default false`, 'boolean') }}",
+                        "user_id": "={{ $('set').item.json.user_id }}",
+                        "title": "={{ $fromAI('title', 'title of the card or ticket','string', null) }}",
+                        "description": "={{ $fromAI('description', 'description of the card or ticket','string', null) }}",
+                        "id": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('id', `id of the task to update.`, 'string') }}"
+                    },
+                    "matchingColumns": [
+                        "action"
+                    ],
+                    "schema": [
+                        {
+                            "id": "id",
+                            "displayName": "id",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "user_id",
+                            "displayName": "user_id",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "title",
+                            "displayName": "title",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "description",
+                            "displayName": "description",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "string",
+                            "removed": false
+                        },
+                        {
+                            "id": "done",
+                            "displayName": "done",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "boolean",
+                            "removed": false
+                        },
+                        {
+                            "id": "archived",
+                            "displayName": "archived",
+                            "required": false,
+                            "defaultMatch": false,
+                            "display": true,
+                            "canBeUsedToMatch": true,
+                            "type": "boolean",
+                            "removed": false
+                        }
+                    ],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": false
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+            "typeVersion": 2.2,
+            "position": [
+                2000,
+                304
+            ],
+            "id": "0fed3bf0-196f-4446-8e0e-11aca866ed80",
+            "name": "Call supabase update tasks"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "searchMethod": "query",
+                "queryString": "=name = '{{ $('set body').item.json.user_id }}'",
+                "limit": 1,
+                "filter": {
+                    "driveId": {
+                        "mode": "list",
+                        "value": "My Drive"
+                    },
+                    "folderId": {
+                        "__rl": true,
+                        "value": "1l4jeHY9VN-ihIVdS-T_4kzxfgVB-_2Pd",
+                        "mode": "list",
+                        "cachedResultName": "yourfocus",
+                        "cachedResultUrl": "https://drive.google.com/drive/folders/1l4jeHY9VN-ihIVdS-T_4kzxfgVB-_2Pd"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {
+                    "fields": [
+                        "id"
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                624,
+                -64
+            ],
+            "id": "a0ab35ff-c0b3-4253-abcb-621b088ded05",
+            "name": "Search files and folders",
+            "alwaysOutputData": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "dfd8f1f6-ff75-41d0-ba58-4d27234bbf2d",
+                            "leftValue": "={{ $json.id }}",
+                            "rightValue": "={{ $json.id }}",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                944,
+                -48
+            ],
+            "id": "d70cae5b-b273-4963-9825-28dba02288ab",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "={{ $('set body').item.json.user_id }}",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "=1l4jeHY9VN-ihIVdS-T_4kzxfgVB-_2Pd",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                416,
+                -336
+            ],
+            "id": "aebd9bff-434f-47f0-af3c-1ddfae9be7ce",
+            "name": "Create user folder",
+            "executeOnce": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "=bitacoras",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('Create user folder').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                560,
+                -336
+            ],
+            "id": "b209d98d-1a16-40ef-869c-6b1fa0ba51c1",
+            "name": "Create user bitacora folder",
+            "executeOnce": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "=notas",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('Create user folder').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                752,
+                -336
+            ],
+            "id": "92caa5b5-233f-495b-b30c-5499439dc390",
+            "name": "Create user notas folder",
+            "executeOnce": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "=attachments",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('Create user folder').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                960,
+                -304
+            ],
+            "id": "17ebb1c7-324b-4be6-8d06-b865b0daf527",
+            "name": "Create user inbox folder",
+            "executeOnce": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "=00 inbox",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('Create user notas folder').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                752,
+                -528
+            ],
+            "id": "e1a7480f-a219-4f09-b61f-2b30d00f6789",
+            "name": "Create user notas folder1",
+            "executeOnce": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "=10 referencias",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('Create user notas folder').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                896,
+                -528
+            ],
+            "id": "176cfe57-5858-49ea-856c-018a7aec834d",
+            "name": "Create user notas folder2",
+            "executeOnce": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "=20 artefactos",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('Create user notas folder').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                1040,
+                -528
+            ],
+            "id": "d305a26d-0cfd-4b27-926d-7272959a6074",
+            "name": "Create user notas folder3",
+            "executeOnce": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Embeddings Google Gemini": {
+            "ai_embedding": [
+                [
+                    {
+                        "node": "Supabase Vector Store",
+                        "type": "ai_embedding",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Think": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AI Agent1": {
+            "main": [
+                []
+            ]
+        },
+        "Supabase Vector Store": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Search files and folders in Google Drive1": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "tool download and transcribe from google drive by id": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Call 'upload a text file to google drive'": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Call 'update file in google drive by text and id'": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get system_prompt": {
+            "main": [
+                [
+                    {
+                        "node": "Search files and folders",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Postgres Chat Memory1": {
+            "ai_memory": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_memory",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Wait": {
+            "main": [
+                [
+                    {
+                        "node": "Get system_prompt",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Model Selector": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "gemini-3-flash-preview1": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Model Selector",
+                        "type": "ai_languageModel",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "gemini-3-pro-preview": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Model Selector",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "set body",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "set body": {
+            "main": [
+                [
+                    {
+                        "node": "Wait",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "set": {
+            "main": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Call supabase create tasks": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Call supabase get tasks": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Call supabase update tasks": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AI Agent1",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Search files and folders": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "set",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Create user folder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create user folder": {
+            "main": [
+                [
+                    {
+                        "node": "Create user bitacora folder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create user bitacora folder": {
+            "main": [
+                [
+                    {
+                        "node": "Create user notas folder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create user notas folder": {
+            "main": [
+                [
+                    {
+                        "node": "Create user notas folder1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create user inbox folder": {
+            "main": [
+                [
+                    {
+                        "node": "Search files and folders",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create user notas folder1": {
+            "main": [
+                [
+                    {
+                        "node": "Create user notas folder2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create user notas folder2": {
+            "main": [
+                [
+                    {
+                        "node": "Create user notas folder3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create user notas folder3": {
+            "main": [
+                [
+                    {
+                        "node": "Create user inbox folder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {
+        "Webhook": [
+            {
+                "headers": {
+                    "host": "yourfocus.dieguscl.com",
+                    "user-agent": "node",
+                    "content-length": "284",
+                    "accept": "*/*",
+                    "accept-encoding": "gzip, br",
+                    "accept-language": "*",
+                    "authorization": "Basic eW91cmZvY3VzOmNhZmUgY29uIGxlY2hl",
+                    "cdn-loop": "cloudflare; loops=1",
+                    "cf-connecting-ip": "3.235.22.192",
+                    "cf-ipcountry": "US",
+                    "cf-ray": "9c5ae908cdacd6b0-IAD",
+                    "cf-visitor": "{\"scheme\":\"https\"}",
+                    "cf-warp-tag-id": "cc002754-a8f7-49fc-84b9-add3a1dac651",
+                    "connection": "keep-alive",
+                    "content-type": "multipart/form-data; boundary=----formdata-undici-057421935258",
+                    "sec-fetch-mode": "cors",
+                    "x-forwarded-for": "3.235.22.192",
+                    "x-forwarded-proto": "https",
+                    "x-invocation-id": "iad1::ptp27-1769712573014-45e8ce9c40f9",
+                    "x-user-id": "4ddb8909-ef46-4cde-8feb-8ce0a3c72564",
+                    "x-vercel-id": "iad1::ptp27-1769712573014-45e8ce9c40f9"
+                },
+                "params": {},
+                "query": {},
+                "body": {
+                    "chatInput": "Si procede con todo\r\n\r\n[use pro]",
+                    "user_id": "4ddb8909-ef46-4cde-8feb-8ce0a3c72564"
+                },
+                "webhookUrl": "https://yourfocus.dieguscl.com/webhook/9ee4d835-673f-4a8e-bc6b-7a5f3721098c",
+                "executionMode": "production"
+            }
+        ]
+    },
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "6aa357c2ace040b138b94bba38619872f629590d42122f5fe7ad9cdc6634f733"
+    }
+}

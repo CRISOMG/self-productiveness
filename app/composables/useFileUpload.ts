@@ -48,11 +48,8 @@ export function useFileUploadWithStatus() {
       try {
         const response = await $fetch<
           FileUploadResponseFromN8NGoogleDriveInboxWebhook[]
-        >(config.public.n8nGoogleDriveInboxWebhookUrl, {
+        >("/api/audio/transcribe", {
           method: "POST",
-          headers: {
-            Authorization: config.public.n8nAuthHeader,
-          },
           body: formData,
         });
 

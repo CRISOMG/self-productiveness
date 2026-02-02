@@ -23,7 +23,6 @@ interface N8NChatHistoryRow {
 }
 
 export default defineEventHandler(async (event) => {
-  // 1. Obtener sesión del usuario (seguridad)
   const user = await serverSupabaseUser(event);
 
   if (!user) {
@@ -35,7 +34,6 @@ export default defineEventHandler(async (event) => {
 
   const userId = user.sub;
 
-  // 2. Consultar Postgres (el objeto 'sql' se auto-importa desde server/utils/n8n-db.ts)
   const rows = await sql<N8NChatHistoryRow[]>`
     SELECT * FROM (
       SELECT id, session_id, message

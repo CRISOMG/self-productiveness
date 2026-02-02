@@ -222,8 +222,6 @@ const chat = new Chat({
     // body: {},
     fetch: async (api, options = {}) => {
       const body = JSON.parse(options?.body as string);
-      const lastMessage = body.messages.pop();
-      options.body = JSON.stringify({ ...body, messages: [lastMessage] });
       return fetch(api, options);
 
       // const hasFiles = files.value.length > 0;

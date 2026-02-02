@@ -1,0 +1,1119 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "workflowInputs": {
+                    "values": [
+                        {
+                            "name": "user_id"
+                        }
+                    ]
+                }
+            },
+            "id": "c055762a-8fe7-4141-a639-df2372f30060",
+            "typeVersion": 1.1,
+            "name": "When Executed by Another Workflow",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "position": [
+                -192,
+                336
+            ]
+        },
+        {
+            "parameters": {
+                "resource": "audio",
+                "operation": "analyze",
+                "modelId": {
+                    "__rl": true,
+                    "value": "models/gemini-3-flash-preview",
+                    "mode": "list",
+                    "cachedResultName": "models/gemini-3-flash-preview"
+                },
+                "text": "=[[fecha de la bitacora:  {{ $('format filename').item.json.formatted_id }}]]\n\n{{ $('get_transcript_prompt').item.json.value }}",
+                "inputType": "binary",
+                "simplify": false,
+                "options": {
+                    "maxOutputTokens": 50000
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.googleGemini",
+            "typeVersion": 1.1,
+            "position": [
+                1408,
+                496
+            ],
+            "id": "69b4622f-98f4-4b84-a091-e6c96ac20909",
+            "name": "Analyze audio1",
+            "executeOnce": false,
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "y2zMJYAe7W3YDewZ",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "3ecdb06e-6a9b-46f1-8fbe-d9a00a5c4d96",
+                            "name": "driveFolderId",
+                            "value": "={{ $json.id }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "dca604a3-f58e-457d-9a0c-7235faa15b20",
+                            "name": "old_driveFolderId",
+                            "value": "1kfJUFI2-kGFfpCY9r0XdYc5D-7aKAbzz",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "includeOtherFields": true,
+                "options": {
+                    "stripBinary": true
+                }
+            },
+            "id": "7c484ea5-94ef-4b09-8b30-5aad58bd5f08",
+            "name": "set_driveFolderId",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                608,
+                368
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "const { DateTime } = require('luxon');\n\n// 1. Get input data\nconst item = $input.first();\nconst textContent = item.json.candidates?.[0]?.content?.parts?.[0]?.text || \"\";\nconst formattedId = $('structure file').first().json.formatted_id; \n// Example: \"[Bitacora nocturna temprana, Thursday, 15-01-2026 22:43]\"\n\n// 2. Extract dynamic metadata from formattedId\n// Extract category (the text before the first comma)\nconst categoryMatch = formattedId.match(/^\\[(.*?)(?=,)/); \nconst categoryName = categoryMatch ? categoryMatch[1] : \"Bitacora\";\n\n// Extract base date/time (DD-MM-YYYY HH:mm)\nconst dateMatch = formattedId.match(/\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}/);\nconst baseDate = dateMatch \n  ? DateTime.fromFormat(dateMatch[0], \"dd-MM-yyyy HH:mm\") \n  : DateTime.now();\n\nlet bitacora_key = ''\n// 3. Process the transcription text\nconst processedText = textContent\n  .split('\\n')\n  .map(l => l.trim())           // Clean leading/trailing whitespace\n  .filter(l => l.length > 0)    // Remove empty lines\n  .map(line => {\n      // Regex to capture MM:SS and the following content\n      const match = line.match(/^(\\d+):(\\d+)\\s*-\\s*(.*)/);\n      \n      if (!match) return line;\n\n      const [_, mins, secs, content] = match;\n      \n      // Calculate real time using Luxon's overflow-safe math\n      const newTime = baseDate.plus({ \n          minutes: parseInt(mins), \n          seconds: parseInt(secs) \n      });\n      \n      // Format components in Spanish as per your requirement\n      const dayName = newTime.setLocale('es').toFormat('cccc');\n      const dayCap = dayName.charAt(0).toUpperCase() + dayName.slice(1);\n      const fullStamp = newTime.toFormat('dd-MM-yyyy HH:mm:ss');\n      const bitacora_timestamp = `[${categoryName}, ${dayCap}, ${fullStamp}]`\n\n      bitacora_key = !bitacora_timestamp ? `[${categoryName}, ${dayCap}, ${fullStamp}]` : bitacora_timestamp;\n      // Build the dynamic string\n      return `${bitacora_timestamp} - ${content}`;\n  })\n  .join('\\n\\n');\n\n// 4. Return the standard n8n object\nreturn {\n  json: {\n    text_content: processedText,\n    fileName: `${formattedId}.txt`,\n    bitacora_key,\n      user_id: $('When Executed by Another Workflow').first().json.user_id\n  },\n  binary: {\n    data: {\n      data: Buffer.from(processedText, 'utf8').toString('base64'),\n      mimeType: 'text/plain',\n      fileName: `${$('structure file').first().json.system_filename}.txt`,\n      targetFolderId: $('set_driveFolderId').first().json.driveFolderId,\n      fileExtension: 'txt',\n      user_id: $('When Executed by Another Workflow').first().json.user_id\n    }\n  }\n};"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1616,
+                528
+            ],
+            "id": "a5c3eb78-0719-4c6c-a386-2427cc2f9c55",
+            "name": "structure_file_info"
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "={{ $now.format('yyyy_MM_dd') }}",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('get user bitacora folder id').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                768,
+                640
+            ],
+            "id": "0a6e622d-f0f0-4730-b77a-3c3c73833950",
+            "name": "Create folder",
+            "executeOnce": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "queryString": "={{ $now.format('yyyy_MM_dd') }}",
+                "limit": 1,
+                "filter": {
+                    "folderId": {
+                        "__rl": true,
+                        "value": "={{ $('get user bitacora folder id').item.json.id }}",
+                        "mode": "id"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                448,
+                512
+            ],
+            "id": "e71bd63f-ddc7-4a72-8b83-5de898bb537a",
+            "name": "Search files and folders",
+            "alwaysOutputData": true,
+            "executeOnce": false,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "991bbd48-d5d1-4d5d-b4f7-37bab5c7dc74",
+                            "leftValue": "={{ $('set_driveFolderId').first().json.driveFolderId }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                752,
+                368
+            ],
+            "id": "35cf99e3-7c79-48ca-9189-2794bc1a022a",
+            "name": "If1"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "b8efae1e-917f-4901-9779-573bb226f5ba",
+                            "name": "message",
+                            "value": "=[{{ $('structure_file_info').first().json.bitacora_key }}]\n\n[audio]({{ $json.audio.webViewLink }})\n\n[transcripcion]({{ $json.text.webViewLink }})",
+                            "type": "string"
+                        },
+                        {
+                            "id": "eb04cf33-123d-4874-a408-598cbea59a1b",
+                            "name": "date",
+                            "value": "={{ $now }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "7ef134e2-bce4-4ca0-9db0-19537f9c3a31",
+                            "name": "audio",
+                            "value": "={{$json.audio}}",
+                            "type": "object"
+                        },
+                        {
+                            "id": "53098ee0-5adf-4d55-923d-d6ec64939981",
+                            "name": "text",
+                            "value": "={{$json.text}}",
+                            "type": "object"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                2576,
+                528
+            ],
+            "id": "d34f5f01-dd15-41ba-aee5-954373b2efcf",
+            "name": "set chat from transcription"
+        },
+        {
+            "parameters": {
+                "operation": "get",
+                "dataTableId": {
+                    "__rl": true,
+                    "value": "hlWPFHtnMXAkfme8",
+                    "mode": "list",
+                    "cachedResultName": "yourfocus",
+                    "cachedResultUrl": "/projects/Lt4LnsTeZaXUZ35g/datatables/hlWPFHtnMXAkfme8"
+                },
+                "filters": {
+                    "conditions": [
+                        {
+                            "keyName": "=key",
+                            "condition": "=eq",
+                            "keyValue": "transcript_prompt"
+                        }
+                    ]
+                },
+                "returnAll": true
+            },
+            "type": "n8n-nodes-base.dataTable",
+            "typeVersion": 1.1,
+            "position": [
+                960,
+                352
+            ],
+            "id": "d5ac0afe-2177-4956-99df-f9cfd5754ce5",
+            "name": "get_transcript_prompt",
+            "alwaysOutputData": true
+        },
+        {
+            "parameters": {
+                "name": "={{$('format filename').item.json.system_filename }}",
+                "driveId": {
+                    "__rl": true,
+                    "value": "My Drive",
+                    "mode": "list",
+                    "cachedResultName": "My Drive",
+                    "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "mode": "id",
+                    "value": "={{ $('set_driveFolderId').first().json.driveFolderId }}"
+                },
+                "options": {
+                    "propertiesUi": {
+                        "propertyValues": [
+                            {
+                                "key": "to_folder",
+                                "value": "={{ $('set_driveFolderId').first().json.driveFolderId }}"
+                            },
+                            {
+                                "key": "user_id",
+                                "value": "={{ $('When Executed by Another Workflow').item.json.user_id }}"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "34c2a10a-a54d-49db-a963-54f84b9d9e5f",
+            "name": "Upload audio file to Google Drive",
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                1888,
+                352
+            ],
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "name": "={{$binary.data.fileName}}",
+                "driveId": {
+                    "__rl": true,
+                    "value": "My Drive",
+                    "mode": "list",
+                    "cachedResultName": "My Drive",
+                    "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('set_driveFolderId').first().json.driveFolderId }}",
+                    "mode": "id"
+                },
+                "options": {
+                    "propertiesUi": {
+                        "propertyValues": [
+                            {
+                                "key": "to_folder",
+                                "value": "={{ $('set_driveFolderId').first().json.driveFolderId }}"
+                            },
+                            {
+                                "key": "user_id",
+                                "value": "={{ $('When Executed by Another Workflow').item.json.user_id }}"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "878b1068-df21-4142-a5c2-c57c4a8c7d53",
+            "name": "Upload transcription to Google Drive",
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                1888,
+                528
+            ],
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "\nconst item = $('When Executed by Another Workflow').first()\n\nreturn {\n  json: $('format filename').first().json,\n  binary: {\n    data: item?.binary.data || item?.binary.data0\n  }\n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1136,
+                352
+            ],
+            "id": "754f2da7-137b-4206-86ab-7d03fad2dfe7",
+            "name": "structure file"
+        },
+        {
+            "parameters": {
+                "jsCode": "// 1. Configuración Inicial (Luxon)\nconst dt = $now.setZone('America/Caracas').setLocale('es-ES');\nconst hour = dt.hour;\n\n// 2. Lógica de Jornada y Momento\n// Definimos rangos simples para mantener el código limpio\n// 1. Mapa declarativo de jornadas\nconst JORNADAS = [\n  { nombre: 'matutina',   inicio: 5,  fin: 12, cortes: [7, 10] },\n  { nombre: 'meridiana',  inicio: 12, fin: 15, cortes: [13, 14] },\n  { nombre: 'vespertina', inicio: 15, fin: 20, cortes: [17, 18] },\n  { nombre: 'nocturna',   inicio: 20, fin: 5,  cortes: [23, 2]  } // El default si no cae en las anteriores\n];\n\n// 2. Encontrar la jornada actual\n// Si no encuentra nada (undefined), tomamos la nocturna por defecto\nconst j = JORNADAS.find(x => hour >= x.inicio && hour < x.fin) || JORNADAS[3];\n\n// 3. Determinar el momento (temprana, media, tardía)\n// Lógica genérica: si es menor al primer corte es temprana, si es menor al segundo es media, sino tardía\nconst [c1, c2] = j.cortes;\nconst momento = (hour >= j.inicio && hour < c1) ? 'temprana' : \n                (hour >= c1 && hour < c2)       ? 'media' : 'tardía';\n\n// Exportar para usar en el resto del script\nconst jornada = j.nombre;\n// 3. Formateo de Texto\n// Capitalizamos la primera letra del día (jueves -> Jueves)\nconst diaSemana = dt.toFormat('cccc');\nconst diaCapitalizado = diaSemana.charAt(0).toUpperCase() + diaSemana.slice(1);\n\n// Construcción del string final solicitado\nconst bitacoraString = `[Bitacora ${jornada} ${momento}, ${diaCapitalizado}, ${dt.toFormat('dd-MM-yyyy HH:mm')}]`;\n\n// 4. Manejo de Archivo (Simplificado)\nconst binaryData = $('When Executed by Another Workflow').first().binary\n// Busca el primer binario disponible (usualmente 'data')\nconst binaryKey = binaryData ? Object.keys(binaryData)[0] : null;\nconst file = binaryKey ? binaryData[binaryKey] : null;\n\n\n// Extensión y nombre de archivo para guardar (ordenable por computadora)\nconst ext = file && file.fileExtension ? file.fileExtension : file?.mimeType?.split('/').pop() || 'ogg';\nconst formatedFullDate = `${dt.toFormat('yyyy_MM_dd')}.${dt.toFormat('HH.mm')}`\nconst sysFileName = `${formatedFullDate}.${ext}`;\n\nfile.fileName = sysFileName\n\nreturn {\n  json: {\n    formatted_id: bitacoraString, // El formato exacto para tu título/log\n    system_filename: sysFileName, // El formato para guardar el archivo físico\n    jornada,\n    momento,\n    date_iso: dt.toISO() // Útil si necesitas filtrar por fecha real después\n  },\n  binary: {\n    data: file  \n  }\n};"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                16,
+                336
+            ],
+            "id": "3fe0cbe1-d62b-42cf-8bd0-1b5fe5c7f3bb",
+            "name": "format filename",
+            "alwaysOutputData": true,
+            "executeOnce": false
+        },
+        {
+            "parameters": {
+                "numberInputs": 3
+            },
+            "type": "n8n-nodes-base.merge",
+            "typeVersion": 3.2,
+            "position": [
+                2208,
+                512
+            ],
+            "id": "27ca9fad-2673-407f-8b4d-9d2449ee2963",
+            "name": "Merge"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\nconst [audio,text,meaning] = $input.all()\n\n\nreturn [\n  {\n    json: {\n      audio: audio.json,\n      text: text.json,\n   meaning: meaning.json\n    }\n  }\n]"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                2416,
+                528
+            ],
+            "id": "9957cb61-cc9a-45c2-bf17-1e6e1daa6837",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "searchMethod": "query",
+                "queryString": "=name = '{{ $('When Executed by Another Workflow').item.json.user_id }}'",
+                "limit": 1,
+                "filter": {
+                    "driveId": {
+                        "mode": "list",
+                        "value": "My Drive"
+                    },
+                    "folderId": {
+                        "__rl": true,
+                        "value": "1l4jeHY9VN-ihIVdS-T_4kzxfgVB-_2Pd",
+                        "mode": "list",
+                        "cachedResultName": "yourfocus",
+                        "cachedResultUrl": "https://drive.google.com/drive/folders/1l4jeHY9VN-ihIVdS-T_4kzxfgVB-_2Pd"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {
+                    "fields": [
+                        "id"
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                208,
+                336
+            ],
+            "id": "f8045de1-d76a-4136-8613-c09c1ae1679f",
+            "name": "get user folder id",
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "6c46838a-1a0f-4215-82af-29567ff921b8",
+                            "leftValue": "={{ $json.id }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                144,
+                560
+            ],
+            "id": "ef6b9fbc-c7ec-4b13-b100-1b3ccb39736f",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "resource": "folder",
+                "name": "=bitacora",
+                "driveId": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "My Drive"
+                },
+                "folderId": {
+                    "__rl": true,
+                    "value": "={{ $('get user folder id').item.json.id }}",
+                    "mode": "id"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                144,
+                784
+            ],
+            "id": "8d72ddfb-e9da-476a-b139-1ea4380b7caf",
+            "name": "Create folder1",
+            "executeOnce": true,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "fileFolder",
+                "searchMethod": "query",
+                "queryString": "='{{ $('get user folder id').item.json.id }}' in parents and name = 'bitacora'",
+                "limit": 1,
+                "filter": {
+                    "driveId": {
+                        "mode": "list",
+                        "value": "My Drive"
+                    },
+                    "whatToSearch": "folders"
+                },
+                "options": {
+                    "fields": [
+                        "id"
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.googleDrive",
+            "typeVersion": 3,
+            "position": [
+                -16,
+                560
+            ],
+            "id": "64e0635f-fce6-46f4-b192-63a1497b2e52",
+            "name": "get user bitacora folder id",
+            "alwaysOutputData": true,
+            "executeOnce": false,
+            "credentials": {
+                "googleDriveOAuth2Api": {
+                    "id": "neKKhZXv02lcSclK",
+                    "name": "Google Drive account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "workflowId": {
+                    "__rl": true,
+                    "value": "pU1gYDo11NpHx15M",
+                    "mode": "list",
+                    "cachedResultUrl": "/workflow/pU1gYDo11NpHx15M",
+                    "cachedResultName": "upload binary txt file to supabase vector store for rag"
+                },
+                "workflowInputs": {
+                    "mappingMode": "defineBelow",
+                    "value": {},
+                    "matchingColumns": [],
+                    "schema": [],
+                    "attemptToConvertTypes": false,
+                    "convertFieldsToString": true
+                },
+                "options": {
+                    "waitForSubWorkflow": true
+                }
+            },
+            "type": "n8n-nodes-base.executeWorkflow",
+            "typeVersion": 1.3,
+            "position": [
+                1888,
+                736
+            ],
+            "id": "74c4a26b-8bee-4a1e-9973-1e5f64a34704",
+            "name": "supabase vector store for rag1",
+            "disabled": true
+        }
+    ],
+    "connections": {
+        "When Executed by Another Workflow": {
+            "main": [
+                [
+                    {
+                        "node": "format filename",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Analyze audio1": {
+            "main": [
+                [
+                    {
+                        "node": "structure_file_info",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "set_driveFolderId": {
+            "main": [
+                [
+                    {
+                        "node": "If1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "structure_file_info": {
+            "main": [
+                [
+                    {
+                        "node": "Upload transcription to Google Drive",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "supabase vector store for rag1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create folder": {
+            "main": [
+                [
+                    {
+                        "node": "Search files and folders",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Search files and folders": {
+            "main": [
+                [
+                    {
+                        "node": "set_driveFolderId",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If1": {
+            "main": [
+                [
+                    {
+                        "node": "get_transcript_prompt",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Create folder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "set chat from transcription": {
+            "main": [
+                []
+            ]
+        },
+        "get_transcript_prompt": {
+            "main": [
+                [
+                    {
+                        "node": "structure file",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Upload audio file to Google Drive": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Upload transcription to Google Drive": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 1
+                    }
+                ]
+            ]
+        },
+        "structure file": {
+            "main": [
+                [
+                    {
+                        "node": "Analyze audio1",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Upload audio file to Google Drive",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "format filename": {
+            "main": [
+                [
+                    {
+                        "node": "get user folder id",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "set chat from transcription",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "get user folder id": {
+            "main": [
+                [
+                    {
+                        "node": "get user bitacora folder id",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Search files and folders",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Create folder1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create folder1": {
+            "main": [
+                [
+                    {
+                        "node": "get user bitacora folder id",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "get user bitacora folder id": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "supabase vector store for rag1": {
+            "main": [
+                [
+                    {
+                        "node": "Merge",
+                        "type": "main",
+                        "index": 2
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {
+        "When Executed by Another Workflow": [
+            {
+                "user_id": "4ddb8909-ef46-4cde-8feb-8ce0a3c72564"
+            }
+        ],
+        "Merge": [
+            {
+                "kind": "drive#file",
+                "id": "1i4Bdl1ZX8X-LkqTMdcjxbSL_JK3BOckh",
+                "name": "2026_01_27.23.51.weba",
+                "mimeType": "audio/webm",
+                "starred": false,
+                "trashed": false,
+                "explicitlyTrashed": false,
+                "parents": [
+                    "15M7Ww4m2457dmE0wx1tGV4DSIXX-4IKv"
+                ],
+                "properties": {
+                    "to_folder": "15M7Ww4m2457dmE0wx1tGV4DSIXX-4IKv",
+                    "user_id": "4ddb8909-ef46-4cde-8feb-8ce0a3c72564"
+                },
+                "spaces": [
+                    "drive"
+                ],
+                "version": "2",
+                "webContentLink": "https://drive.google.com/uc?id=1i4Bdl1ZX8X-LkqTMdcjxbSL_JK3BOckh&export=download",
+                "webViewLink": "https://drive.google.com/file/d/1i4Bdl1ZX8X-LkqTMdcjxbSL_JK3BOckh/view?usp=drivesdk",
+                "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/audio/webm",
+                "hasThumbnail": false,
+                "thumbnailVersion": "0",
+                "viewedByMe": false,
+                "createdTime": "2026-01-28T03:52:03.933Z",
+                "modifiedTime": "2026-01-28T03:52:05.064Z",
+                "modifiedByMeTime": "2026-01-28T03:52:05.064Z",
+                "modifiedByMe": true,
+                "owners": [
+                    {
+                        "kind": "drive#user",
+                        "displayName": "Cristian Caraballo",
+                        "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocLQ7Br7erh_9SPg1n73a65g2JmlSZElo5WHMcgKvtR3cRggABq3Xw=s64",
+                        "me": true,
+                        "permissionId": "10574066304350948469",
+                        "emailAddress": "cristiancaraballo112@gmail.com"
+                    }
+                ],
+                "lastModifyingUser": {
+                    "kind": "drive#user",
+                    "displayName": "Cristian Caraballo",
+                    "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocLQ7Br7erh_9SPg1n73a65g2JmlSZElo5WHMcgKvtR3cRggABq3Xw=s64",
+                    "me": true,
+                    "permissionId": "10574066304350948469",
+                    "emailAddress": "cristiancaraballo112@gmail.com"
+                },
+                "shared": true,
+                "ownedByMe": true,
+                "downloadRestrictions": {
+                    "itemDownloadRestriction": {
+                        "restrictedForReaders": false,
+                        "restrictedForWriters": false
+                    },
+                    "effectiveDownloadRestrictionWithContext": {
+                        "restrictedForReaders": false,
+                        "restrictedForWriters": false
+                    }
+                },
+                "capabilities": {
+                    "canAcceptOwnership": false,
+                    "canAddChildren": false,
+                    "canAddMyDriveParent": false,
+                    "canChangeCopyRequiresWriterPermission": true,
+                    "canChangeItemDownloadRestriction": true,
+                    "canChangeSecurityUpdateEnabled": false,
+                    "canChangeViewersCanCopyContent": true,
+                    "canComment": true,
+                    "canCopy": true,
+                    "canDelete": true,
+                    "canDisableInheritedPermissions": false,
+                    "canDownload": true,
+                    "canEdit": true,
+                    "canEnableInheritedPermissions": true,
+                    "canListChildren": false,
+                    "canModifyContent": true,
+                    "canModifyContentRestriction": true,
+                    "canModifyEditorContentRestriction": true,
+                    "canModifyOwnerContentRestriction": true,
+                    "canModifyLabels": false,
+                    "canMoveChildrenWithinDrive": false,
+                    "canMoveItemIntoTeamDrive": true,
+                    "canMoveItemOutOfDrive": true,
+                    "canMoveItemWithinDrive": true,
+                    "canReadLabels": false,
+                    "canReadRevisions": true,
+                    "canRemoveChildren": false,
+                    "canRemoveContentRestriction": false,
+                    "canRemoveMyDriveParent": true,
+                    "canRename": true,
+                    "canShare": true,
+                    "canTrash": true,
+                    "canUntrash": true
+                },
+                "viewersCanCopyContent": true,
+                "copyRequiresWriterPermission": false,
+                "writersCanShare": true,
+                "permissions": [
+                    {
+                        "kind": "drive#permission",
+                        "id": "06278044237916587321",
+                        "type": "user",
+                        "emailAddress": "danielysgonzalez27@gmail.com",
+                        "role": "writer",
+                        "displayName": "danielysgonzalez27",
+                        "deleted": false,
+                        "pendingOwner": false
+                    },
+                    {
+                        "kind": "drive#permission",
+                        "id": "10574066304350948469",
+                        "type": "user",
+                        "emailAddress": "cristiancaraballo112@gmail.com",
+                        "role": "owner",
+                        "displayName": "cristiancaraballo112",
+                        "deleted": false,
+                        "pendingOwner": false
+                    }
+                ],
+                "permissionIds": [
+                    "06278044237916587321",
+                    "10574066304350948469"
+                ],
+                "originalFilename": "2026_01_27.23.51.weba",
+                "fullFileExtension": "weba",
+                "fileExtension": "weba",
+                "md5Checksum": "9627b8087bb138f8575a7a8ddb8fae37",
+                "sha1Checksum": "c041ac6d7dd86693b7a0af75655a5e94e83940ac",
+                "sha256Checksum": "13c711d79db92f9f726e6055f564e7b6246cb6969cce034e8583f73188c2c886",
+                "size": "9083685",
+                "quotaBytesUsed": "9083685",
+                "headRevisionId": "0BxWfzQZ4Zm7iSzYrWmc0eHF4Um9LS0kzUFBwYXVEdnNMOTNJPQ",
+                "isAppAuthorized": true,
+                "linkShareMetadata": {
+                    "securityUpdateEligible": false,
+                    "securityUpdateEnabled": true
+                },
+                "inheritedPermissionsDisabled": false
+            },
+            {
+                "kind": "drive#file",
+                "id": "100EDgWFoyZtmK2JtaMwKivmYZygdB5Bc",
+                "name": "2026_01_27.23.51.weba.txt",
+                "mimeType": "text/plain",
+                "starred": false,
+                "trashed": false,
+                "explicitlyTrashed": false,
+                "parents": [
+                    "15M7Ww4m2457dmE0wx1tGV4DSIXX-4IKv"
+                ],
+                "properties": {
+                    "user_id": "4ddb8909-ef46-4cde-8feb-8ce0a3c72564",
+                    "to_folder": "15M7Ww4m2457dmE0wx1tGV4DSIXX-4IKv"
+                },
+                "spaces": [
+                    "drive"
+                ],
+                "version": "2",
+                "webContentLink": "https://drive.google.com/uc?id=100EDgWFoyZtmK2JtaMwKivmYZygdB5Bc&export=download",
+                "webViewLink": "https://drive.google.com/file/d/100EDgWFoyZtmK2JtaMwKivmYZygdB5Bc/view?usp=drivesdk",
+                "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/text/plain",
+                "hasThumbnail": false,
+                "thumbnailVersion": "0",
+                "viewedByMe": false,
+                "createdTime": "2026-01-28T03:52:34.330Z",
+                "modifiedTime": "2026-01-28T03:52:35.269Z",
+                "modifiedByMeTime": "2026-01-28T03:52:35.269Z",
+                "modifiedByMe": true,
+                "owners": [
+                    {
+                        "kind": "drive#user",
+                        "displayName": "Cristian Caraballo",
+                        "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocLQ7Br7erh_9SPg1n73a65g2JmlSZElo5WHMcgKvtR3cRggABq3Xw=s64",
+                        "me": true,
+                        "permissionId": "10574066304350948469",
+                        "emailAddress": "cristiancaraballo112@gmail.com"
+                    }
+                ],
+                "lastModifyingUser": {
+                    "kind": "drive#user",
+                    "displayName": "Cristian Caraballo",
+                    "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocLQ7Br7erh_9SPg1n73a65g2JmlSZElo5WHMcgKvtR3cRggABq3Xw=s64",
+                    "me": true,
+                    "permissionId": "10574066304350948469",
+                    "emailAddress": "cristiancaraballo112@gmail.com"
+                },
+                "shared": true,
+                "ownedByMe": true,
+                "downloadRestrictions": {
+                    "itemDownloadRestriction": {
+                        "restrictedForReaders": false,
+                        "restrictedForWriters": false
+                    },
+                    "effectiveDownloadRestrictionWithContext": {
+                        "restrictedForReaders": false,
+                        "restrictedForWriters": false
+                    }
+                },
+                "capabilities": {
+                    "canAcceptOwnership": false,
+                    "canAddChildren": false,
+                    "canAddMyDriveParent": false,
+                    "canChangeCopyRequiresWriterPermission": true,
+                    "canChangeItemDownloadRestriction": true,
+                    "canChangeSecurityUpdateEnabled": false,
+                    "canChangeViewersCanCopyContent": true,
+                    "canComment": true,
+                    "canCopy": true,
+                    "canDelete": true,
+                    "canDisableInheritedPermissions": false,
+                    "canDownload": true,
+                    "canEdit": true,
+                    "canEnableInheritedPermissions": true,
+                    "canListChildren": false,
+                    "canModifyContent": true,
+                    "canModifyContentRestriction": true,
+                    "canModifyEditorContentRestriction": true,
+                    "canModifyOwnerContentRestriction": true,
+                    "canModifyLabels": false,
+                    "canMoveChildrenWithinDrive": false,
+                    "canMoveItemIntoTeamDrive": true,
+                    "canMoveItemOutOfDrive": true,
+                    "canMoveItemWithinDrive": true,
+                    "canReadLabels": false,
+                    "canReadRevisions": true,
+                    "canRemoveChildren": false,
+                    "canRemoveContentRestriction": false,
+                    "canRemoveMyDriveParent": true,
+                    "canRename": true,
+                    "canShare": true,
+                    "canTrash": true,
+                    "canUntrash": true
+                },
+                "viewersCanCopyContent": true,
+                "copyRequiresWriterPermission": false,
+                "writersCanShare": true,
+                "permissions": [
+                    {
+                        "kind": "drive#permission",
+                        "id": "06278044237916587321",
+                        "type": "user",
+                        "emailAddress": "danielysgonzalez27@gmail.com",
+                        "role": "writer",
+                        "displayName": "danielysgonzalez27",
+                        "deleted": false,
+                        "pendingOwner": false
+                    },
+                    {
+                        "kind": "drive#permission",
+                        "id": "10574066304350948469",
+                        "type": "user",
+                        "emailAddress": "cristiancaraballo112@gmail.com",
+                        "role": "owner",
+                        "displayName": "cristiancaraballo112",
+                        "deleted": false,
+                        "pendingOwner": false
+                    }
+                ],
+                "permissionIds": [
+                    "06278044237916587321",
+                    "10574066304350948469"
+                ],
+                "originalFilename": "2026_01_27.23.51.weba.txt",
+                "fullFileExtension": "weba.txt",
+                "fileExtension": "txt",
+                "md5Checksum": "83bfc3f01c82e5aba7a3badb9b4a6f42",
+                "sha1Checksum": "52646d7b7bd38cb8dc90cf0da9008de2cf5861ff",
+                "sha256Checksum": "644df91f49a4efb283715f1ef1c52ce9e754e4eb5d919a117d271704537d8df4",
+                "size": "5937",
+                "quotaBytesUsed": "5937",
+                "headRevisionId": "0BxWfzQZ4Zm7id2xnM1RLeFgvZG9sZ1kyOW5leEFmcUZoOUNJPQ",
+                "isAppAuthorized": true,
+                "linkShareMetadata": {
+                    "securityUpdateEligible": false,
+                    "securityUpdateEnabled": true
+                },
+                "inheritedPermissionsDisabled": false
+            }
+        ]
+    },
+    "meta": {
+        "instanceId": "6aa357c2ace040b138b94bba38619872f629590d42122f5fe7ad9cdc6634f733"
+    }
+}

@@ -1,0 +1,246 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "inputSource": "passthrough"
+            },
+            "id": "c055762a-8fe7-4141-a639-df2372f30060",
+            "typeVersion": 1.1,
+            "name": "When Executed by Another Workflow",
+            "type": "n8n-nodes-base.executeWorkflowTrigger",
+            "position": [
+                -352,
+                224
+            ]
+        },
+        {
+            "parameters": {
+                "mode": "insert",
+                "tableName": {
+                    "__rl": true,
+                    "value": "documents",
+                    "mode": "list",
+                    "cachedResultName": "documents"
+                },
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+            "typeVersion": 1.3,
+            "position": [
+                256,
+                176
+            ],
+            "id": "0fa155e4-7027-4c97-b5a1-1880ed66eb70",
+            "name": "Supabase Vector Store",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "r628nMXgiYtcaoDn",
+                    "name": "Supabase account"
+                }
+            },
+            "disabled": true
+        },
+        {
+            "parameters": {},
+            "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                256,
+                368
+            ],
+            "id": "13a925df-ee1b-4d9f-b861-24f5e2ff9ee6",
+            "name": "Embeddings Google Gemini2",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "y2zMJYAe7W3YDewZ",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "dataType": "binary",
+                "binaryMode": "specificField",
+                "loader": "textLoader",
+                "binaryDataKey": "={{ $('When Executed by Another Workflow').item.binary.data }}",
+                "options": {
+                    "metadata": {
+                        "metadataValues": [
+                            {
+                                "name": "to_drive_folder",
+                                "value": "={{ $('When Executed by Another Workflow').item.binary.data.targetFolderId }}"
+                            },
+                            {
+                                "name": "filename",
+                                "value": "={{ $('When Executed by Another Workflow').item.binary.data.fileName }}"
+                            },
+                            {
+                                "name": "user_id",
+                                "value": "={{ $('When Executed by Another Workflow').item.binary.data.user_id }}"
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+            "typeVersion": 1.1,
+            "position": [
+                416,
+                368
+            ],
+            "id": "a47344d5-8aba-4cf5-85fb-2e7e527a2dd2",
+            "name": "Default Data Loader"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "893b603e-4f10-4f58-b4ec-fdf9ffafcb3a",
+                            "leftValue": "={{ $binary.data.mimeType }}",
+                            "rightValue": "text",
+                            "operator": {
+                                "type": "string",
+                                "operation": "contains"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                -96,
+                304
+            ],
+            "id": "eaf4c4e9-f4ea-4dce-8da8-6d66e875259f",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "errorMessage": "invalid file format, must be text."
+            },
+            "type": "n8n-nodes-base.stopAndError",
+            "typeVersion": 1,
+            "position": [
+                256,
+                576
+            ],
+            "id": "b6ea07f2-adad-41b4-befc-8da0ec71c718",
+            "name": "Stop and Error"
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "46647591-06bc-44dc-a1c8-d09190c56b8d",
+                "authentication": "basicAuth",
+                "responseMode": "lastNode",
+                "responseData": "allEntries",
+                "options": {
+                    "binaryPropertyName": "data"
+                }
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -352,
+                400
+            ],
+            "id": "9472e509-38aa-42b0-a54b-b2566f2fc929",
+            "name": "Webhook",
+            "webhookId": "46647591-06bc-44dc-a1c8-d09190c56b8d",
+            "credentials": {
+                "httpBasicAuth": {
+                    "id": "IFR7pxwPRobgi89k",
+                    "name": "basic yourfocus auth"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "When Executed by Another Workflow": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Embeddings Google Gemini2": {
+            "ai_embedding": [
+                [
+                    {
+                        "node": "Supabase Vector Store",
+                        "type": "ai_embedding",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Default Data Loader": {
+            "ai_document": [
+                [
+                    {
+                        "node": "Supabase Vector Store",
+                        "type": "ai_document",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Supabase Vector Store",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Stop and Error",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {
+        "When Executed by Another Workflow": [
+            {
+                "text_content": "[Bitacora nocturna tardía, Martes, 27-01-2026 23:51:00] - Necesito aclarar muy bien el módulo de Your Focus Milestone; entiendo que Milestone se refiere a logros o hitos.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:51:15] - Esto tiene que ver con la aplicación de OKRs (Objetivos y Resultados Clave), pero más allá de ser una secuencia de resultados.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:51:30] - Quiero tener una interfaz o artefacto que me permita compartir a través de enlaces con OpenGraph personalizados.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:51:45] - Usaré la estrategia de Incremental Static Generation para generar enlaces de estos logros personales.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:52:00] - La idea es mostrar que mi efecto compuesto está rindiendo frutos al dominar curvas y dificultades.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:52:15] - Algunas notas de Zettelkasten se vuelven artefactos o \"Zettels\"; me gusta más el nombre de artefacto.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:52:30] - Son porciones de conocimiento atómico que obtienes de tus notas flotantes, pensamientos o ideas rápidas.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:52:45] - Las referencias pueden ser ideas propias más elaboradas o ideas de terceros para construir la síntesis.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:53:00] - El conjunto de todo esto genera artefactos, aunque Zettelkasten sigue siendo atómico en sus razonamientos.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:53:15] - Para realizar un informe o una tesis se requiere más elaboración, y Your Focus Milestone cubriría ese hueco.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:53:30] - Necesito una interfaz para mostrar las notas dentro del ecosistema Your Focus y renderizar el Markdown.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:53:45] - Actualmente utilizo Obsidian, pero necesito migrar eso a una interfaz personalizada compatible.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:54:00] - Estaba pensando en utilizar el editor de Nuxt para esta implementación, es algo que tengo pendiente.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:54:15] - También quiero crear un Kanban que me permita organizar mejor el estado de las tareas.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:54:30] - Las tareas tendrán estados como Backlog, que son las que no están hechas ni en ejecución.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:54:45] - La lista \"To-do\" será para lo previsto en la siguiente jornada y \"In Progress\" para lo asignado a un Pomodoro.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:55:00] - Se irán creando bitácoras a medida que se avance en los intervalos de tiempo de desarrollo.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:55:15] - Una vez marcada como \"Done\", el hito o logro queda documentado y se marca como archivado.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:55:30] - A la larga se decide si eliminar la tarea permanentemente o dejarla archivada, que es lo más recomendado.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:55:45] - Esta idea ya corresponde a una segunda fase de la bitácora; me fui por otra tangente.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:56:00] - Aún no sé cómo estructurar la interfaz de Your Focus Milestone, pero debe ser como un informe o tesis.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:56:15] - El objetivo es que recopile las acciones, los resultados, los artefactos y las referencias.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:56:30] - No estoy seguro de dónde colocar las notas flotantes; podrían ir como artefactos simples.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:56:45] - Aquí estoy definiendo el Bounded Context del dominio de Your Focus Milestone para el sistema.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:57:00] - El informe es un artefacto más elaborado que determina conocimiento, logro y experiencia.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:57:15] - La síntesis de todo eso te da una tesis que determina la \"skill\", y eso es lo que necesito estructurar.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:57:30] - En base al informe o tesis se generará un enlace, que es lo que se terminará compartiendo.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:57:45] - Como estoy haciendo dogfooding exhaustivo de mi producto, mi idea es compartir ese enlace en LinkedIn.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:58:00] - Así las personas sabrán qué estoy haciendo con mi tiempo personal, libre o profesional.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:58:15] - Verán que logré integrar n8n con un chatbot y el protocolo MTProto con Telegram.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:58:30] - El objetivo es que me contacten para consultoría o desarrollo personalizado sobre estos problemas.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:58:45] - También debo hacerlo en inglés para atraer a la comunidad angloparlante y generar sinergia freelance.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:59:00] - De esta forma construyo mi marca personal profesional y aumento la probabilidad de éxito de mi carrera.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:59:15] - En esta tercera fase del proyecto ya se logró integrar el chat y el micrófono dentro del sistema.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:59:30] - Los usuarios al iniciar sesión tendrán una carpeta con su ID de usuario en mi Google Drive.\n\n[Bitacora nocturna tardía, Martes, 27-01-2026 23:59:45] - De manera optimista, el agente sabrá dónde crear las notas y mandar las bitácoras según el Root ID.\n\n[Bitacora nocturna tardía, Miércoles, 28-01-2026 00:00:00] - Con esto ya puedo ofrecer demos de este producto, por ejemplo a mi papá o a Danielis.",
+                "fileName": "[Bitacora nocturna tardía, Martes, 27-01-2026 23:51].txt",
+                "bitacora_key": "[Bitacora nocturna tardía, Miércoles, 28-01-2026 00:00:00]",
+                "user_id": "4ddb8909-ef46-4cde-8feb-8ce0a3c72564"
+            }
+        ]
+    },
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "6aa357c2ace040b138b94bba38619872f629590d42122f5fe7ad9cdc6634f733"
+    }
+}

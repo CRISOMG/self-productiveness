@@ -163,7 +163,6 @@ const emit = defineEmits<{
   error: [message: string];
 }>();
 
-const config = useRuntimeConfig();
 const user = useSupabaseUser();
 
 const {
@@ -260,15 +259,11 @@ async function handleSend() {
 
     const formData = new FormData();
     formData.append("data", file);
-    formData.append("user_id", user.value?.sub || "");
 
     const response = await $fetch<AudioUploadResponse[]>(
-      config.public.n8nGoogleDriveInboxWebhookUrl,
+      "/api/audio/transcribe",
       {
         method: "POST",
-        headers: {
-          Authorization: config.public.n8nAuthHeader,
-        },
         body: formData,
       },
     );
