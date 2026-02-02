@@ -17,11 +17,22 @@ const isOpen = defineModel<boolean>({ default: false });
 // Local search filter
 const searchQuery = ref("");
 
+const user = useSupabaseUser();
+
+const useSupabaseStorage =
+  user.value?.sub !== "4ddb8909-ef46-4cde-8feb-8ce0a3c72564";
+
+// Determine which API endpoint to use based on feature flag
+const apiEndpoint = computed(() =>
+  useSupabaseStorage ? "/api/storage/notes" : "/api/google-drive/files",
+);
+
 // Fetch notes from the API
 const { data, status, error, refresh } = await useLazyFetch<FilesResponse>(
-  "/api/google-drive/files",
+  apiEndpoint,
   {
     key: "notes-list",
+    watch: [apiEndpoint], // Refetch if endpoint changes
   },
 );
 
@@ -67,6 +78,14 @@ watch(isOpen, (open) => {
   >
     <template #body>
       <div class="flex flex-col h-[70vh] gap-4">
+        <!-- Storage provider indicator (dev only) -->
+        <div
+          v-if="useSupabaseStorage"
+          class="text-xs text-blue-500 dark:text-blue-400 text-center"
+        >
+          📦 Supabase Storage
+        </div>
+
         <!-- Search input -->
         <UInput
           v-model="searchQuery"
