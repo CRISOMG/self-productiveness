@@ -5,6 +5,7 @@ import { thinkTool } from "./think";
 import { createGoogleDriveTools } from "./google-drive";
 import { createSupabaseTasksTools } from "./supabase-tasks";
 import { createSupabaseStorageTools } from "./supabase-storage";
+import { createSupabaseTagsTools } from "./supabase-tags";
 
 export interface ToolsConfig {
   userId: string;
@@ -35,6 +36,9 @@ export function createTools(config: ToolsConfig) {
     config.supabase,
   );
 
+  // Supabase Tags tools
+  const tagTools = createSupabaseTagsTools(config.userId, config.supabase);
+
   return {
     think: thinkTool,
     // Legacy Google Drive tools (for reading existing files)
@@ -42,6 +46,7 @@ export function createTools(config: ToolsConfig) {
     // Supabase tools
     ...taskTools,
     ...storageTools,
+    ...tagTools,
   };
 }
 

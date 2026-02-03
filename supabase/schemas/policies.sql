@@ -62,6 +62,21 @@ CREATE POLICY "Enable delete for users based on user_id"
 ON "public"."pomodoros_tags" FOR DELETE USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
 
 
+ALTER TABLE "public"."tasks_tags" ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable insert for users based on user_id" 
+ON "public"."tasks_tags" FOR INSERT 
+WITH CHECK ((SELECT auth.uid()) = "user_id");
+
+CREATE POLICY "Enable users and PAT to view tasks_tags" 
+ON "public"."tasks_tags" FOR SELECT TO "authenticated" 
+USING ((((select auth.uid()) = "user_id") AND "public"."is_valid_personal_access_token"()));
+
+CREATE POLICY "Enable delete for users based on user_id" 
+ON "public"."tasks_tags" FOR DELETE 
+USING ((SELECT auth.uid()) = "user_id");
+
+
 ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Public profiles are viewable by everyone." ON "public"."profiles" FOR SELECT USING (true);
 CREATE POLICY "Users can update their own profile." ON "public"."profiles" FOR UPDATE USING (((select auth.uid()) = "id"));
