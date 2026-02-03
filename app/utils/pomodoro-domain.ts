@@ -25,6 +25,7 @@ export enum PomodoroState {
   CURRENT = "current",
   PAUSED = "paused",
   FINISHED = "finished",
+  SKIPPED = "skipped",
 }
 
 export const TagEnumByType = {
@@ -63,7 +64,7 @@ export function calculateSecondsRemaining({
 
 export function hasCycleFinished(
   currentSecuense: string[],
-  requiredSecuense: string[]
+  requiredSecuense: string[],
 ): boolean {
   const rest = structuredClone(requiredSecuense);
 
@@ -91,7 +92,7 @@ export function hasCycleFinished(
 export function calculateTimelineFromNow(
   pomodoroDuration: number = PomodoroDurationInSecondsByDefaultCycleConfiguration[
     TagIdByType.FOCUS
-  ]
+  ],
 ) {
   const started_at = new Date();
   const expectedDate = new Date(started_at.getTime());
@@ -106,7 +107,7 @@ export function calculateTimelineFromNow(
 
 export function calculateNextTagFromCycleSecuence(
   currentSecuense: string[],
-  requiredSecuense: string[]
+  requiredSecuense: string[],
 ): string {
   const rest = structuredClone(requiredSecuense);
 
@@ -134,7 +135,7 @@ export function calculateNextTagFromCycleSecuence(
 export function calculatePomodoroTimelapse(
   toggleTimeline: TPomodoro["toggle_timeline"],
   expectedDuration: number,
-  now = Date.now()
+  now = Date.now(),
 ): number {
   const startedAt = toggleTimeline.find((event) => event.type === "start")?.at;
 
@@ -144,7 +145,7 @@ export function calculatePomodoroTimelapse(
   let elapsed = 0;
 
   const events = [...toggleTimeline].sort(
-    (a, b) => new Date(a.at).getTime() - new Date(b.at).getTime()
+    (a, b) => new Date(a.at).getTime() - new Date(b.at).getTime(),
   );
 
   let currentSegmentStart = start;

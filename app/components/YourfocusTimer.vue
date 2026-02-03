@@ -138,20 +138,12 @@ watch(currentPomodoroId, () => {
   handleListPomodoros();
 });
 
-const handlePomodoroTypeChange = (type: PomodoroType) => {
+const handlePomodoroTypeChange = async (type: PomodoroType) => {
   if (pomodoroController?.currPomodoro?.type === type) {
     return alert("You are already in " + type);
   }
-
-  if (pomodoroController?.currPomodoro?.state === PomodoroState.CURRENT) {
-    handleFinishPomodoro({
-      withNext: false,
-    }).then(() => {
-      handleSelectPomodoro(props.user_id, type);
-    });
-  } else {
-    handleSelectPomodoro(props.user_id, type);
-  }
+  await handleSkipPomodoro();
+  handleSelectPomodoro(props.user_id, type);
 };
 
 const handlePlayPausePomodoro = () => {

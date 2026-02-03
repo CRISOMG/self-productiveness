@@ -16,7 +16,7 @@ export type PomodoroType = Enums<"pomodoro-type">;
 export type PomodoroState = Enums<"pomodoro-state">;
 export type TimelineEvent = {
   at: string;
-  type: "start" | "play" | "pause" | "finish";
+  type: "start" | "play" | "pause" | "finish" | "skip";
 };
 
 export type TPomodoro = Omit<Pomodoro, "toggle_timeline"> & {

@@ -158,6 +158,27 @@ export const usePomodoroService = () => {
     });
   }
 
+  async function skipCurrentPomodoro({ timelapse }: { timelapse: number }) {
+    const pomodoro = await pomodoroRepository.getCurrentPomodoro();
+    if (!pomodoro) {
+      return;
+    }
+
+    const { toggle_timeline } = pomodoro;
+
+    toggle_timeline.push({
+      at: new Date().toISOString(),
+      type: "skip",
+    });
+
+    return await pomodoroRepository.update(pomodoro.id, {
+      timelapse,
+      state: "skipped",
+      finished_at: new Date().toISOString(),
+      toggle_timeline,
+    });
+  }
+
   async function getTagByCycleSecuense(cycle: PomodoroCycle | null) {
     let _cycle: PomodoroCycleWithPomodoros | null = cycle;
     if (!_cycle) {
@@ -251,6 +272,7 @@ export const usePomodoroService = () => {
     startPomodoro,
     getOrCreateCurrentCycle,
     finishCurrentPomodoro,
+    skipCurrentPomodoro,
     getTagByCycleSecuense,
     getTagIdByType,
     createNextPomodoro,

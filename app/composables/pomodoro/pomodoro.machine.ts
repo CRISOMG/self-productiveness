@@ -18,7 +18,7 @@ type MachineEvents =
   | { type: "RESUME" }
   | { type: "FINISH"; withNext?: boolean; broadcast?: boolean }
   | { type: "RESET" }
-  | { type: "SKIP" }
+  | { type: "SKIP"; withNext?: boolean }
   | { type: "SYNC"; pomodoro: TPomodoro }
   | { type: "BROADCAST.PLAY"; payload: any }
   | { type: "BROADCAST.PAUSE"; payload: any }
@@ -139,6 +139,17 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
           return true;
         },
       ),
+      skipPomodoro: fromPromise(
+        async ({ input }: { input: { pomodoro: TPomodoro } }) => {
+          await pomodoroService.skipCurrentPomodoro({
+            timelapse: input.pomodoro.timelapse,
+          });
+          if (await pomodoroService.checkIsCurrentCycleEnd()) {
+            await pomodoroService.finishCurrentCycle();
+          }
+          return true;
+        },
+      ),
       createNextPomodoro: fromPromise(
         async ({ input }: { input: { user_id: string; tags: any[] } }) => {
           const next = await pomodoroService.createNextPomodoro({
@@ -232,6 +243,12 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
             id: context.pomodoro.id,
           });
       },
+      broadcastSkip: ({ context }) => {
+        if (context.pomodoro)
+          broadcastPomodoroController.broadcastEvent("pomodoro:skip", {
+            id: context.pomodoro.id,
+          });
+      },
       broadcastNext: ({ context }) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:next", {
@@ -304,6 +321,7 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
         on: {
           PAUSE: { target: "pausing", actions: "optimisticPause" },
           FINISH: "finishing",
+          SKIP: "skipping",
           "TIMER.FINISH": "finishing",
           "BROADCAST.PAUSE": {
             target: "paused",
@@ -328,6 +346,7 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
         on: {
           RESUME: { target: "resuming", actions: "optimisticPlay" },
           FINISH: "finishing",
+          SKIP: "skipping",
           "BROADCAST.PLAY": { target: "running", actions: "assignPomodoro" },
           "BROADCAST.FINISH": { target: "idle", actions: ["refreshList"] },
         },
@@ -356,6 +375,24 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
             {
               target: "idle",
               actions: ["notifyFinish", "broadcastFinish", "refreshList"],
+            },
+          ],
+        },
+      },
+      skipping: {
+        invoke: {
+          src: "skipPomodoro",
+          input: ({ context }) => ({ pomodoro: context.pomodoro! }),
+          onDone: [
+            {
+              guard: ({ event }: any) => {
+                return broadcastPomodoroController.isMainHandler.value || false;
+              },
+              target: "creatingNext",
+            },
+            {
+              target: "idle",
+              actions: ["broadcastSkip", "refreshList"],
             },
           ],
         },

@@ -134,7 +134,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
   }
 
   async function handleSkipPomodoro() {
-    send({ type: "FINISH", withNext: true });
+    send({ type: "SKIP", withNext: true });
   }
 
   // Tags
