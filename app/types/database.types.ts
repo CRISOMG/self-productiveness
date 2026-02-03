@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       api_keys: {
@@ -339,6 +314,7 @@ export type Database = {
           id: string
           keep: boolean | null
           pomodoro_id: number | null
+          stage: Database["public"]["Enums"]["task_stage"] | null
           tag_id: number | null
           title: string
           updated_at: string | null
@@ -353,6 +329,7 @@ export type Database = {
           id?: string
           keep?: boolean | null
           pomodoro_id?: number | null
+          stage?: Database["public"]["Enums"]["task_stage"] | null
           tag_id?: number | null
           title: string
           updated_at?: string | null
@@ -367,6 +344,7 @@ export type Database = {
           id?: string
           keep?: boolean | null
           pomodoro_id?: number | null
+          stage?: Database["public"]["Enums"]["task_stage"] | null
           tag_id?: number | null
           title?: string
           updated_at?: string | null
@@ -385,6 +363,39 @@ export type Database = {
             columns: ["tag_id"]
             isOneToOne: false
             referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks_tags: {
+        Row: {
+          tag: number
+          task: string
+          user_id: string | null
+        }
+        Insert: {
+          tag: number
+          task: string
+          user_id?: string | null
+        }
+        Update: {
+          tag?: number
+          task?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_tags_tag_fkey"
+            columns: ["tag"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_tags_task_fkey"
+            columns: ["task"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
@@ -448,10 +459,12 @@ export type Database = {
         }[]
       }
       procesar_webhooks_pomodoro: { Args: never; Returns: undefined }
+      supabase_url: { Args: never; Returns: string }
     }
     Enums: {
-      pomodoro_state: "current" | "paused" | "finished"
+      pomodoro_state: "current" | "paused" | "finished" | "skipped"
       pomodoro_type: "focus" | "break" | "long-break"
+      task_stage: "backlog" | "to_do" | "in_progress" | "done" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -577,13 +590,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
-      pomodoro_state: ["current", "paused", "finished"],
+      pomodoro_state: ["current", "paused", "finished", "skipped"],
       pomodoro_type: ["focus", "break", "long-break"],
+      task_stage: ["backlog", "to_do", "in_progress", "done", "archived"],
     },
   },
 } as const
