@@ -131,6 +131,27 @@ export const useProfileController = () => {
     }
   }
 
+  async function handleSetTagFilterMode(mode: "single" | "multiple") {
+    if (!profile.value) return;
+    try {
+      const updatedProfile = await service.updateProfile(profile.value.id, {
+        ...profile.value,
+        settings: {
+          ...((profile.value.settings as Record<string, any>) || {}),
+          tag_filter_mode: mode,
+        },
+      });
+      profile.value = updatedProfile;
+      return updatedProfile;
+    } catch (error: any) {
+      console.error(error);
+      toast.addErrorToast({
+        title: "Error updating tag filter mode",
+        description: error.message,
+      });
+    }
+  }
+
   return {
     profile,
     loading,
@@ -139,5 +160,6 @@ export const useProfileController = () => {
     handleUploadAvatar,
     createToken,
     handleSetKeepTagsSetting,
+    handleSetTagFilterMode,
   };
 };

@@ -23,12 +23,7 @@ export async function loadSystemPrompt(): Promise<string> {
   }
 
   try {
-    const promptPath = join(
-      process.cwd(),
-      "n8n",
-      "prompts",
-      "system_prompt.md",
-    );
+    const promptPath = join(process.cwd(), "system_prompt.txt");
     systemPromptCache = await readFile(promptPath, "utf-8");
     return systemPromptCache;
   } catch (error) {

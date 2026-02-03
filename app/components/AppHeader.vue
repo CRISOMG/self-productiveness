@@ -3,6 +3,16 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 
 const user = useSupabaseUser();
 const isLoggedIn = computed(() => !!user.value?.sub);
+
+import { breakpointsTailwind, useBreakpoints } from "@vueuse/core";
+
+const breakpoints = useBreakpoints(breakpointsTailwind);
+
+const smAndLarger = breakpoints.greaterOrEqual("sm"); // sm and larger
+const largerThanSm = breakpoints.greater("sm"); // only larger than sm
+const lgAndSmaller = breakpoints.smallerOrEqual("lg"); // lg and smaller
+const smallerThanLg = breakpoints.smaller("lg"); // only smaller than lg
+
 // Props para configuración futura de acceso público
 const props = withDefaults(
   defineProps<{
@@ -105,17 +115,15 @@ const items = ref<DropdownMenuItem[][]>([
         v-if="showNotes"
         @click="emit('openNotes')"
         icon="i-lucide:file-text"
-      >
-        Notas
-      </UButton>
+        :label="breakpoints.sm.value ? 'Notes' : ''"
+      />
 
       <UButton
         v-if="showTimeline"
         @click="emit('openTimeline')"
         icon="i-lucide:chart-column"
-      >
-        Timeline
-      </UButton>
+        :label="breakpoints.sm.value ? 'Timeline' : ''"
+      />
 
       <UDropdownMenu
         v-if="showProfile"
