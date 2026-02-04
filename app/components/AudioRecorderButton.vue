@@ -242,6 +242,10 @@ async function handleDiscard() {
   await discardRecording();
 }
 
+import { getAudioStoragePath } from "~~/shared/utils/jornada";
+
+const supabase = useSupabaseClient();
+
 // Send recording
 async function handleSend() {
   isUploading.value = true;
@@ -253,18 +257,31 @@ async function handleSend() {
       return;
     }
 
+    const userId = user.value?.sub || "";
     const extension = getFileExtension();
     const fileName = `audio-${Date.now()}.${extension}`;
-    const file = new File([blob], fileName, { type: blob.type });
+    const storagePath = getAudioStoragePath(userId, fileName);
+    const mimeType = blob.type || "audio/webm";
 
-    const formData = new FormData();
-    formData.append("data", file);
+    // 1. Upload directly to Supabase from Client
+    const { error: uploadError } = await supabase.storage
+      .from("yourfocus")
+      .upload(storagePath, blob, {
+        contentType: mimeType,
+        upsert: true,
+      });
 
+    if (uploadError) throw uploadError;
+
+    // 2. Call the API with the path instead of the file
     const response = await $fetch<AudioUploadResponse[]>(
       "/api/audio/transcribe",
       {
         method: "POST",
-        body: formData,
+        body: {
+          audioPath: storagePath,
+          mimeType,
+        },
       },
     );
 

@@ -5,20 +5,35 @@ import {
   ensureCorrectMimeType,
 } from "~~/shared/utils/file";
 
-type FileUploadResponseFromN8NGoogleDriveInboxWebhook = {
-  audio: GoogleDriveFile;
-  text: GoogleDriveFile;
+type FileUploadResponse = {
+  audio?: {
+    path: string;
+    name: string;
+    url: string;
+    mimeType: string;
+    id?: string;
+  };
+  text?: {
+    path: string;
+    name: string;
+    url: string;
+    mimeType: string;
+    id?: string;
+  };
   message: string;
 };
+
+import { getAudioStoragePath } from "~~/shared/utils/jornada";
 
 export function useFileUploadWithStatus() {
   const files = ref<FileWithStatus[]>([]);
   const config = useRuntimeConfig();
   const user = useSupabaseUser();
+  const supabase = useSupabaseClient();
 
   async function addFiles(
     newFiles: File[],
-  ): Promise<FileUploadResponseFromN8NGoogleDriveInboxWebhook[] | undefined> {
+  ): Promise<FileUploadResponse[] | undefined> {
     // Initial state: uploading
     const newFilesWithStatus: FileWithStatus[] = newFiles.map((file) => ({
       file,
@@ -31,66 +46,89 @@ export function useFileUploadWithStatus() {
 
     // Upload each file
     for (const fileWithStatus of newFilesWithStatus) {
-      const formData = new FormData();
-      const correctedMime = ensureCorrectMimeType(fileWithStatus.file);
-
-      // Create a blob with the corrected mime type if it changed
-      const uploadFile =
-        correctedMime !== fileWithStatus.file.type
-          ? new File([fileWithStatus.file], fileWithStatus.file.name, {
-              type: correctedMime,
-            })
-          : fileWithStatus.file;
-
-      formData.append("data", uploadFile);
-      formData.append("user_id", user.value?.sub || "");
-
       try {
-        const response = await $fetch<
-          FileUploadResponseFromN8NGoogleDriveInboxWebhook[]
-        >("/api/audio/transcribe", {
-          method: "POST",
-          body: formData,
-        });
+        const userId = user.value?.sub || "";
+        const fileName = fileWithStatus.file.name;
+        const contentType = ensureCorrectMimeType(fileWithStatus.file);
+        const storagePath = getAudioStoragePath(userId, fileName);
 
-        const result =
-          response[0] as FileUploadResponseFromN8NGoogleDriveInboxWebhook;
+        // 1. Upload directly to Supabase from Client
+        const { error: uploadError } = await supabase.storage
+          .from("yourfocus")
+          .upload(storagePath, fileWithStatus.file, {
+            contentType,
+            upsert: true,
+          });
+
+        if (uploadError) throw uploadError;
+
+        // 2. Call the API with the path instead of the file
+        const response = await $fetch<FileUploadResponse[]>(
+          "/api/audio/transcribe",
+          {
+            method: "POST",
+            body: {
+              audioPath: storagePath,
+              mimeType: contentType,
+            },
+          },
+        );
+
+        const result = response && response[0] ? response[0] : null;
+
+        if (!result) {
+          throw new Error("Invalid response from server");
+        }
 
         const text = result?.text;
         const audio = result?.audio;
 
+        // Remove the original uploading file and add the results
+        files.value = files.value.filter((f) => f.id !== fileWithStatus.id);
+
         if (text) {
-          files.value = [
-            {
-              file: new File([], text.name, {
-                type: text.mimeType,
-              }),
-              status: "uploaded",
-              driveFile: text,
-              url: text.webViewLink,
+          const textId =
+            text.id ||
+            "text-" + Date.now().toString() + Math.random().toString().slice(2);
+          files.value.push({
+            id: textId,
+            file: new File([], text.name, {
+              type: text.mimeType,
+            }),
+            status: "uploaded",
+            driveFile: {
+              ...(text as any),
+              id: textId,
+              webViewLink: text.url,
             },
-          ];
+            url: text.url,
+            previewUrl: "", // Text files don't need a preview URL usually
+          });
         }
 
         if (audio) {
+          const audioId =
+            audio.id ||
+            "audio-" +
+              Date.now().toString() +
+              Math.random().toString().slice(2);
           files.value.push({
+            id: audioId,
             file: new File([], audio.name, {
               type: audio.mimeType,
             }),
             status: "uploaded",
-            driveFile: audio,
-            url: audio.webViewLink,
+            driveFile: {
+              ...(audio as any),
+              id: audioId,
+              webViewLink: audio.url,
+            },
+            url: audio.url,
+            previewUrl: "",
           });
         }
 
         return response;
-        // Update status to uploaded
-        // files.value = files.value.map((f) => {
-        //   if (f.id === fileWithStatus.id) {
-        //     return ;
-        //   }
-        //   return f;
-        // });
       } catch (error) {
         console.error("Upload failed", error);
         files.value = files.value.map((f) => {
