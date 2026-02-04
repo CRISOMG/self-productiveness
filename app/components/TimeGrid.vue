@@ -76,7 +76,7 @@ function getDiffInMinutes(from: string, to: string) {
 }
 
 const formatHour = (hour: number) => {
-  if (format24h) {
+  if (true || format24h) {
     return `${hour.toString().padStart(2, "0")}:00`;
   }
   const ampm = hour >= 12 ? "PM" : "AM";
@@ -98,12 +98,12 @@ const caclTop = (hour: number, minutes: number) => {
 const getPomodoroHeight = (pomodoro: TPomodoro) => {
   const start = new Date(pomodoro.started_at || Date.now());
   const end = new Date(
-    pomodoro?.finished_at || pomodoro.expected_end || Date.now()
+    pomodoro?.finished_at || pomodoro.expected_end || Date.now(),
   );
 
   const diff = getDiffInMinutes(
     start.toLocaleTimeString().slice(0, 5),
-    end.toLocaleTimeString().slice(0, 5)
+    end.toLocaleTimeString().slice(0, 5),
   );
 
   return diff * proportion;
@@ -157,14 +157,14 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
         :style="{
           top: `calc(${caclTop(
             new Date().getHours(),
-            new Date().getMinutes()
+            new Date().getMinutes(),
           )}%)`,
         }"
       >
         <span
           class="z-99999 dark:bg-gray-900 absolute -top-[10px] select-none text-sm mx-2.5 text-red-500 dark:text-red-400"
         >
-          {{ new Date().toLocaleTimeString().slice(0, 5) }}
+          {{ new Date().toString().slice(16, 21) }}
         </span>
       </div>
       <!-- Pomodoros -->
@@ -186,7 +186,7 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
             :class="{ truncate: getPomodoroHeight(pomodoro) <= 10 }"
           >
             <span
-              class="relative -top-[10px] select-none text-sm mx-1"
+              class="relative -top-[10px] left-8 select-none text-sm mx-1"
               :class="{
                 'text-transparent!': getPomodoroHeight(pomodoro) <= 10,
                 'text-primary-500 dark:text-primary-400':
@@ -197,8 +197,8 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
             >
               {{ new Date(pomodoro.started_at || "").toString().slice(16, 21) }}
             </span>
-            <!-- <span
-              class="relative -bottom-[10px] select-none text-sm mx-1"
+            <span
+              class="relative -bottom-[10px] left-17 select-none text-sm mx-1"
               :class="{
                 'text-transparent!': getPomodoroHeight(pomodoro) <= 10,
                 'text-primary-500 dark:text-primary-400':
@@ -209,14 +209,16 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
             >
               {{
                 new Date(pomodoro.finished_at || pomodoro.expected_end)
-                  .toLocaleTimeString()
-                  .slice(0, 5)
+                  .toString()
+                  .slice(16, 21)
               }}
-            </span> -->
+            </span>
           </div>
-          <div class="truncate ml-1 flex flex-row justify-left items-baseline">
+          <div
+            class="truncate relative -top-[13px] left-17 flex flex-row justify-left items-baseline"
+          >
             <div
-              class="truncate select-none text-sm mx-1"
+              class="truncate select-none text-sm"
               :class="{
                 'text-transparent!': getPomodoroHeight(pomodoro) <= 10,
                 'text-primary-700 dark:text-primary-300':
@@ -232,7 +234,7 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
                     .slice(0, 5),
                   new Date(pomodoro.expected_end || Date.now())
                     .toLocaleTimeString()
-                    .slice(0, 5)
+                    .slice(0, 5),
                 )
               }}m
               <!-- {{

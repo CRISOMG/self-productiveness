@@ -4,6 +4,7 @@ type TBroadcastEvents = {
   onPlay: (payload: any) => void;
   onPause: (payload: any) => void;
   onFinish: (payload: any) => void;
+  onSkip: (payload: any) => void;
   onNext: (payload: any) => void;
 };
 
@@ -62,6 +63,7 @@ export const useBroadcastPomodoro = (handlers: TBroadcastEvents) => {
       .on("broadcast", { event: "pomodoro:play" }, handlers.onPlay)
       .on("broadcast", { event: "pomodoro:pause" }, handlers.onPause)
       .on("broadcast", { event: "pomodoro:finish" }, handlers.onFinish)
+      .on("broadcast", { event: "pomodoro:skip" }, handlers.onSkip)
       .on("broadcast", { event: "pomodoro:next" }, handlers.onNext)
       .on("presence", { event: "sync" }, handlePresenceSync)
       .subscribe(async (status, err) => {

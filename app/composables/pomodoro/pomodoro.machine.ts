@@ -33,6 +33,7 @@ export interface PomodoroMachineDeps {
   broadcastPomodoroController: ReturnType<typeof useBroadcastPomodoro>;
   keepTags: Ref<boolean>;
   handleListPomodoros: () => Promise<any>;
+  toast: ReturnType<typeof useSuccessErrorToast>;
 }
 
 const computeExpectedEnd = (pomodoro: TPomodoro) => {
@@ -61,6 +62,7 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
     broadcastPomodoroController,
     keepTags,
     handleListPomodoros,
+    toast,
   } = deps;
 
   const _setup = setup({
@@ -170,14 +172,15 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
     },
     actions: {
       assignPomodoro: assign({
-        pomodoro: ({ context, event }) => {
+        pomodoro: (params: any) => {
+          const { context, event } = params;
           const e = event as any;
           const p = e.output || e.pomodoro || e.payload;
           if (p) updateLocalState(p);
           return p;
         },
       }),
-      updateTimeOnPause: ({ context }) => {
+      updateTimeOnPause: ({ context }: any) => {
         if (!context.pomodoro) return;
         timeController.clearTimer();
         const remaining =
@@ -185,14 +188,14 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
           context.pomodoro.timelapse;
         timeController.setClockInSeconds(remaining);
       },
-      updateTimeOnNext: ({ context }) => {
+      updateTimeOnNext: ({ context }: any) => {
         if (!context.pomodoro) return;
         timeController.setClockInSeconds(
           (context.pomodoro as any).expected_duration || 1500,
         );
       },
       optimisticPause: assign({
-        pomodoro: ({ context }) => {
+        pomodoro: ({ context }: any) => {
           if (!context.pomodoro) return null;
           const newTimeline = [
             ...(context.pomodoro.toggle_timeline || []),
@@ -208,7 +211,7 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
         },
       }),
       optimisticPlay: assign({
-        pomodoro: ({ context }) => {
+        pomodoro: ({ context }: any) => {
           if (!context.pomodoro) return null;
           const newTimeline = [
             ...(context.pomodoro.toggle_timeline || []),
@@ -223,33 +226,33 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
           return updated;
         },
       }),
-      broadcastPlay: ({ context }) => {
+      broadcastPlay: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:play", {
             id: context.pomodoro.id,
             toggle_timeline: context.pomodoro.toggle_timeline,
           });
       },
-      broadcastPause: ({ context }) => {
+      broadcastPause: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:pause", {
             id: context.pomodoro.id,
             toggle_timeline: context.pomodoro.toggle_timeline,
           });
       },
-      broadcastFinish: ({ context }) => {
+      broadcastFinish: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:finish", {
             id: context.pomodoro.id,
           });
       },
-      broadcastSkip: ({ context }) => {
+      broadcastSkip: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:skip", {
             id: context.pomodoro.id,
           });
       },
-      broadcastNext: ({ context }) => {
+      broadcastNext: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:next", {
             id: context.pomodoro.id,
@@ -263,6 +266,15 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
         // });
       },
       refreshList: () => handleListPomodoros(),
+      handleError: ({ event }: any) => {
+        console.error("Pomodoro Machine Error:", event.error);
+        toast.addErrorToast({
+          title: "Error de Pomodoro",
+          description:
+            event.error?.message ||
+            "Ocurrió un error inesperado en la máquina de estados.",
+        });
+      },
     },
   });
 
@@ -287,27 +299,34 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
           src: "fetchCurrent",
           onDone: [
             {
-              guard: ({ event }) => event.output?.state === "current",
+              guard: ({ event }: any) => event.output?.state === "current",
               target: "running",
               actions: "assignPomodoro",
             },
             {
-              guard: ({ event }) => event.output?.state === "paused",
+              guard: ({ event }: any) => event.output?.state === "paused",
               target: "paused",
               actions: "assignPomodoro",
             },
             { target: "idle", actions: "assignPomodoro" },
           ],
-          onError: "idle",
+          onError: {
+            target: "idle",
+            actions: "handleError",
+          },
         },
       },
       starting: {
         invoke: {
           src: "createOrResume",
-          input: ({ event }) => (event as any).inputs,
+          input: ({ event }: any) => (event as any).inputs,
           onDone: {
             target: "running",
             actions: ["assignPomodoro", "broadcastPlay", "refreshList"],
+          },
+          onError: {
+            target: "idle",
+            actions: "handleError",
           },
         },
       },
@@ -315,7 +334,7 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
         entry: "assignPomodoro",
         invoke: {
           src: "startTimerActor",
-          input: ({ context }) => ({ pomodoro: context.pomodoro }),
+          input: ({ context }: any) => ({ pomodoro: context.pomodoro }),
           onDone: { target: "finishing" },
         },
         on: {
@@ -333,12 +352,15 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
       pausing: {
         invoke: {
           src: "togglePlay",
-          input: ({ context }) => ({ id: context.pomodoro!.id, type: "pause" }),
+          input: ({ context }: any) => ({
+            id: context.pomodoro!.id,
+            type: "pause",
+          }),
           onDone: {
             target: "paused",
             actions: ["assignPomodoro", "broadcastPause"],
           },
-          onError: { target: "running" },
+          onError: { target: "running", actions: "handleError" },
         },
       },
       paused: {
@@ -354,17 +376,21 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
       resuming: {
         invoke: {
           src: "togglePlay",
-          input: ({ context }) => ({ id: context.pomodoro!.id, type: "play" }),
+          input: ({ context }: any) => ({
+            id: context.pomodoro!.id,
+            type: "play",
+          }),
           onDone: {
             target: "running",
             actions: ["assignPomodoro", "broadcastPlay"],
           },
+          onError: { target: "paused", actions: "handleError" },
         },
       },
       finishing: {
         invoke: {
           src: "finishPomodoro",
-          input: ({ context }) => ({ pomodoro: context.pomodoro! }),
+          input: ({ context }: any) => ({ pomodoro: context.pomodoro! }),
           onDone: [
             {
               guard: ({ event }: any) => {
@@ -382,7 +408,7 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
       skipping: {
         invoke: {
           src: "skipPomodoro",
-          input: ({ context }) => ({ pomodoro: context.pomodoro! }),
+          input: ({ context }: any) => ({ pomodoro: context.pomodoro! }),
           onDone: [
             {
               guard: ({ event }: any) => {
@@ -401,7 +427,7 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
         entry: ["notifyFinish", "broadcastFinish"],
         invoke: {
           src: "createNextPomodoro",
-          input: ({ context }) => ({
+          input: ({ context }: any) => ({
             user_id: context.pomodoro!.user_id,
             tags: context.pomodoro?.tags || [],
           }),

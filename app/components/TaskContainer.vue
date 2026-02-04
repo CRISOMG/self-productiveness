@@ -3,7 +3,7 @@
     class="w-full self-center mt-2 flex flex-col justify-center"
     :class="{
       'max-w-sm': isMobile || focusMode,
-      'max-w-5xl': !isMobile && !focusMode,
+      'max-w-[1280px]': !isMobile && !focusMode,
     }"
   >
     <div class="flex items-center justify-between p-1">

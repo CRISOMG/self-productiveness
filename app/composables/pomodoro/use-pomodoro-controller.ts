@@ -63,6 +63,13 @@ export const usePomodoroController = defineStore("pomodoro", () => {
         send({ type: "INIT" });
       }
     },
+    onSkip: (payload) => {
+      if (snapshot.value.context.pomodoro?.id === payload.payload.id) {
+        send({ type: "BROADCAST.FINISH", payload: payload.payload }); // We reuse FINISH logic for skip in the machine redirecting to idle
+      } else {
+        send({ type: "INIT" });
+      }
+    },
     onNext: () => {
       send({ type: "INIT" }); // Just re-fetch
     },
@@ -77,6 +84,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     broadcastPomodoroController,
     keepTags,
     handleListPomodoros,
+    toast,
   });
 
   const { snapshot, send } = useMachine(pomodoroMachine);

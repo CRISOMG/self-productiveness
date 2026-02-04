@@ -190,11 +190,13 @@ export const usePomodoroService = () => {
 
       _cycle = currCycle;
     }
-    const pomodoros = _cycle.pomodoros;
+    const pomodoros = _cycle.pomodoros || [];
     const required_tags =
       _cycle.required_tags || DEFAULT_REQUIRED_TAGS_FOR_FINISH_CYCLE;
 
-    const pomodoroTagsTypesArray = pomodoros?.map((p) => p.type) || [];
+    const pomodoroTagsTypesArray = pomodoros
+      .filter((p) => p.state === "finished" || p.state === "skipped")
+      .map((p) => p.type);
 
     const tagType = calculateNextTagFromCycleSecuence(
       pomodoroTagsTypesArray,

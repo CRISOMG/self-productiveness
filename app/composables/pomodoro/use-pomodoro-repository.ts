@@ -1,8 +1,8 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 
 function handleError(error: PostgrestError | null) {
-  if (error && error.code !== "PGRST116") {
-    console.log(error);
+  if (error) {
+    console.error(error);
     throw error;
   }
 }
@@ -82,6 +82,7 @@ export const usePomodoroRepository = () => {
           `,
       )
       .neq("state", "finished")
+      .neq("state", "skipped")
       .maybeSingle();
 
     handleError(error);
