@@ -25,35 +25,6 @@
           {{ task.title }}
         </p>
       </div>
-      <div class="flex items-center gap-1 shrink-0">
-        <!-- Stage Selector -->
-        <USelectMenu
-          v-if="stages?.length"
-          :model-value="task.stage || 'backlog'"
-          :items="stageItems"
-          size="xs"
-          @update:model-value="
-            (val: any) => emit('stageChange', task.id, val?.value || val)
-          "
-        >
-          <UButton
-            :icon="currentStageIcon"
-            size="xs"
-            variant="ghost"
-            color="neutral"
-          />
-        </USelectMenu>
-        <!-- Archive -->
-        <UTooltip :text="task.archived ? 'Unarchive' : 'Archive'">
-          <UButton
-            icon="i-lucide-archive"
-            size="xs"
-            :variant="task.archived ? 'solid' : 'ghost'"
-            :color="task.archived ? 'warning' : 'neutral'"
-            @click="emit('archive', task.id)"
-          />
-        </UTooltip>
-      </div>
     </div>
 
     <!-- Description -->
@@ -67,23 +38,67 @@
     >
       {{ task.description }}
     </p>
+    <div class="flex items-center justify-between">
+      <div>
+        <!-- Archive -->
+        <UTooltip :text="task.archived ? 'Unarchive' : 'Archive'">
+          <UButton
+            icon="i-lucide-archive"
+            size="xs"
+            :variant="task.archived ? 'solid' : 'ghost'"
+            :color="task.archived ? 'warning' : 'neutral'"
+            @click="reveal()"
+          />
+        </UTooltip>
+        <UModal v-model:open="isRevealed" @update:open="cancel()">
+          <template #content>
+            <div class="p-4">
+              <h1 class="text-lg font-medium w-fit">
+                Are you sure you want to
+                {{ task.archived ? "unarchive" : "archive" }} this task?
+              </h1>
+              <div class="flex justify-end gap-2 mt-4">
+                <UButton
+                  label="Cancel"
+                  color="neutral"
+                  variant="subtle"
+                  @click="cancel()"
+                />
+                <UButton
+                  label="Confirm"
+                  color="neutral"
+                  variant="solid"
+                  @click="confirm()"
+                />
+              </div>
+            </div>
+          </template>
+        </UModal>
+      </div>
+
+      <!-- Stage Selector -->
+      <USelectMenu
+        v-if="stages?.length"
+        :model-value="task.stage || 'backlog'"
+        :items="stageItems"
+        size="xs"
+        class="w-24"
+        @update:model-value="
+          (val: any) => emit('stageChange', task.id, val?.value || val)
+        "
+      >
+        <UButton
+          :icon="currentStageIcon"
+          size="xs"
+          variant="ghost"
+          color="neutral"
+        />
+      </USelectMenu>
+    </div>
 
     <!-- Footer: Actions + Tags -->
     <div class="flex items-center justify-between mt-2 gap-2">
       <div class="flex gap-1">
-        <!-- Pomodoro assign -->
-        <UTooltip
-          :text="task.keep ? 'Unassign from Pomodoro' : 'Assign to Pomodoro'"
-        >
-          <UButton
-            :disabled="task.done!"
-            icon="i-lucide-timer"
-            size="xs"
-            :variant="task.keep ? 'solid' : 'ghost'"
-            :color="task.keep ? 'success' : 'neutral'"
-            @click="emit('assignPomodoro', task.id)"
-          />
-        </UTooltip>
         <!-- Tag manage -->
         <UTooltip text="Manage Tag">
           <UButton
@@ -105,7 +120,7 @@
             : task.tags.slice(0, compact ? 1 : 3)"
           :key="tag.id"
         >
-          <UBadge size="xs" variant="soft">{{ tag.label }}</UBadge>
+          <UBadge size="sm" variant="soft">{{ tag.label }}</UBadge>
         </template>
         <UButton
           v-if="task.tags.length > (compact ? 1 : 3)"
@@ -118,15 +133,36 @@
         </UButton>
       </div>
       <div v-else-if="task.tag" class="flex items-center gap-1">
-        <UBadge size="xs" variant="soft">{{ task.tag.label }}</UBadge>
+        <UBadge size="sm" variant="soft">{{ task.tag.label }}</UBadge>
       </div>
+      <!-- Pomodoro assign -->
+      <UTooltip
+        :text="task.keep ? 'Unassign from Pomodoro' : 'Assign to Pomodoro'"
+      >
+        <UButton
+          :disabled="task.done!"
+          icon="i-lucide-timer"
+          size="xs"
+          :variant="task.keep ? 'solid' : 'ghost'"
+          :color="task.keep ? 'success' : 'neutral'"
+          @click="emit('assignPomodoro', task.id)"
+        />
+      </UTooltip>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useConfirmDialog } from "#imports";
 import type { TTask } from "~/composables/task/use-task-controller";
 import type { Database } from "~/types/database.types";
+
+const { isRevealed, reveal, confirm, cancel, onReveal, onConfirm, onCancel } =
+  useConfirmDialog();
+
+onConfirm(() => {
+  emit("archive", props.task.id);
+});
 
 type TaskStage = Database["public"]["Enums"]["task_stage"];
 

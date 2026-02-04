@@ -6,7 +6,7 @@ services:
     build:
       context: ./docker/n8n
       dockerfile: Dockerfile
-    restart: always
+    restart: unless-stopped
     ports:
       - "5678:5678"
     volumes:

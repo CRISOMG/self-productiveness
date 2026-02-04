@@ -35,6 +35,7 @@
         "zod": "^4.1.13",
       },
       "devDependencies": {
+        "@iconify-json/lucide": "^1.2.88",
         "@nuxt/test-utils": "^3.20.1",
         "@types/luxon": "^3.7.1",
         "happy-dom": "^20.0.11",
@@ -215,6 +216,8 @@
     "@humanwhocodes/module-importer": ["@humanwhocodes/module-importer@1.0.1", "", {}, "sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA=="],
 
     "@humanwhocodes/retry": ["@humanwhocodes/retry@0.4.3", "", {}, "sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ=="],
+
+    "@iconify-json/lucide": ["@iconify-json/lucide@1.2.88", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-QBJq+VSj3yHXoMgf+1I4guUhXA+tpxzAt46LJdTSFN6UKy254GstTh+P/a6GD4Bvyi1fCAfi5hS/yCmu0w3mNw=="],
 
     "@iconify/collections": ["@iconify/collections@1.0.643", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-mtXKNYlunC/HaEB+IwnJOw+dZ6Z7QwrUr4484qm/MiIk+7f8TyqDM9qYeJENEEDCWznyqR7ML/FNJ3F02nXF0g=="],
 

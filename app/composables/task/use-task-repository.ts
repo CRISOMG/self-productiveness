@@ -75,7 +75,9 @@ export const useTaskRepository = () => {
     archived: boolean;
   };
   async function listByUserId({ archived }: ListByUserIdParams) {
-    const query = supabase.from(fromTable).select(`*, tag:tag_id(*)`);
+    const query = supabase
+      .from(fromTable)
+      .select(`*, tag:tag_id(*), tags!tasks_tags(*)`);
 
     if (!archived) {
       query.eq("archived", false);

@@ -7,7 +7,7 @@
         <div>
           <button
             @click="handlePomodoroTypeChange(PomodoroType.FOCUS)"
-            class="w-26 cursor-pointer text-md p-2 py-1 rounded-md select-none"
+            class="w-24 sm:w-26 cursor-pointer text-md p-2 py-1 rounded-md select-none text-sm sm:text-md"
             :class="{
               'bg-black/20':
                 pomodoroController?.currPomodoro?.type === PomodoroType.FOCUS,
@@ -17,7 +17,7 @@
           </button>
           <button
             @click="handlePomodoroTypeChange(PomodoroType.BREAK)"
-            class="w-26 cursor-pointer text-md p-2 py-1 rounded-md select-none"
+            class="w-24 sm:w-26 cursor-pointer text-md p-2 py-1 rounded-md select-none text-sm sm:text-md"
             :class="{
               'bg-black/20':
                 pomodoroController?.currPomodoro?.type === PomodoroType.BREAK,
@@ -27,7 +27,7 @@
           </button>
           <button
             @click="handlePomodoroTypeChange(PomodoroType.LONG_BREAK)"
-            class="w-26 cursor-pointer text-md p-2 py-1 rounded-md select-none"
+            class="w-24 sm:w-26 cursor-pointer text-md p-2 py-1 rounded-md select-none text-sm sm:text-md"
             :class="{
               'bg-black/20':
                 pomodoroController?.currPomodoro?.type ===

@@ -190,8 +190,8 @@
 
     <!-- #region Kanban Board -->
     <!-- Mobile / Focus Mode: Tabs View -->
-    <div v-if="isMobile || focusMode" class="mt-4">
-      <UTabs v-model="activeStage" :items="tabItems" class="w-full">
+    <div v-if="isMobile || focusMode" class="sm:w-[400px] mt-4">
+      <UTabs v-model="activeStage" :items="tabItems" class="">
         <template v-for="stage in STAGES" :key="stage.value" #[stage.value]>
           <div class="flex flex-col gap-2 mt-3 max-h-[100vh] overflow-y-auto">
             <TaskCard
@@ -236,7 +236,7 @@
     </div>
 
     <!-- Desktop: Grid View -->
-    <div v-else class="mt-4 grid grid-cols-4 gap-2">
+    <div v-else class="mt-4 grid grid-cols-4 gap-2 lg:w-[1280px]">
       <div
         v-for="stage in STAGES"
         :key="stage.value"
@@ -338,12 +338,12 @@ const STAGES: { value: TaskStage; label: string; icon: string }[] = [
 ];
 
 const activeStage = ref<TaskStage>("to_do");
-const focusMode = ref(false);
+const focusMode = ref(true);
 
 // Tabs items for mobile
 const tabItems = computed(() =>
   STAGES.map((s) => ({
-    label: s.label,
+    label: isMobile.value ? "" : s.label,
     value: s.value,
     icon: s.icon,
     slot: s.value,
