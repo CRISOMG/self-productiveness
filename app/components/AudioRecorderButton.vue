@@ -153,9 +153,19 @@
 import type { GoogleDriveFile } from "~~/shared/utils/file";
 
 interface AudioUploadResponse {
-  audio?: GoogleDriveFile;
-  text?: GoogleDriveFile;
-  message?: string;
+  audio?: {
+    path: string;
+    name: string;
+    url: string;
+    mimeType: string;
+  };
+  text?: {
+    path: string;
+    name: string;
+    url: string;
+    mimeType: string;
+  };
+  formatted_id?: string;
 }
 
 const emit = defineEmits<{

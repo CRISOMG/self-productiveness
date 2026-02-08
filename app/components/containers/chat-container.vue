@@ -319,27 +319,67 @@ async function handleSubmit(e: Event) {
   }
 }
 
-async function handleFilesSelected(files: File[]) {
-  const response = await addFiles(files);
+async function handleFilesSelected(selectedFiles: File[]) {
+  const response = await addFiles(selectedFiles);
 
-  if (response && response[0] && response[0].message) {
-    input.value = response[0].message;
-    isPro.value = true;
+  if (response && response[0]) {
+    const result = response[0];
+    // Set the formatted bitacora ID as the text input
+    if (result.formatted_id) {
+      input.value = result.formatted_id;
+      isPro.value = true;
+    }
+    // File parts are already added to the files array by useFileUpload
+    // They will be sent as source-url parts in handleSubmit
   }
 }
 
-function handleAudioUploaded(response: {
-  audio?: {
-    id: string;
-    webViewLink?: string;
-    mimeType?: string;
-    name?: string;
-  };
-  message?: string;
-}) {
-  if (response.message) {
-    input.value = response.message;
+interface TranscriptionResponse {
+  audio?: { path: string; name: string; url: string; mimeType: string };
+  text?: { path: string; name: string; url: string; mimeType: string };
+  formatted_id?: string;
+}
+
+function handleAudioUploaded(response: TranscriptionResponse) {
+  // Set the formatted bitacora ID as the text input
+  if (response.formatted_id) {
+    input.value = response.formatted_id;
     isPro.value = true;
+  }
+
+  // Add audio and text as files to be sent as source-url parts
+  if (response.audio) {
+    const audioId = "audio-" + Date.now();
+    files.value.push({
+      id: audioId,
+      file: new File([], response.audio.name, {
+        type: response.audio.mimeType,
+      }),
+      status: "uploaded",
+      driveFile: {
+        ...response.audio,
+        id: audioId,
+        webViewLink: response.audio.url,
+      } as any,
+      url: response.audio.url,
+      previewUrl: "",
+    });
+  }
+
+  if (response.text) {
+    const textId = "text-" + Date.now();
+    files.value.push({
+      id: textId,
+      file: new File([], response.text.name, { type: response.text.mimeType }),
+      status: "uploaded",
+      driveFile: {
+        ...response.text,
+        id: textId,
+        webViewLink: response.text.url,
+      } as any,
+      url: response.text.url,
+      previewUrl: "",
+    });
   }
 }
 

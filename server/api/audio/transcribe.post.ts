@@ -19,7 +19,7 @@ interface TranscriptionResult {
     url: string;
     mimeType: string;
   };
-  message: string;
+  formatted_id: string; // e.g. "[[Bitacora vespertina media, Miércoles, 04-02-2026 17:53]]"
 }
 
 async function loadTranscriptPrompt(): Promise<string> {
@@ -207,9 +207,7 @@ export default defineEventHandler(async (event) => {
     .from(BUCKET_NAME)
     .createSignedUrl(textPath, 3600);
 
-  // 9. Construir mensaje de respuesta
-  const message = `[${formatted_id}]\n\n[audio](${audioUrlData?.signedUrl || audioPath})\n\n[transcripcion](${textUrlData?.signedUrl || textPath})`;
-
+  // 9. Construir resultado de respuesta
   const result: TranscriptionResult = {
     audio: {
       path: audioPath,
@@ -223,7 +221,7 @@ export default defineEventHandler(async (event) => {
       url: textUrlData?.signedUrl || "",
       mimeType: "text/plain",
     },
-    message,
+    formatted_id,
   };
 
   return [result];

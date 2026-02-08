@@ -123,6 +123,7 @@ export interface FileWithStatus {
   uploadedPathname?: string;
   error?: string;
   driveFile?: GoogleDriveFile;
+  url?: string;
 }
 
 export const FILE_UPLOAD_CONFIG = {

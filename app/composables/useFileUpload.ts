@@ -11,16 +11,14 @@ type FileUploadResponse = {
     name: string;
     url: string;
     mimeType: string;
-    id?: string;
   };
   text?: {
     path: string;
     name: string;
     url: string;
     mimeType: string;
-    id?: string;
   };
-  message: string;
+  formatted_id: string;
 };
 
 import { getAudioStoragePath } from "~~/shared/utils/jornada";
@@ -87,42 +85,24 @@ export function useFileUploadWithStatus() {
         files.value = files.value.filter((f) => f.id !== fileWithStatus.id);
 
         if (text) {
-          const textId =
-            text.id ||
-            "text-" + Date.now().toString() + Math.random().toString().slice(2);
+          const textId = "text-" + Date.now().toString();
           files.value.push({
             id: textId,
-            file: new File([], text.name, {
-              type: text.mimeType,
-            }),
+            file: new File([], text.name, { type: text.mimeType }),
             status: "uploaded",
-            driveFile: {
-              ...(text as any),
-              id: textId,
-              webViewLink: text.url,
-            },
+            driveFile: { ...text, id: textId, webViewLink: text.url } as any,
             url: text.url,
-            previewUrl: "", // Text files don't need a preview URL usually
+            previewUrl: "",
           });
         }
 
         if (audio) {
-          const audioId =
-            audio.id ||
-            "audio-" +
-              Date.now().toString() +
-              Math.random().toString().slice(2);
+          const audioId = "audio-" + Date.now().toString();
           files.value.push({
             id: audioId,
-            file: new File([], audio.name, {
-              type: audio.mimeType,
-            }),
+            file: new File([], audio.name, { type: audio.mimeType }),
             status: "uploaded",
-            driveFile: {
-              ...(audio as any),
-              id: audioId,
-              webViewLink: audio.url,
-            },
+            driveFile: { ...audio, id: audioId, webViewLink: audio.url } as any,
             url: audio.url,
             previewUrl: "",
           });
