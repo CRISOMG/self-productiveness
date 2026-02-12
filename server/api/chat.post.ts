@@ -36,7 +36,6 @@ interface ChatBody {
 
 export default defineEventHandler(async (event) => {
   // 1. Parsing and validation
-  const contentType = getHeader(event, "content-type");
   const config = useRuntimeConfig();
   const user = await serverSupabaseUser(event);
 
@@ -64,8 +63,8 @@ export default defineEventHandler(async (event) => {
   const lastMessage = messages[messages.length - 1];
   let isPro = lastMessage?.usePro;
 
-  // 3. Normalización y extracción de metadata de Google Drive
-  const googleDriveMetadata: any[] = [];
+  // 3. Normalización y extracción de archivos adjuntos
+  const sourceFiles: { url: string; mimeType: string }[] = [];
 
   const safeMessages = messages.map((m) => {
     const originalParts = (m.parts || []) as any[];
@@ -76,8 +75,17 @@ export default defineEventHandler(async (event) => {
     ) as SourceUrlPart[];
 
     sourceUrlParts.forEach((p) => {
-      if (p.providerMetadata?.googleDrive) {
-        googleDriveMetadata.push(p.providerMetadata.googleDrive);
+      const mimeType =
+        p.providerMetadata?.supabaseStorage?.mimeType ||
+        p.providerMetadata?.googleDrive?.mimeType ||
+        "application/octet-stream";
+      const url =
+        p.url ||
+        p.providerMetadata?.supabaseStorage?.url ||
+        p.providerMetadata?.googleDrive?.webViewLink;
+
+      if (url) {
+        sourceFiles.push({ url, mimeType });
       }
     });
 
@@ -105,14 +113,36 @@ export default defineEventHandler(async (event) => {
     safeMessages as any,
   )) as ModelMessage[];
 
+  // 4. Inyección de archivos multimodales en el último mensaje del usuario
+  if (sourceFiles.length > 0 && modelMessages.length > 0) {
+    const lastMsg = modelMessages[modelMessages.length - 1];
+
+    if (lastMsg?.role === "user") {
+      const userMsg = lastMsg as UserModelMessage;
+      const currentContent: UserContent =
+        typeof userMsg.content === "string"
+          ? [{ type: "text", text: userMsg.content }]
+          : userMsg.content;
+
+      const fileParts: FilePart[] = sourceFiles
+        .filter((f) => !!f.url)
+        .map((f) => ({
+          type: "file" as const,
+          data: new URL(f.url),
+          mediaType: f.mimeType as any,
+        }));
+
+      if (fileParts.length > 0) {
+        userMsg.content = [...currentContent, ...fileParts];
+        console.log(
+          `[Chat API] Injected ${fileParts.length} multimodal file(s) into user message`,
+        );
+      }
+    }
+  }
+
   // 5. Cargar system prompt y crear provider
   const systemPrompt = await loadSystemPrompt();
-
-  // Inyectar contexto de archivos adjuntos si existen
-  let contextMessage = "";
-  if (googleDriveMetadata.length > 0) {
-    contextMessage = `\n\n[ARCHIVOS ADJUNTOS]\n${JSON.stringify(googleDriveMetadata, null, 2)}`;
-  }
 
   // 6. Crear provider con modelo dinámico
   const { model, tools, modelId } = createAIProvider(
@@ -155,7 +185,7 @@ export default defineEventHandler(async (event) => {
     model,
     tools,
     messages: modelMessages,
-    system: systemPrompt + contextMessage,
+    system: systemPrompt,
     maxSteps: 40, // Límite de pasos para evitar loops infinitos
     stopWhen: stepCountIs(40), // Permite continuación después de tool calls
     maxRetries: 3,
