@@ -1,14 +1,13 @@
 import type { TTaskUpdate } from "./use-task-repository";
 import { useTaskService } from "./use-task-service";
-import type { Tables, Database } from "~/types/database.types";
+import type { TaskRow, TagRow, TaskStage } from "~/types/tables";
 import { type RealtimeChannel } from "@supabase/supabase-js";
 
-export type TaskStage = Database["public"]["Enums"]["task_stage"];
+export type { TaskStage };
 
-export type TTask = Tables<"tasks"> & {
-  tag: Tables<"tags">;
+export type TTask = TaskRow & {
+  tag: TagRow;
   tags?: { id: number; label: string }[];
-  stage?: TaskStage;
 };
 
 export const useTaskController = () => {
