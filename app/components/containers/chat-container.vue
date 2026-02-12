@@ -281,10 +281,6 @@ async function handleSubmit(e: Event) {
   if (input.value.trim() && !isUploading.value) {
     const parts: UIMessagePart<N8NUIDataTypes, N8NUITools>[] = [];
 
-    if (isPro.value) {
-      input.value += "\n\n[use pro]";
-    }
-
     if (input.value.trim()) {
       parts.push({ type: "text", text: input.value });
     }
@@ -311,6 +307,7 @@ async function handleSubmit(e: Event) {
     chat.sendMessage({
       role: "user",
       parts,
+      usePro: isPro.value,
     });
     input.value = "";
     // No limpiamos los archivos aquí inmediatamente porque el transporte fetch
@@ -320,7 +317,7 @@ async function handleSubmit(e: Event) {
 }
 
 async function handleFilesSelected(selectedFiles: File[]) {
-  const response = await addFiles(selectedFiles);
+  const response = await addFiles(selectedFiles, { skipTranscription: true });
 
   if (response && response[0]) {
     const result = response[0];

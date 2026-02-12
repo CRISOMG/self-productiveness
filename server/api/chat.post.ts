@@ -19,6 +19,7 @@ export interface IncomingMessage {
   role: "user" | "assistant" | "system";
   content?: string;
   parts?: UserContent;
+  usePro?: boolean;
 }
 
 interface SourceUrlPart {
@@ -27,6 +28,10 @@ interface SourceUrlPart {
   title: string;
   url: string;
   providerMetadata: any;
+}
+
+interface ChatBody {
+  messages: IncomingMessage[];
 }
 
 export default defineEventHandler(async (event) => {
@@ -46,59 +51,18 @@ export default defineEventHandler(async (event) => {
   const supabase = await serverSupabaseClient<Database>(event);
 
   let messages: IncomingMessage[] = [];
-  let files: FilePart[] = [];
+  let body: ChatBody | null = null;
 
-  if (contentType?.includes("multipart/form-data")) {
-    const formData = await readMultipartFormData(event);
-    if (formData) {
-      const messagesPart = formData.find((p) => p.name === "messages");
-      if (messagesPart) {
-        messages = JSON.parse(
-          messagesPart.data.toString(),
-        ) as IncomingMessage[];
-      }
-
-      const fileParts = formData.filter((p) => p.name === "file");
-      files = fileParts.map((p) => ({
-        type: "file",
-        mimeType: p.type || "application/octet-stream",
-        mediaType: p.type || "application/octet-stream",
-        data: p.data,
-        filename: p.filename || undefined,
-      }));
-    }
-  } else if (contentType?.includes("application/json")) {
-    const body = await readBody(event);
+  try {
+    body = await readBody(event);
     messages = (body?.messages || []) as IncomingMessage[];
-  } else {
-    try {
-      const body = await readBody(event);
-      messages = (body?.messages || []) as IncomingMessage[];
-    } catch (e) {
-      console.error("[API] Failed to read body:", e);
-      messages = [];
-    }
+  } catch (e) {
+    console.error("[API] Failed to read body:", e);
+    messages = [];
   }
-
   // 2. Detectar selección de modelo [use pro]
   const lastMessage = messages[messages.length - 1];
-  let isPro = false;
-
-  if (lastMessage?.content?.includes("[use pro]")) {
-    isPro = true;
-    lastMessage.content = lastMessage.content.replace("[use pro]", "").trim();
-  }
-
-  // También revisar en parts si es texto
-  if (lastMessage?.parts) {
-    const textPart = (lastMessage.parts as any[]).find(
-      (p) => p.type === "text",
-    );
-    if (textPart?.text?.includes("[use pro]")) {
-      isPro = true;
-      textPart.text = textPart.text.replace("[use pro]", "").trim();
-    }
-  }
+  let isPro = lastMessage?.usePro;
 
   // 3. Normalización y extracción de metadata de Google Drive
   const googleDriveMetadata: any[] = [];
@@ -140,21 +104,6 @@ export default defineEventHandler(async (event) => {
   const modelMessages = (await convertToModelMessages(
     safeMessages as any,
   )) as ModelMessage[];
-
-  // 4. Inyección de Archivos (Post-Conversión)
-  if (files.length > 0 && modelMessages.length > 0) {
-    const lastMsg = modelMessages[modelMessages.length - 1];
-
-    if (lastMsg && lastMsg.role === "user") {
-      const userMsg = lastMsg as UserModelMessage;
-      const currentContent: UserContent =
-        typeof userMsg.content === "string"
-          ? [{ type: "text", text: userMsg.content }]
-          : userMsg.content;
-
-      userMsg.content = [...currentContent, ...files];
-    }
-  }
 
   // 5. Cargar system prompt y crear provider
   const systemPrompt = await loadSystemPrompt();
