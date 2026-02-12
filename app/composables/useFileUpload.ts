@@ -31,7 +31,10 @@ export function useFileUploadWithStatus() {
 
   async function addFiles(
     newFiles: File[],
+    options?: { skipTranscription?: boolean },
   ): Promise<FileUploadResponse[] | undefined> {
+    const skipTranscription = options?.skipTranscription ?? false;
+
     // Initial state: uploading
     const newFilesWithStatus: FileWithStatus[] = newFiles.map((file) => ({
       file,
@@ -60,9 +63,9 @@ export function useFileUploadWithStatus() {
 
         if (uploadError) throw uploadError;
 
-        // 2. Call the API with the path instead of the file
-        const response = await $fetch<FileUploadResponse[]>(
-          "/api/audio/transcribe",
+        // 2. Register the upload via the API
+        const uploadResult = await $fetch<FileUploadResponse>(
+          "/api/audio/upload",
           {
             method: "POST",
             body: {
@@ -72,10 +75,35 @@ export function useFileUploadWithStatus() {
           },
         );
 
-        const result = response && response[0] ? response[0] : null;
+        if (!uploadResult?.audio) {
+          throw new Error("Invalid response from upload");
+        }
 
-        if (!result) {
-          throw new Error("Invalid response from server");
+        // 3. Optionally transcribe
+        let result: FileUploadResponse = uploadResult;
+
+        if (!skipTranscription) {
+          try {
+            const transcribeResult = await $fetch<FileUploadResponse>(
+              "/api/audio/transcribe",
+              {
+                method: "POST",
+                body: {
+                  audioPath: storagePath,
+                  mimeType: contentType,
+                },
+              },
+            );
+
+            if (transcribeResult) {
+              result = transcribeResult;
+            }
+          } catch (transcribeError) {
+            console.warn(
+              "Transcription failed, continuing with upload only:",
+              transcribeError,
+            );
+          }
         }
 
         const text = result?.text;
@@ -108,7 +136,7 @@ export function useFileUploadWithStatus() {
           });
         }
 
-        return response;
+        return [result];
       } catch (error) {
         console.error("Upload failed", error);
         files.value = files.value.map((f) => {

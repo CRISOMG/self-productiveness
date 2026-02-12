@@ -283,9 +283,9 @@ async function handleSend() {
 
     if (uploadError) throw uploadError;
 
-    // 2. Call the API with the path instead of the file
-    const response = await $fetch<AudioUploadResponse[]>(
-      "/api/audio/transcribe",
+    // 2. Register the upload via the API
+    const uploadResult = await $fetch<AudioUploadResponse>(
+      "/api/audio/upload",
       {
         method: "POST",
         body: {
@@ -295,14 +295,38 @@ async function handleSend() {
       },
     );
 
-    const result = response?.[0];
-
-    if (result?.audio) {
-      emit("uploaded", result);
-      await clearAfterUpload();
-    } else {
-      emit("error", "Error al subir el audio");
+    if (!uploadResult?.audio) {
+      emit("error", "Error al registrar el audio");
+      return;
     }
+
+    // 3. Transcribe (independent step - if it fails, upload still succeeds)
+    let result: AudioUploadResponse = uploadResult;
+
+    // try {
+    //   const transcribeResult = await $fetch<AudioUploadResponse>(
+    //     "/api/audio/transcribe",
+    //     {
+    //       method: "POST",
+    //       body: {
+    //         audioPath: storagePath,
+    //         mimeType,
+    //       },
+    //     },
+    //   );
+
+    //   if (transcribeResult) {
+    //     result = transcribeResult;
+    //   }
+    // } catch (transcribeError) {
+    //   console.warn(
+    //     "Transcription failed, continuing with upload only:",
+    //     transcribeError,
+    //   );
+    // }
+
+    emit("uploaded", result);
+    await clearAfterUpload();
   } catch (error) {
     console.error("Upload error:", error);
     emit("error", "Error al subir el audio");
