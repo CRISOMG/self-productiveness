@@ -143,7 +143,7 @@ const handlePomodoroTypeChange = async (type: PomodoroType) => {
     return alert("You are already in " + type);
   }
   await handleSkipPomodoro();
-  handleSelectPomodoro(props.user_id, type);
+  await handleSelectPomodoro(props.user_id, type);
 };
 
 const handlePlayPausePomodoro = () => {

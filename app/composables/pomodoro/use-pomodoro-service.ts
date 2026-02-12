@@ -88,7 +88,7 @@ export const usePomodoroService = () => {
 
     const result = await pomodoroRepository.insert({
       user_id,
-      started_at,
+      started_at: new Date().toISOString(),
       expected_end,
       timelapse: 0,
       toggle_timeline,
@@ -99,6 +99,66 @@ export const usePomodoroService = () => {
       cycle: cycle.id,
     });
 
+    //     {
+    //     "id": 279,
+    //     "created_at": "2026-02-12T01:05:49.064+00:00",
+    //     "started_at": "2026-02-12T01:05:49.064+00:00",
+    //     "expected_end": null,
+    //     "timelapse": 0,
+    //     "user_id": "4ddb8909-ef46-4cde-8feb-8ce0a3c72564",
+    //     "state": "paused",
+    //     "finished_at": null,
+    //     "toggle_timeline": [
+    //         {
+    //             "at": "2026-02-12T01:05:49.064Z",
+    //             "type": "start"
+    //         }
+    //     ],
+    //     "cycle": {
+    //         "id": 76,
+    //         "state": "current",
+    //         "user_id": "4ddb8909-ef46-4cde-8feb-8ce0a3c72564",
+    //         "pomodoros": [
+    //             {
+    //                 "id": 278,
+    //                 "type": "focus",
+    //                 "cycle": 76,
+    //                 "state": "finished",
+    //                 "user_id": "4ddb8909-ef46-4cde-8feb-8ce0a3c72564",
+    //                 "timelapse": 1024,
+    //                 "created_at": "2026-02-11T22:22:23.934+00:00",
+    //                 "started_at": "2026-02-11T22:22:23.934+00:00",
+    //                 "finished_at": "2026-02-11T22:48:15.906+00:00",
+    //                 "expected_end": "2026-02-11T22:48:33.638316+00:00",
+    //                 "toggle_timeline": [
+    //                     {
+    //                         "at": "2026-02-11T22:22:23.934Z",
+    //                         "type": "start"
+    //                     },
+    //                     {
+    //                         "at": "2026-02-11T22:23:35.930Z",
+    //                         "type": "play"
+    //                     },
+    //                     {
+    //                         "at": "2026-02-11T22:48:15.906Z",
+    //                         "type": "finish"
+    //                     }
+    //                 ],
+    //                 "expected_duration": 1500
+    //             }
+    //         ],
+    //         "created_at": "2026-02-11T22:21:03.669794+00:00",
+    //         "required_tags": [
+    //             "focus",
+    //             "break",
+    //             "focus",
+    //             "long-break"
+    //         ]
+    //     },
+    //     "expected_duration": 1500,
+    //     "type": "focus",
+    //     "tags": []
+    // }
     return result as TPomodoro;
   }
 

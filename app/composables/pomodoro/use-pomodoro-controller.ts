@@ -173,7 +173,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
 
   // Select/Tasks
   async function handleSelectPomodoro(user_id: string, type: PomodoroType) {
-    send({ type: "START", inputs: { user_id, type } });
+    send({ type: "START", inputs: { user_id, type, state: "current" } });
   }
 
   // Sync
