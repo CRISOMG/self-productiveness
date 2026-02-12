@@ -19,8 +19,8 @@ const searchQuery = ref("");
 
 const user = useSupabaseUser();
 
-const useSupabaseStorage =
-  user.value?.sub !== "4ddb8909-ef46-4cde-8feb-8ce0a3c72564";
+const useSupabaseStorage = true;
+// user.value?.sub !== "4ddb8909-ef46-4cde-8feb-8ce0a3c72564";
 
 // Determine which API endpoint to use based on feature flag
 const apiEndpoint = computed(() =>
