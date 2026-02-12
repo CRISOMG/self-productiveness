@@ -72,6 +72,7 @@ disfuncion ejecutiva y paralisis por analisis en personas neurodivergentes y con
 1. **Externalización del pensamiento** — No es journaling, es operacionalización (Rubber Ducking)
 2. **Contexto persistente** — La IA conoce tu Zettelkasten personal y puede ayudarte a conectar ideas y tareas.
 3. **Métricas de rendimiento cognitivo** — Pomodoros como KPI de salud mental y productividad.
+4. **Active recall & spaced repetition** — Sistema de notificaciones personalizadas para mejorar la retención de información.
 
 ---
 
@@ -86,6 +87,7 @@ disfuncion ejecutiva y paralisis por analisis en personas neurodivergentes y con
 | **Pomodoro integrado**      | Timer con estados: Focus, Break, Long Break | ✅ Implementado |
 | **Sistema de Tags**         | Organización y filtrado de tareas           | ✅ Implementado |
 | **Milestones compartibles** | Links de prueba de trabajo                  | 🔄 En progreso  |
+| **Reminders**               | active recall & spaced repetition           | 🔄 En progreso  |
 
 ### Arquitectura Técnica (Pipeline "Malacate"):
 
@@ -99,12 +101,12 @@ disfuncion ejecutiva y paralisis por analisis en personas neurodivergentes y con
 
 ### Canales de Adquisición:
 
-| Canal                                 | Tipo              | CAC Esperado |
-| ------------------------------------- | ----------------- | ------------ |
-| **Milestones compartibles**           | Orgánico/Viral    | ~$0          |
-| **Twitter/X Tech**                    | Orgánico          | ~$0          |
-| **Dev communities (Reddit, Discord)** | Orgánico          | ~$0          |
-| **Contenido técnico (blog/videos)**   | Content Marketing | ~$5-10       |
+| Canal                               | Tipo              | CAC Esperado |
+| ----------------------------------- | ----------------- | ------------ |
+| **Milestones compartibles**         | Orgánico/Viral    | ~$0          |
+| **Comunidades de desarrolladores**  | Orgánico          | ~$0          |
+| **Linkedin/tiktok/referidos**       | Orgánico          | ~$0          |
+| **Contenido técnico (blog/videos)** | Content Marketing | ~$5-10       |
 
 ### Canales de Distribución:
 
@@ -117,20 +119,22 @@ disfuncion ejecutiva y paralisis por analisis en personas neurodivergentes y con
 
 ### Modelo de Pricing:
 
-| Plan       | Precio      | Features                                          |
-| ---------- | ----------- | ------------------------------------------------- |
-| **Básico** | $9 USD/mes  | Bitácoras limitadas, Pomodoros                    |
-| **Pro**    | $12 USD/mes | Bitácoras ilimitadas, Context Caching, Milestones |
-| **Anual**  | $99 USD/año | Pro + 2 meses gratis                              |
+| Plan           | Precio       | Features                                                                             |
+| -------------- | ------------ | ------------------------------------------------------------------------------------ |
+| **Básico**     | $12 USD/mes  | características básicas y limitadas para cumplir objetivos de negocio                |
+| **Tech**       | $15 USD/mes  | usuarios avanzados con su propia key de IA                                           |
+| **Pro**        | $20 USD/mes  | Bitácoras mas largas, características avanzadas gracias a un mejor marjen financiero |
+| **Anual tech** | $52 USD/año  | mayor fidelidad, engagement y descuento                                              |
+| **Anual pro**  | $129 USD/año | mayor fidelidad, engagement y descuento                                              |
 
 ### Unit Economics (Target):
 
-| Métrica               | Valor               |
-| --------------------- | ------------------- |
-| Precio promedio       | $10.50 USD          |
-| COGS por usuario      | $4.15 USD           |
-| **Margen bruto**      | **$8.00 USD (59%)** |
-| Usuarios para $2k MRR | 250                 |
+| Métrica                | Valor                        |
+| ---------------------- | ---------------------------- |
+| Precio promedio        | ($15.6 + $90.5) / 2 = $53.05 |
+| COGS por usuario       | < 45% (Incluye IA + Fees)    |
+| **Margen bruto**       | **> 55%**                    |
+| Usuarios para $400 MRR | < 50                         |
 
 ---
 
@@ -138,27 +142,28 @@ disfuncion ejecutiva y paralisis por analisis en personas neurodivergentes y con
 
 ### Costos Variables (por usuario):
 
-| Concepto                  | Antes (v2) | Después (v3) |
-| ------------------------- | ---------- | ------------ |
-| IA Audio (transcripción)  | $25.00     | $0.50        |
-| IA Texto (estructuración) | $2.00      | $1.50        |
-| Comisiones MoR/P2P        | $0.00      | $1.65        |
-| **COGS Total**            | **$28.00** | **$4.15**    |
+| Concepto       | Estimado/mes               |
+| -------------- | -------------------------- |
+| IA Multimodal  | ($1.78 - $2.50) < $5       |
+| Comisiones MoR | 5% + $0.50                 |
+| Comisiones P2P | 6.5% \ (5.3% +$0.8) \ 3-4% |
+| **COGS Total** | **$5 < $10**               |
 
 ### Costos Fijos:
 
-| Concepto         | Estimado/mes |
-| ---------------- | ------------ |
-| Supabase (infra) | ~$25-50      |
-| Dominio/hosting  | ~$10         |
-| Herramientas dev | ~$0-30       |
+| Concepto         | Estimado/mes         |
+| ---------------- | -------------------- |
+| Supabase (infra) | ~$25 - $50/mes       |
+| Dominio/hosting  | ~$3.75/mes - $45/año |
+| Herramientas dev | ~$0.00 - $19.99/mes  |
+| **Costos Fijos** | **$28.75 < $55**     |
 
 ### Stack de Tesorería (Venezuela-specific):
 
 - **Recaudación:** Lemon Squeezy (MoR)
 - **Offshore:** Facebank International (Puerto Rico)
-- **Liquidez local:** Binance P2P → VES
-- **Efectivo USD:** Meru/MoneyGram
+- **Liquidez local:** Meru (minoritario) / Binance P2P (mayoritario)
+- **Efectivo USD:** Meru / MoneyGram
 
 ---
 
@@ -170,13 +175,13 @@ disfuncion ejecutiva y paralisis por analisis en personas neurodivergentes y con
 
 ### Métricas de Salud (KPIs):
 
-| Categoría          | Métrica                           | Target     |
-| ------------------ | --------------------------------- | ---------- |
-| **Activación**     | % usuarios con 1ª bitácora en 24h | >60%       |
-| **Engagement**     | Pomodoros/día promedio            | 4-8        |
-| **Retención**      | Retención M1                      | >40%       |
-| **Revenue**        | MRR                               | $2,000 USD |
-| **Unit Economics** | LTV/CAC                           | >3x        |
+| Categoría          | Métrica                           | Target            |
+| ------------------ | --------------------------------- | ----------------- |
+| **Activación**     | % usuarios con 1ª bitácora en 24h | >60%              |
+| **Engagement**     | Pomodoros/día promedio            | 4-8               |
+| **Retención**      | Retención M1                      | >40%              |
+| **Revenue**        | MRR                               | $400 - $2,000 USD |
+| **Unit Economics** | LTV/CAC                           | >3x               |
 
 ---
 
@@ -184,14 +189,13 @@ disfuncion ejecutiva y paralisis por analisis en personas neurodivergentes y con
 
 ### ¿Por qué no pueden copiarnos fácilmente?
 
-| Ventaja                      | Descripción                                                         |
-| ---------------------------- | ------------------------------------------------------------------- |
-| **Pipeline "Malacate"**      | Arquitectura híbrida Whisper+LLM propietaria con costos 85% menores |
-| **Context Caching personal** | El sistema aprende el Zettelkasten único del usuario                |
-| **First-mover en nicho**     | Productividad para devs LATAM con problemas financieros             |
-| **Skin in the game**         | El founder usa Yourfocus para construir Yourfocus                   |
-
-personalizacion, usa tu imagen y estilo.
+| Ventaja                            | Descripción                                                        |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| **Pipeline Optimizado para latam** | Arquitectura híbrida Whisper+LLM con costos optimizados para latam |
+| **Context Caching personal**       | El sistema aprende el Zettelkasten único del usuario               |
+| **First-mover en nicho**           | Productividad para devs LATAM con problemas financieros            |
+| **Skin in the game**               | El founder usa Yourfocus para construir Yourfocus                  |
+| **Personalización**                | puedes usar tu imagen y estilo                                     |
 
 ---
 
@@ -211,8 +215,8 @@ personalizacion, usa tu imagen y estilo.
 
 ## 📝 NOTAS Y DECISIONES PENDIENTES
 
-- [ ] Definir estrategia de launch en communities (Twitter, Reddit, Discord)
-- [ ] Implementar sistema de Milestones compartibles
+- [ ] Definir estrategia de launch en communities (landing page, linkedin, tiktok, youtube)
+- [ ] Implementar sistema de Milestones, reminders y etiquetas zettelkasten
 - [ ] Configurar Lemon Squeezy + Facebank
 - [ ] Validar pricing con early adopters
 
