@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
   let isPro = lastMessage?.usePro;
 
   // 3. Normalización y extracción de archivos adjuntos
-  const sourceFiles: { url: string; mimeType: string }[] = [];
+  const sourceFiles: { url: string; mimeType: string; path?: string }[] = [];
 
   const safeMessages = messages.map((m) => {
     const originalParts = (m.parts || []) as any[];
@@ -83,9 +83,10 @@ export default defineEventHandler(async (event) => {
         p.url ||
         p.providerMetadata?.supabaseStorage?.url ||
         p.providerMetadata?.googleDrive?.webViewLink;
+      const path = p.providerMetadata?.supabaseStorage?.path;
 
       if (url) {
-        sourceFiles.push({ url, mimeType });
+        sourceFiles.push({ url, mimeType, path });
       }
     });
 
@@ -124,13 +125,30 @@ export default defineEventHandler(async (event) => {
           ? [{ type: "text", text: userMsg.content }]
           : userMsg.content;
 
-      const fileParts: FilePart[] = sourceFiles
-        .filter((f) => !!f.url)
-        .map((f) => ({
-          type: "file" as const,
-          data: new URL(f.url),
-          mediaType: f.mimeType as any,
-        }));
+      // Regenerate fresh signed URLs for files with storage paths
+      const fileParts: FilePart[] = await Promise.all(
+        sourceFiles
+          .filter((f) => !!f.url)
+          .map(async (f) => {
+            let fileUrl = f.url;
+
+            // If we have the storage path, regenerate a fresh signed URL
+            if (f.path) {
+              const { data } = await supabase.storage
+                .from("yourfocus")
+                .createSignedUrl(f.path, 600); // 10 min expiry
+              if (data?.signedUrl) {
+                fileUrl = data.signedUrl;
+              }
+            }
+
+            return {
+              type: "file" as const,
+              data: new URL(fileUrl),
+              mediaType: f.mimeType as any,
+            };
+          }),
+      );
 
       if (fileParts.length > 0) {
         userMsg.content = [...currentContent, ...fileParts];

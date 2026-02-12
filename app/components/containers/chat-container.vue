@@ -71,11 +71,13 @@
                 :name="part?.filename || part?.title || 'File'"
                 :type="
                   part?.mediaType ||
+                  part?.providerMetadata?.supabaseStorage?.mimeType ||
                   part?.providerMetadata?.googleDrive?.mimeType ||
                   'application/octet-stream'
                 "
                 :url="
                   part?.url ||
+                  part?.providerMetadata?.supabaseStorage?.url ||
                   part?.providerMetadata?.googleDrive?.webViewLink ||
                   ''
                 "
@@ -293,9 +295,9 @@ async function handleSubmit(e: Event) {
           title: f.filename,
           url: f.driveFile?.webViewLink,
           providerMetadata: {
-            googleDrive: {
-              fileId: f.driveFile?.id,
-              webViewLink: f?.driveFile?.webViewLink,
+            supabaseStorage: {
+              path: f.driveFile?.path,
+              url: f.driveFile?.webViewLink,
               mimeType: f.driveFile?.mimeType,
             },
           },
