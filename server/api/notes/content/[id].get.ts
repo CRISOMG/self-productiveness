@@ -151,7 +151,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const fileName = decodeURIComponent(id);
-  const useGoogleDrive = user.sub === LEGACY_USER_ID;
+  // const useGoogleDrive = user.sub === LEGACY_USER_ID;
+  const useGoogleDrive = false;
 
   let content: string;
 
