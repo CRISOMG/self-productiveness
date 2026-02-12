@@ -135,8 +135,9 @@
       <div v-else-if="task.tag" class="flex items-center gap-1">
         <UBadge size="sm" variant="soft">{{ task.tag.label }}</UBadge>
       </div>
-      <!-- Pomodoro assign -->
+      <!-- Pomodoro assign (only visible in "in_progress" stage) -->
       <UTooltip
+        v-if="task.stage === 'in_progress'"
         :text="task.keep ? 'Unassign from Pomodoro' : 'Assign to Pomodoro'"
       >
         <UButton

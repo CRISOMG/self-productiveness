@@ -374,7 +374,13 @@ const tasksByStage = computed(() => {
 async function handleStageChange(taskId: string, newStage: TaskStage) {
   const task = taskController.tasks.value.find((t) => t.id === taskId);
   if (task) {
-    await taskController.handleUpdateTask(taskId, { ...task, stage: newStage });
+    // Auto-assign to pomodoro when moving to in_progress, unassign when leaving
+    const keep = newStage === "in_progress" ? true : false;
+    await taskController.handleUpdateTask(taskId, {
+      ...task,
+      stage: newStage,
+      keep,
+    });
   }
 }
 
