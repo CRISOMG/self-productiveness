@@ -10,11 +10,12 @@ export type TTaskInsert = TablesInsert<"tasks">;
 export const useTaskRepository = () => {
   const supabase = useSupabaseClient();
   const fromTable = "tasks";
+  const SELECT_WITH_TAGS = `*, tag:tag_id(*), tags!tasks_tags(*)`;
 
   async function getOne(id: string) {
     const { data } = await supabase
       .from(fromTable)
-      .select(`*, tag:tag_id(*)`)
+      .select(SELECT_WITH_TAGS)
       .eq("id", id)
       .maybeSingle()
       .throwOnError();
@@ -25,18 +26,20 @@ export const useTaskRepository = () => {
     const { data } = await supabase
       .from(fromTable)
       .insert(task)
-      .select(`*, tag:tag_id(*)`)
+      .select(SELECT_WITH_TAGS)
       .maybeSingle()
       .throwOnError();
     return data as TTask;
   }
 
   async function update(id: string, task: TTaskUpdate) {
+    // Strip joined/virtual fields that aren't real columns
+    const { tags, tag, ...cleanTask } = task as any;
     const { data } = await supabase
       .from(fromTable)
-      .update(task)
+      .update(cleanTask)
       .eq("id", id)
-      .select(`*, tag:tag_id(*)`)
+      .select(SELECT_WITH_TAGS)
       .maybeSingle()
       .throwOnError();
     return data;
@@ -63,7 +66,7 @@ export const useTaskRepository = () => {
   async function listByPomodoroId(pomodoroId: number) {
     const { data } = await supabase
       .from(fromTable)
-      .select(`*, tag:tag_id(*)`)
+      .select(SELECT_WITH_TAGS)
       .eq("pomodoro_id", pomodoroId)
       .eq("archived", false)
       .order("created_at", { ascending: true })
@@ -75,9 +78,7 @@ export const useTaskRepository = () => {
     archived: boolean;
   };
   async function listByUserId({ archived }: ListByUserIdParams) {
-    const query = supabase
-      .from(fromTable)
-      .select(`*, tag:tag_id(*), tags!tasks_tags(*)`);
+    const query = supabase.from(fromTable).select(SELECT_WITH_TAGS);
 
     if (!archived) {
       query.eq("archived", false);
@@ -92,7 +93,7 @@ export const useTaskRepository = () => {
   async function search(query: string, userId: string) {
     const { data } = await supabase
       .from(fromTable)
-      .select(`*, tag:tag_id(*)`)
+      .select(SELECT_WITH_TAGS)
       .eq("user_id", userId)
       .eq("archived", false)
       .ilike("title", `%${query}%`)

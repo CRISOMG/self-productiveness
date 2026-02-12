@@ -1,7 +1,10 @@
-// server/api/chats/[id].get.ts
+/**
+ * @deprecated Este endpoint usa el formato n8n/LangChain (type: "human"/"ai")
+ * que NO soporta parts multimodales (source-url, file, reasoning).
+ * Ver: docs/features/chat-persistence-migration.md para plan de migración a AI SDK v6.
+ */
 import type { UIMessage } from "ai";
 import { serverSupabaseUser } from "#supabase/server";
-// Definimos la estructura exacta que viene de n8n/LangChain según tu ejemplo
 interface N8NMessageLangChain {
   type: "human" | "ai" | "system" | string;
   content: string;
