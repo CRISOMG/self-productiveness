@@ -190,10 +190,6 @@ watch(
     } else {
       pomodoroBottonIsPlay.value = true;
     }
-    localStorage.setItem(
-      "currPomodoro",
-      JSON.stringify(pomodoroController?.currPomodoro),
-    );
   },
   { deep: true },
 );

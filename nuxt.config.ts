@@ -3,7 +3,7 @@ import path from "path";
 export default defineNuxtConfig({
   app: {
     head: {
-      title: process.env.HEAD_APP_NAME || "Pomodoro",
+      title: process.env.HEAD_APP_NAME || "Yourfocus",
     },
   },
   components: [
