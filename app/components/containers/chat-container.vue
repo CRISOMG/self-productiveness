@@ -1,5 +1,8 @@
 <template>
-  <div class="w-full overflow-y-scroll custom-scrollbar p-0 sm:p-0">
+  <div
+    tabindex="0"
+    class="h-[calc(100vh-6rem)] overflow-y-scroll custom-scrollbar select-text w-full p-0 sm:p-0 outline-none"
+  >
     <DragDropOverlay :show="isDragging" />
     <div
       ref="dropzoneRef"
@@ -25,7 +28,7 @@
         "
         :spacing-offset="160"
         :ui="{
-          root: 'flex-1 flex min-h-full',
+          root: '',
         }"
       >
         <template #content="{ message }">
@@ -145,7 +148,7 @@
             <UChatPromptSubmit
               :status="chat.status"
               :disabled="isUploading"
-              color="neutral"
+              color="primary"
               size="sm"
               @stop="chat.stop()"
               @reload="chat.regenerate()"

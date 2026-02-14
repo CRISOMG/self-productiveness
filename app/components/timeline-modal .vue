@@ -7,20 +7,12 @@
   >
     <template #body>
       <div class="flex h-[85vh] p-0">
-        <TimeGrid
-          :pomodoros="(pomodoroController.pomodorosListToday as TPomodoro[])"
-        />
+        <TimeGrid />
       </div>
     </template>
   </UModal>
 </template>
 
 <script setup lang="ts">
-const pomodoroController = usePomodoroController();
-
-onMounted(() => {
-  pomodoroController.handleListPomodoros();
-});
-
 const isOpen = defineModel<boolean>({ default: false });
 </script>

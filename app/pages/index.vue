@@ -14,11 +14,12 @@
       :modal="false"
       :handle="false"
       :ui="{
-        content: 'w-full max-w-full sm:max-w-[35vw] ',
-        container: 'p-0 m-0',
+        content:
+          'w-full max-w-full mt-auto sm:max-w-[35vw] max-h-[calc(100vh-4rem)]',
+        container: 'p-0 m-0 overflow-y-hidden',
       }"
     >
-      <div class="fixed bottom-4 right-4 h-fit">
+      <div class="fixed bottom-4 right-4">
         <UButton
           color="neutral"
           variant="ghost"
@@ -31,8 +32,8 @@
       </div>
 
       <template #body>
-        <div class="flex flex-col w-full">
-          <div class="h-8 w-fit ml-auto">
+        <div class="grid grid-rows-[2rem_auto] w-full">
+          <div class="flex w-full">
             <UButton
               color="neutral"
               variant="ghost"
@@ -41,7 +42,7 @@
               class="ml-auto"
             />
           </div>
-          <div class="flex h-[calc(100vh-2rem)] relative bottom-0 select-text">
+          <div class="relative">
             <ChatContainer />
           </div>
         </div>

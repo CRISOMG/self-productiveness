@@ -81,8 +81,8 @@ Deno.serve(async (req) => {
     const notificationPayload = JSON.stringify({
       title: "¡Pomodoro Completado!",
       body: "Tu sesión de enfoque terminó. ¡Tómate un descanso!",
-      icon: "/check-focus.png",
-      badge: "/check-focus.png",
+      icon: "/favicon.ico",
+      badge: "/favicon.ico",
       url: "/",
       timestamp: Date.now(),
     });

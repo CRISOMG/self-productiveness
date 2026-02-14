@@ -13,6 +13,14 @@ const largerThanSm = breakpoints.greater("sm"); // only larger than sm
 const lgAndSmaller = breakpoints.smallerOrEqual("lg"); // lg and smaller
 const smallerThanLg = breakpoints.smaller("lg"); // only smaller than lg
 
+const colorMode = useColorMode();
+const isDark = computed({
+  get: () => colorMode.value === "dark",
+  set: (val) => {
+    colorMode.preference = val ? "dark" : "light";
+  },
+});
+
 // Props para configuración futura de acceso público
 const props = withDefaults(
   defineProps<{
@@ -105,12 +113,21 @@ const items = ref<DropdownMenuItem[][]>([
       class="flex items-baseline hover:opacity-80 transition-opacity"
     >
       <i class="mr-1 w-6 flex self-center">
-        <img src="/check-focus.png" alt="focus" />
+        <img src="/favicon.ico" alt="focus" />
       </i>
       <p class="font-bold">Yourfocus</p>
     </NuxtLink>
 
     <div class="flex self-end gap-2" v-if="isLoggedIn">
+      <!-- Color Mode Toggle -->
+      <UButton
+        :icon="isDark ? 'i-lucide-moon' : 'i-lucide-sun'"
+        color="neutral"
+        variant="ghost"
+        @click="isDark = !isDark"
+        aria-label="Toggle color mode"
+      />
+
       <UButton
         v-if="showNotes"
         @click="emit('openNotes')"

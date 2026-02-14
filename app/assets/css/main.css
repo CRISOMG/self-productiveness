@@ -1,27 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Lexend:wght@100..900&display=swap');
 @import "tailwindcss";
 @import "@nuxt/ui";
 
 
 @theme {
-    
+  /* Fonts */
+  --font-sans: "Lexend", sans-serif;
+  --font-title: "Fredoka One", cursive;
+
+  /* Colors - Brand */
+  --color-brand-dark: #000000;
+  --color-brand-charcoal: #292929;
+  --color-brand-zinc: #2E3131;
+
+  /* Colors - Peach */
+  --color-peach-50: #FFEDE9;
+  --color-peach-200: #FFC7B7;
+  --color-peach-400: #FF8E5B;
+  --color-peach-500: #D96503;
+  --color-peach-700: #A14902;
+  --color-peach-800: #6D2F01;
+  --color-peach-950: #3D1700;
+
+  /* Colors - Glacier */
+  --color-glacier-50: #DEF5F9;
+  --color-glacier-200: #8CDDE9;
+  --color-glacier-400: #71B4BE;
+  --color-glacier-500: #578C94;
+  --color-glacier-700: #3E666C;
+  --color-glacier-800: #274347;
+  --color-glacier-950: #122225;
+
+  /* Colors - Denim */
+  --color-denim-50: #EBF1F8;
+  --color-denim-200: #B8D1E9;
+  --color-denim-400: #7AADD5;
+  --color-denim-500: #5E86A6;
+  --color-denim-700: #2A3F50;
+  --color-denim-950: #132029;
+
+  /* Colors - Sage */
+  --color-sage-50: #AEF3A1;
+  --color-sage-200: #8ACA7D;
+  --color-sage-400: #6DA162;
+  --color-sage-500: #517949;
+  --color-sage-800: #1F311B;
+  --color-sage-950: #091308;
 }
+
 .custom-scrollbar {
-@apply  [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500;
+  @apply [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent;
+  
+  &::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-peach-500/50 hover:bg-peach-400/80 transition-colors;
+  }
 }
+
+.dark .custom-scrollbar {
+  &::-webkit-scrollbar-thumb {
+    @apply bg-peach-500/50 hover:bg-denim-500/80;
+  }
+}
+
+
 :root {
-  --ui-primary: var(--ui-color-neutral-200);
-  --ui-secondary: var(--ui-color-secondary-600);
-
-  /* --ui- */
-    /* --ui-bg: var(--ui-color-neutral-50);
-  --ui-bg-muted: var(--ui-color-neutral-100);
-  --ui-bg-elevated: var(--ui-color-neutral-200); */
-
+  --ui-primary: var(--color-peach-500);
+  --ui-neutral: var(--color-brand-charcoal);
+  
+  /* Background & Text Light Mode */
+  --ui-bg: #FBEDC6;
+  --ui-text: #000000;
+  
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
 }
 
 .dark {
-  /* --ui-primary: var(--ui-color-primary-200);
-  --ui-secondary: var(--ui-color-secondary-300); */
-  --ui-bg: var(--ui-color-neutral-900);
-  --ui-bg-muted: var(--ui-color-neutral-900);
+  --ui-primary: var(--color-peach-400);
+  --ui-neutral: var(--color-denim-200);
+  
+  /* Background & Text Dark Mode */
+  --ui-bg: #0D222D;
+  --ui-text: #EBF1F8; /* Light blueish white from your denim scale */
+  
+  background-color: var(--ui-bg);
+  color: var(--ui-text);
 }
+
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+}
+

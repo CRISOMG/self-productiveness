@@ -3,8 +3,12 @@ import { computed, ref, onMounted, nextTick } from "vue";
 import { storeToRefs } from "pinia";
 const currHour = ref(new Date().getHours());
 const pomodoroController = usePomodoroController();
-
+const { pomodorosListToday } = storeToRefs(pomodoroController);
 const elementToScrollRef = ref<HTMLElement | null>(null);
+
+onMounted(() => {
+  pomodoroController.handleListPomodoros();
+});
 
 /**
  * 2. Función que se llama para cada elemento en el v-for
@@ -31,7 +35,6 @@ onMounted(() => {
 type TProps = {
   startHour?: number;
   endHour?: number;
-  pomodoros: TPomodoro[];
   format24h?: boolean;
 };
 
@@ -44,12 +47,7 @@ const _props = defineProps<TProps>();
 // };
 // const props = withDefaults<TProps>(_props, _defaults);
 
-const {
-  startHour = 0,
-  endHour = 23,
-  pomodoros = [],
-  format24h = true,
-} = _props;
+const { startHour = 0, endHour = 23, format24h = true } = _props;
 
 const hours = computed(() => {
   const h = [];
@@ -169,13 +167,13 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
       </div>
       <!-- Pomodoros -->
       <div
-        v-for="pomodoro in pomodoros"
+        v-for="pomodoro in pomodorosListToday"
         :key="pomodoro.id"
         class="absolute left-2 right-4 rounded-sm shadow-sm border p-0 transition-all hover:shadow-md z-10"
         :class="{
-          'border-primary-200 bg-primary-50 dark:bg-primary-900/20 dark:border-primary-800':
+          'border-primary-200 bg-primary-50 dark:bg-green-600/50 dark:border-primary-800':
             pomodoro.type === 'focus',
-          'border-secondary-200 bg-secondary-50 dark:bg-secondary-900/20 dark:border-secondary-800':
+          'border-secondary-200 bg-secondary-50 dark:bg-secondary-900/50 dark:border-secondary-800':
             pomodoro.type !== 'focus',
         }"
         :style="getPomodoroStyle(pomodoro)"

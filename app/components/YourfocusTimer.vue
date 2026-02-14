@@ -1,68 +1,101 @@
 <template>
   <section class="flex flex-col items-center justify-center mt-8">
     <div
-      class="flex flex-col items-center max-w-sm sm:max-w-full w-full justify-center border rounded p-2 sm:p-4 sm:px-8 bg-amber-100/5"
+      class="flex flex-col items-center max-w-sm sm:max-w-full w-full justify-center border border-gray-200 dark:border-white/10 rounded-xl p-2 sm:p-4 sm:px-8"
     >
       <div class="flex flex-col">
-        <div>
-          <button
+        <div class="flex flex-wrap items-center justify-center gap-2 mb-4">
+          <UButton
             @click="handlePomodoroTypeChange(PomodoroType.FOCUS)"
-            class="w-24 sm:w-26 cursor-pointer text-md p-2 py-1 rounded-md select-none text-sm sm:text-md"
-            :class="{
-              'bg-black/20':
-                pomodoroController?.currPomodoro?.type === PomodoroType.FOCUS,
-            }"
+            :variant="
+              pomodoroController?.currPomodoro?.type === PomodoroType.FOCUS
+                ? 'solid'
+                : 'ghost'
+            "
+            :color="
+              pomodoroController?.currPomodoro?.type === PomodoroType.FOCUS
+                ? 'primary'
+                : 'neutral'
+            "
+            class="min-w-[100px] justify-center font-title"
+            size="sm"
           >
             Focus
-          </button>
-          <button
+          </UButton>
+          <UButton
             @click="handlePomodoroTypeChange(PomodoroType.BREAK)"
-            class="w-24 sm:w-26 cursor-pointer text-md p-2 py-1 rounded-md select-none text-sm sm:text-md"
-            :class="{
-              'bg-black/20':
-                pomodoroController?.currPomodoro?.type === PomodoroType.BREAK,
-            }"
+            :variant="
+              pomodoroController?.currPomodoro?.type === PomodoroType.BREAK
+                ? 'solid'
+                : 'ghost'
+            "
+            :color="
+              pomodoroController?.currPomodoro?.type === PomodoroType.BREAK
+                ? 'primary'
+                : 'neutral'
+            "
+            class="min-w-[110px] justify-center font-title"
+            size="sm"
           >
             Short Break
-          </button>
-          <button
+          </UButton>
+          <UButton
             @click="handlePomodoroTypeChange(PomodoroType.LONG_BREAK)"
-            class="w-24 sm:w-26 cursor-pointer text-md p-2 py-1 rounded-md select-none text-sm sm:text-md"
-            :class="{
-              'bg-black/20':
-                pomodoroController?.currPomodoro?.type ===
-                PomodoroType.LONG_BREAK,
-            }"
+            :variant="
+              pomodoroController?.currPomodoro?.type === PomodoroType.LONG_BREAK
+                ? 'solid'
+                : 'ghost'
+            "
+            :color="
+              pomodoroController?.currPomodoro?.type === PomodoroType.LONG_BREAK
+                ? 'primary'
+                : 'neutral'
+            "
+            class="min-w-[110px] justify-center font-title"
+            size="sm"
           >
             Long Break
-          </button>
+          </UButton>
         </div>
-        <div class="flex items-center justify-center p-4">
-          <h1 class="text-8xl">
+        <div class="flex items-center justify-center">
+          <h1
+            class="w-82 text-center text-8xl sm:text-9xl font-title text-primary-500 overflow-hidden"
+          >
             {{ timeController.clockInMinutes }}
           </h1>
         </div>
         <div class="flex items-center justify-center p-4">
-          <div class="relative h-8 transition-none text-center shadow">
+          <div class="relative flex items-center h-12">
             <UButton
+              size="xl"
+              :color="pomodoroBottonIsPlay ? 'primary' : 'neutral'"
+              :variant="pomodoroBottonIsPlay ? 'solid' : 'outline'"
               :ui="{
-                base: pomodoroBottonIsPlay
-                  ? 'w-18 justify-center relative shadow shadow-[0_4px_0px_0px_#c0c0c0] -top-[4px] bg-white rounded-xs active:bg-white hover:bg-white '
-                  : 'w-18 justify-center bg-white rounded-xs active:bg-white hover:bg-white',
+                base: [
+                  'w-32 justify-center font-bold transition-all duration-100 uppercase tracking-wider',
+                  pomodoroBottonIsPlay
+                    ? 'relative -top-[4px] shadow-[0_4px_0px_0px_var(--color-peach-700)] active:top-0 active:shadow-none'
+                    : '',
+                ],
               }"
               @click="handlePlayPausePomodoro"
+              :icon="pomodoroBottonIsPlay ? 'i-lucide-play' : 'i-lucide-pause'"
             >
               {{ pomodoroBottonIsPlay ? "Start" : "Pause" }}
             </UButton>
+
             <UButton
               v-if="!pomodoroBottonIsPlay"
-              class="ml-4 absolute -right-12"
+              class="ml-4 cursor-pointer absolute -right-12"
               color="neutral"
+              variant="ghost"
               icon="i-lucide-skip-forward"
+              size="lg"
               @click="() => handleSkipPomodoro()"
             />
           </div>
         </div>
+
         <div>
           <div class="flex gap-1 items-center">
             <div class="flex items-center gap-1">

@@ -17,21 +17,28 @@
         >
           <UButton
             :icon="focusMode ? 'i-lucide-columns-3' : 'i-lucide-focus'"
-            color="neutral"
-            :variant="focusMode ? 'solid' : 'outline'"
+            :color="focusMode ? 'primary' : 'neutral'"
+            :variant="focusMode ? 'solid' : 'subtle'"
             size="sm"
+            class="cursor-pointer"
             @click="focusMode = !focusMode"
           />
         </UTooltip>
         <UPopover>
-          <UButton icon="i-lucide-menu" color="neutral" variant="outline" />
+          <UButton
+            icon="i-lucide-settings-2"
+            color="neutral"
+            variant="subtle"
+            size="sm"
+            class="cursor-pointer"
+          />
 
           <template #content>
-            <div class="p-2">
+            <div class="p-2 min-w-[160px]">
               <UCheckbox
                 v-model="taskController.showArchivedTasks.value"
-                label="Show archived tasks"
-                alt="Show archived tasks"
+                label="Show archived"
+                size="sm"
               />
             </div>
           </template>
