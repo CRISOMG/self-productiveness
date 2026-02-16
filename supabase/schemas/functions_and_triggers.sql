@@ -31,7 +31,7 @@ BEGIN
     -- Si no hay timeline, ha estado corriendo desde started_at
     IF p_toggle_timeline IS NULL OR jsonb_array_length(p_toggle_timeline) = 0 THEN
         -- Usar GREATEST por si acaso p_now < p_started_at (relojes desincronizados)
-        RETURN floor(GREATEST(0, extract(epoch from (p_now - p_started_at))));
+        RETURN LEAST(floor(GREATEST(0, extract(epoch from (p_now - p_started_at)))), p_expected_duration::double precision);
     END IF;
     FOR v_event IN 
         SELECT (value->>'at')::timestamptz as at, (value->>'type') as type
@@ -175,7 +175,7 @@ CREATE OR REPLACE FUNCTION "public"."sync_pomodoro_expected_end"() RETURNS "trig
             NEW.expected_end := NULL; 
         END IF;
 
-        NEW.timelapse := ROUND(v_timelapse);
+        NEW.timelapse := LEAST(ROUND(v_timelapse), 32767)::smallint;
         
         RETURN NEW;
     END;
