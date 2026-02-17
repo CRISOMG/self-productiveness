@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local
+        run: supabase db start
+
+      - name: Verify generated types are up to date
+        run: |
+          supabase gen types typescript --local > app/types/database.types.ts
+          if ! git diff --ignore-space-at-eol --exit-code --quiet app/types/database.types.ts; then
+            echo "❌ Generated types are out of date. Run 'supabase gen types typescript --local > app/types/database.types.ts' and commit."
+            git diff app/types/database.types.ts
+            exit 1
+          fi
