@@ -1,4 +1,4 @@
-Concepto de Slide: **_YourFocus_**
+Concepto: **_Yourfocus_**
 
 Estilo Visual (The Kurzgesagt-Flat Framework):
 
@@ -8,7 +8,7 @@ Composición: Minimalismo detallado con formas simplificadas pero de máximo imp
 
 Color: Bloques de color sólido (Color Blocking) con saturación extremadamente alta. Contraste dramático entre tonos cálidos y fríos para generar tensión visual energética.
 
-Paleta de Identidad (Valores YourFocus):
+Paleta de Identidad (Valores Yourfocus):
 
 #D96503 (Naranja): Energía y Autoagencia.
 
