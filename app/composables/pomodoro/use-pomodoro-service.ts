@@ -74,21 +74,25 @@ export const usePomodoroService = () => {
     const defaultDurationBytag =
       PomodoroDurationInSecondsByDefaultCycleConfiguration[_type];
 
-    const { started_at, expected_end } =
-      state === "current" ? calculateTimelineFromNow(defaultDurationBytag) : {};
+    const isStarting = state === "current";
+    const { started_at, expected_end } = isStarting
+      ? calculateTimelineFromNow(defaultDurationBytag)
+      : {};
 
     const expected_duration = defaultDurationBytag;
 
-    const toggle_timeline = [];
+    const toggle_timeline: { at: string; type: string }[] = [];
 
-    toggle_timeline.push({
-      at: new Date().toISOString(),
-      type: "start",
-    });
+    if (isStarting) {
+      toggle_timeline.push({
+        at: new Date().toISOString(),
+        type: "start",
+      });
+    }
 
     const result = await pomodoroRepository.insert({
       user_id,
-      started_at: new Date().toISOString(),
+      started_at: isStarting ? new Date().toISOString() : undefined,
       expected_end,
       timelapse: 0,
       toggle_timeline,

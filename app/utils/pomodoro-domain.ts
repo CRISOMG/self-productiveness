@@ -137,7 +137,9 @@ export function calculatePomodoroTimelapse(
   expectedDuration: number,
   now = Date.now(),
 ): number {
-  const startedAt = toggleTimeline.find((event) => event.type === "start")?.at;
+  const startedAt =
+    toggleTimeline.find((event) => event.type === "start")?.at ||
+    toggleTimeline.find((event) => event.type === "play")?.at;
 
   if (!startedAt) return 0;
 
