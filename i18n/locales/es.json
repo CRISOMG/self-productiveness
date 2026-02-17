@@ -1,0 +1,122 @@
+{
+    "landing": {
+        "nav": {
+            "why": "¿Por qué?",
+            "how": "¿Cómo?",
+            "ecosystem": "Ecosistema",
+            "pricing": "Precio",
+            "cta": "Empezar"
+        },
+        "hero": {
+            "headline": "Transforma tu monólogo interno en sistemas de ejecución",
+            "subheadline": "Gestión activa de conocimiento basada en kaizen. Convierte tus reflexiones en acción medible.",
+            "cta": "Acceso anticipado",
+            "emailPlaceholder": "tu{'@'}correo.com",
+            "badge": "Primeros 250 usuarios · $24/año"
+        },
+        "why": {
+            "sectionLabel": "¿POR QUÉ?",
+            "title": "El Origen del Destino",
+            "subtitle": "Dos realidades que definen quién eres",
+            "internal": {
+                "title": "Realidad Interna",
+                "description": "Lo que cuidas con tu atención, moldea tus pensamientos. Tus pensamientos forjan tu carácter. Tu carácter decide tu destino.",
+                "step1": "Atención",
+                "step2": "Pensamiento",
+                "step3": "Carácter",
+                "step4": "Destino"
+            },
+            "external": {
+                "title": "Realidad Externa",
+                "description": "En un mundo de datos caóticos, la transformación ocurre cuando conviertes el ruido en resultados atómicos y medibles.",
+                "step1": "Datos caóticos",
+                "step2": "Transformación",
+                "step3": "Resultados atómicos"
+            }
+        },
+        "how": {
+            "sectionLabel": "¿CÓMO?",
+            "title": "Arquitectura del Impacto",
+            "subtitle": "El Círculo Dorado de Sinek aplicado a tu productividad",
+            "why": {
+                "label": "Why",
+                "title": "Creer en algo",
+                "description": "Lucidez radical sobre tus motivaciones internas"
+            },
+            "howCircle": {
+                "label": "How",
+                "title": "Sistema con disciplina",
+                "description": "Kaizen + Pomodoro como motor de mejora continua"
+            },
+            "what": {
+                "label": "What",
+                "title": "Resultados tangibles",
+                "description": "Conocimiento estructurado que produce acción real"
+            },
+            "mission": "Democratizar la autogestión cognitiva",
+            "vision": "Que cada persona tenga un sistema de ejecución personal",
+            "values": "Lucidez · Autoagencia · Curiosidad · Autorregulación"
+        },
+        "ecosystem": {
+            "sectionLabel": "ECOSISTEMA",
+            "title": "Todo lo que necesitas, nada que sobre",
+            "subtitle": "Un sistema integrado donde cada pieza potencia a las demás",
+            "pomodoro": {
+                "title": "Yourfocus timer",
+                "description": "Intervalos de enfoque con seguimiento automático"
+            },
+            "bitacora": {
+                "title": "Bitácora de Voz",
+                "description": "Captura ideas con notas de voz transcritas por IA"
+            },
+            "agent": {
+                "title": "Agente IA",
+                "description": "Tu asistente personal que estructura y conecta tu conocimiento"
+            },
+            "knowledge": {
+                "title": "Base de Conocimiento",
+                "description": "Todo tu aprendizaje organizado y recuperable"
+            },
+            "analytics": {
+                "title": "Analytics",
+                "description": "Métricas reales de tu productividad y patrones"
+            },
+            "api": {
+                "title": "API Abierta",
+                "description": "Conecta tus herramientas favoritas via webhooks"
+            },
+            "byok": {
+                "title": "BYOK",
+                "description": "Bring Your Own Key — usa tu propia API key de IA"
+            },
+            "tasks": {
+                "title": "Tareas Kanban",
+                "description": "Gestiona tus tareas con tablero visual por etapas"
+            }
+        },
+        "pricing": {
+            "sectionLabel": "OFERTA DE LANZAMIENTO",
+            "title": "ProTech Early Access",
+            "subtitle": "Acceso completo al ecosistema por un precio fijo",
+            "price": "24",
+            "currency": "USD",
+            "period": "/año",
+            "badge": "Primeros 250 usuarios",
+            "cta": "Reservar mi lugar",
+            "features": "Ecosistema completo, BYOK — Bring Your Own Key + Community Tokens, API abierta + Webhooks, Agente IA personal, Bitácora de voz con transcripción, Pomodoro con analytics, Precio fijo anual garantizado, Pago via Coingate (crypto)",
+            "emailPlaceholder": "email",
+            "guarantee": "Sin riesgo. Si no te convence en 30 días, te devolvemos el 100%."
+        },
+        "cta": {
+            "title": "¿Listo para tomar control de tu ejecución?",
+            "subtitle": "Deja tu correo y te crearemos una demo personalizada.",
+            "emailPlaceholder": "tu{'@'}correo.com",
+            "button": "Quiero mi demo",
+            "note": "Te enviaremos un correo para configurar tu contraseña y activar tu cuenta."
+        },
+        "footer": {
+            "tagline": "Gestión activa de conocimiento basada en kaizen",
+            "legal": "© {year} Yourfocus. Todos los derechos reservados."
+        }
+    }
+}

@@ -25,6 +25,13 @@ export default defineNuxtConfig({
     "@vueuse/nuxt",
   ],
 
+  i18n: {
+    defaultLocale: "es",
+    locales: [
+      { code: "es", file: "es.json", name: "Español" },
+      { code: "en", file: "en.json", name: "English" },
+    ],
+  },
   css: ["~/assets/css/main.css"],
   imports: {
     scan: true,
@@ -73,7 +80,12 @@ export default defineNuxtConfig({
       login: "/login",
       callback: "/callback",
       include: ["/", "/note/:path*"],
-      exclude: ["/request-reset-password", "/update-password", "/sign-up"],
+      exclude: [
+        "/request-reset-password",
+        "/update-password",
+        "/sign-up",
+        "/landing",
+      ],
     },
     cookieOptions: {
       secure: false, // Importante para desarrollo local sin HTTPS

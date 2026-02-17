@@ -73,6 +73,10 @@ function getDiffInMinutes(from: string, to: string) {
   return minutosFin - minutosInicio;
 }
 
+const to24hString = (date: Date) => {
+  return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+};
+
 const formatHour = (hour: number) => {
   if (true || format24h) {
     return `${hour.toString().padStart(2, "0")}:00`;
@@ -99,10 +103,7 @@ const getPomodoroHeight = (pomodoro: TPomodoro) => {
     pomodoro?.finished_at || pomodoro.expected_end || Date.now(),
   );
 
-  const diff = getDiffInMinutes(
-    start.toLocaleTimeString().slice(0, 5),
-    end.toLocaleTimeString().slice(0, 5),
-  );
+  const diff = getDiffInMinutes(to24hString(start), to24hString(end));
 
   return diff * proportion;
 };
@@ -227,12 +228,8 @@ const getPomodoroStyle = (pomodoro: TPomodoro) => {
             >
               {{
                 getDiffInMinutes(
-                  new Date(pomodoro.started_at || "")
-                    .toLocaleTimeString()
-                    .slice(0, 5),
-                  new Date(pomodoro.expected_end || Date.now())
-                    .toLocaleTimeString()
-                    .slice(0, 5),
+                  to24hString(new Date(pomodoro.started_at || "")),
+                  to24hString(new Date(pomodoro.expected_end || Date.now())),
                 )
               }}m
               <!-- {{

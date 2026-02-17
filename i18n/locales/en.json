@@ -1,0 +1,122 @@
+{
+    "landing": {
+        "nav": {
+            "why": "Why?",
+            "how": "How?",
+            "ecosystem": "Ecosystem",
+            "pricing": "Pricing",
+            "cta": "Get Started"
+        },
+        "hero": {
+            "headline": "Transform your inner monologue into execution systems",
+            "subheadline": "Kaizen-based active knowledge management. Turn your reflections into measurable action.",
+            "cta": "Early Access",
+            "emailPlaceholder": "you{'@'}email.com",
+            "badge": "First 250 users · $24/year"
+        },
+        "why": {
+            "sectionLabel": "WHY?",
+            "title": "The Origin of Destiny",
+            "subtitle": "Two realities that define who you are",
+            "internal": {
+                "title": "Internal Reality",
+                "description": "What you nurture with your attention shapes your thoughts. Your thoughts forge your character. Your character decides your destiny.",
+                "step1": "Attention",
+                "step2": "Thought",
+                "step3": "Character",
+                "step4": "Destiny"
+            },
+            "external": {
+                "title": "External Reality",
+                "description": "In a world of chaotic data, transformation happens when you turn noise into atomic, measurable results.",
+                "step1": "Chaotic data",
+                "step2": "Transformation",
+                "step3": "Atomic results"
+            }
+        },
+        "how": {
+            "sectionLabel": "HOW?",
+            "title": "Architecture of Impact",
+            "subtitle": "Sinek's Golden Circle applied to your productivity",
+            "why": {
+                "label": "Why",
+                "title": "Believe in something",
+                "description": "Radical lucidity about your internal motivations"
+            },
+            "howCircle": {
+                "label": "How",
+                "title": "System with discipline",
+                "description": "Kaizen + Pomodoro as a continuous improvement engine"
+            },
+            "what": {
+                "label": "What",
+                "title": "Tangible results",
+                "description": "Structured knowledge that produces real action"
+            },
+            "mission": "Democratize cognitive self-management",
+            "vision": "Everyone has a personal execution system",
+            "values": "Lucidity · Self-agency · Curiosity · Self-regulation"
+        },
+        "ecosystem": {
+            "sectionLabel": "ECOSYSTEM",
+            "title": "Everything you need, nothing you don't",
+            "subtitle": "An integrated system where every piece empowers the rest",
+            "pomodoro": {
+                "title": "Yourfocus timer",
+                "description": "Focus intervals with automatic tracking"
+            },
+            "bitacora": {
+                "title": "Voice Log",
+                "description": "Capture ideas with AI-transcribed voice notes"
+            },
+            "agent": {
+                "title": "AI Agent",
+                "description": "Your personal assistant that structures and connects your knowledge"
+            },
+            "knowledge": {
+                "title": "Knowledge Base",
+                "description": "All your learning organized and searchable"
+            },
+            "analytics": {
+                "title": "Analytics",
+                "description": "Real metrics of your productivity and patterns"
+            },
+            "api": {
+                "title": "Open API",
+                "description": "Connect your favorite tools via webhooks"
+            },
+            "byok": {
+                "title": "BYOK",
+                "description": "Bring Your Own Key — use your own AI API key"
+            },
+            "tasks": {
+                "title": "Kanban Tasks",
+                "description": "Manage your tasks with a visual stage board"
+            }
+        },
+        "pricing": {
+            "sectionLabel": "LAUNCH OFFER",
+            "title": "ProTech Early Access",
+            "subtitle": "Full ecosystem access at a fixed price",
+            "price": "24",
+            "currency": "USD",
+            "period": "/year",
+            "badge": "First 250 users",
+            "cta": "Reserve my spot",
+            "features": "Full ecosystem, BYOK — Bring Your Own Key + Community Tokens, API + Webhooks, Personal AI Agent, Voice log with transcription, Pomodoro with analytics, Guaranteed fixed annual price, Payment via Coingate (crypto",
+            "emailPlaceholder": "you{'@'}email.com",
+            "guarantee": "Risk-free. If you're not convinced in 30 days, we'll refund 100%."
+        },
+        "cta": {
+            "title": "Ready to take control of your execution?",
+            "subtitle": "Leave your email and we'll create a personalized demo for you.",
+            "emailPlaceholder": "you{'@'}email.com",
+            "button": "I want my demo",
+            "note": "We'll send you an email to set up your password and activate your account."
+        },
+        "footer": {
+            "tagline": "Kaizen-based active knowledge management",
+            "legal": "© {year} Yourfocus. All rights reserved."
+        }
+    }
+}

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Lexend:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Lexend:wght@100..900&display=swap');
 @import "tailwindcss";
 @import "@nuxt/ui";
 
@@ -6,46 +6,52 @@
 @theme {
   /* Fonts */
   --font-sans: "Lexend", sans-serif;
-  --font-title: "Fredoka One", cursive;
+  --font-title: "Fredoka", cursive;
 
   /* Colors - Brand */
-  --color-brand-dark: #000000;
+  --color-brand-dark: #0D222D;
   --color-brand-charcoal: #292929;
   --color-brand-zinc: #2E3131;
 
-  /* Colors - Peach */
-  --color-peach-50: #FFEDE9;
-  --color-peach-200: #FFC7B7;
-  --color-peach-400: #FF8E5B;
-  --color-peach-500: #D96503;
-  --color-peach-700: #A14902;
-  --color-peach-800: #6D2F01;
-  --color-peach-950: #3D1700;
+  /* Colors - Energy (Orange) - #DB6C03 */
+  --color-peach-50: #FFF3E0;
+  --color-peach-200: #FFCC80;
+  --color-peach-400: #F49D37;
+  --color-peach-500: #DB6C03;
+  --color-peach-700: #B35800;
+  --color-peach-800: #8A4400;
+  --color-peach-950: #4D2600;
 
-  /* Colors - Glacier */
-  --color-glacier-50: #DEF5F9;
-  --color-glacier-200: #8CDDE9;
-  --color-glacier-400: #71B4BE;
+  /* Colors - Systems (Verde) - #174909 */
+  --color-sage-50: #E8F5E9;
+  --color-sage-200: #A5D6A7;
+  --color-sage-400: #4CAF50;
+  --color-sage-500: #2E7D32;
+  --color-sage-700: #1B5E20;
+  --color-sage-800: #174909;
+  --color-sage-950: #0D2B05;
+
+  /* Colors - Depth (Marrón) - #602D1F */
+  --color-brown-50: #EFEBE9;
+  --color-brown-200: #BCAAA4;
+  --color-brown-400: #8D6E63;
+  --color-brown-500: #602D1F;
+  --color-brown-700: #4E342E;
+  --color-brown-800: #3E2723;
+  --color-brown-950: #1D110F;
+
+  /* Colors - Clarity (Crema) - #F7EFC5 */
+  --color-cream-50: #FFFDE7;
+  --color-cream-200: #FFF9C4;
+  --color-cream-400: #FFF176;
+  --color-cream-500: #F7EFC5;
+  --color-cream-700: #FBC02D;
+  --color-cream-800: #F9A825;
+  --color-cream-950: #F57F17;
+
+  /* Keep legacy for safety or internal use, but we shift focus */
   --color-glacier-500: #578C94;
-  --color-glacier-700: #3E666C;
-  --color-glacier-800: #274347;
-  --color-glacier-950: #122225;
-
-  /* Colors - Denim */
-  --color-denim-50: #EBF1F8;
-  --color-denim-200: #B8D1E9;
-  --color-denim-400: #7AADD5;
   --color-denim-500: #5E86A6;
-  --color-denim-700: #2A3F50;
-  --color-denim-950: #132029;
-
-  /* Colors - Sage */
-  --color-sage-50: #AEF3A1;
-  --color-sage-200: #8ACA7D;
-  --color-sage-400: #6DA162;
-  --color-sage-500: #517949;
-  --color-sage-800: #1F311B;
-  --color-sage-950: #091308;
 }
 
 .custom-scrollbar {
@@ -58,7 +64,7 @@
 
 .dark .custom-scrollbar {
   &::-webkit-scrollbar-thumb {
-    @apply bg-peach-500/50 hover:bg-denim-500/80;
+    @apply bg-peach-500/50 hover:bg-sage-500/80;
   }
 }
 
@@ -68,20 +74,20 @@
   --ui-neutral: var(--color-brand-charcoal);
   
   /* Background & Text Light Mode */
-  --ui-bg: #FBEDC6;
-  --ui-text: #000000;
+  --ui-bg: #F7EFC5; /* Clarity Cream */
+  --ui-text: #1D110F; /* Dark Brown/Depth */
   
   background-color: var(--ui-bg);
   color: var(--ui-text);
 }
 
 .dark {
-  --ui-primary: var(--color-peach-400);
-  --ui-neutral: var(--color-denim-200);
+  --ui-primary: var(--color-peach-500);
+  --ui-neutral: var(--color-sage-200);
   
   /* Background & Text Dark Mode */
-  --ui-bg: #0D222D;
-  --ui-text: #EBF1F8; /* Light blueish white from your denim scale */
+  --ui-bg: #0D222D; /* Dark Slate */
+  --ui-text: #F7EFC5; /* Cream for high contrast text */
   
   background-color: var(--ui-bg);
   color: var(--ui-text);
@@ -90,5 +96,6 @@
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-title);
+  font-weight: 500;
 }
 

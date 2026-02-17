@@ -1,5 +1,5 @@
 <template>
-  <UApp>
+  <UApp :locale="currentLocale">
     <NuxtRouteAnnouncer />
     <NuxtLayout>
       <NuxtPage />
@@ -8,19 +8,25 @@
 </template>
 
 <script setup lang="ts">
+import * as locales from "@nuxt/ui/locale";
+
+const { locale } = useI18n();
+
+const currentLocale = computed(() => (locales as any)[locale.value]);
+const lang = computed(() => currentLocale.value?.code || "es");
+const dir = computed(() => currentLocale.value?.dir || "ltr");
+
+useHead({
+  htmlAttrs: {
+    lang,
+    dir,
+  },
+});
+
 const supabase = useSupabaseClient();
 const authController = useAuthController();
 
 onMounted(() => {
-  // Solo se carga en desarrollo y en el cliente
-  // if (process.dev && process.client) {
-  //   const script = document.createElement("script");
-  //   script.src = "https://cdn.jsdelivr.net/npm/eruda";
-  //   document.body.appendChild(script);
-  //   script.onload = () => {
-  //     eruda.init();
-  //     console.log("🚀 Eruda listo. Revisa la pestaña Network para el Login.");
-  //   };
-  // }
+  // ... existing onMounted logic if needed
 });
 </script>
