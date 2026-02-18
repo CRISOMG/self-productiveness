@@ -58,7 +58,7 @@ export function getJornadaInfo(date: Date): {
   const pad = (n: number) => n.toString().padStart(2, "0");
   const dateStr = `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 
-  const formatted_id = `[Bitacora ${jornada.nombre} ${momento}, ${diaSemana}, ${dateStr}]`;
+  const formatted_id = `Bitacora ${jornada.nombre} ${momento}, ${diaSemana}, ${dateStr}`;
   const system_filename = `${date.getFullYear()}_${pad(date.getMonth() + 1)}_${pad(date.getDate())}.${pad(date.getHours())}.${pad(date.getMinutes())}`;
   const dayFolder = `${date.getFullYear()}_${pad(date.getMonth() + 1)}_${pad(date.getDate())}`;
 

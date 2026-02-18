@@ -59,61 +59,130 @@
   <Teleport to="body">
     <nav
       v-if="!openChatDrawer && isMobile"
-      class="fixed bottom-0 left-0 right-0 z-90 sm:hidden"
+      class="fixed bottom-0 left-0 right-0 z-90 sm:hidden pb-0!"
     >
-      <!-- Mic reveal indicator (appears on long press) -->
+      <!-- Mic reveal indicator (appears on long press, hidden during recording) -->
       <Transition name="mic-reveal">
-        <div
-          v-if="isLongPressing"
-          ref="micTargetRef"
-          class="absolute left-[calc(50%-6px)] -translate-x-1/2 bottom-32 flex flex-col items-center gap-1 pointer-events-none transition-all duration-200"
-          :class="[
-            isOverMic
-              ? 'scale-125 text-peach-500'
-              : 'scale-100 text-[var(--ui-text)]',
-          ]"
-        >
+        <div>
           <div
-            class="w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-200"
+            v-if="isLongPressing && recorderStatus === 'idle'"
+            ref="micTargetRef"
+            class="absolute left-[calc(50%-6px)] -translate-x-1/2 bottom-32 flex flex-col items-center gap-1 pointer-events-none transition-all duration-200"
             :class="[
-              isOverMic
-                ? 'bg-peach-500/30 ring-2 ring-peach-500 shadow-lg shadow-peach-500/30'
-                : 'bg-[var(--ui-bg)]/80 ring-1 ring-[var(--ui-text)]/20',
+              isOverMic ? 'scale-125 text-peach-500' : 'scale-100 text-default',
             ]"
           >
-            <UIcon name="i-lucide-mic" class="w-7 h-7" />
+            <div
+              class="w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-200"
+              :class="[
+                isOverMic
+                  ? 'bg-peach-500/30 ring-2 ring-peach-500 shadow-lg shadow-peach-500/30'
+                  : 'bg-(--ui-bg)/80 ring-1 ring-(--ui-text)/20',
+              ]"
+            >
+              <UIcon name="i-lucide-mic" class="w-7 h-7" />
+            </div>
+            <span
+              class="text-xs font-medium transition-opacity duration-200"
+              :class="[isOverMic ? 'opacity-100' : 'opacity-70 animate-pulse']"
+            >
+              {{ isOverMic ? "Soltar para activar" : "Desliza hacia arriba" }}
+            </span>
           </div>
-          <span
-            class="text-xs font-medium transition-opacity duration-200"
-            :class="[isOverMic ? 'opacity-100' : 'opacity-70 animate-pulse']"
+
+          <div
+            v-if="
+              recorderStatus === 'recording' ||
+              recorderStatus === 'paused' ||
+              isUploading
+            "
+            ref="micTargetRef"
+            class="absolute left-[calc(50%-6px)] -translate-x-1/2 bottom-32 flex flex-col items-center gap-1 transition-all duration-200"
+            :class="[
+              isOverMic ? 'scale-125 text-peach-500' : 'scale-100 text-default',
+            ]"
           >
-            {{ isOverMic ? "Soltar para activar" : "Desliza hacia arriba" }}
-          </span>
+            <!-- Recording controls (shown when recording) -->
+            <div
+              v-if="
+                recorderStatus === 'recording' || recorderStatus === 'paused'
+              "
+              class="flex items-center gap-2 bg-default ring-2 ring-red-500/50 rounded-full px-3 py-2 shadow-lg"
+            >
+              <!-- Recording indicator + duration -->
+              <div class="flex items-center gap-1.5">
+                <div
+                  class="w-2.5 h-2.5 rounded-full bg-red-500"
+                  :class="{ 'animate-pulse': recorderStatus === 'recording' }"
+                />
+                <span class="text-sm font-mono text-red-500 min-w-[3ch]">
+                  {{ formattedDuration }}
+                </span>
+              </div>
+
+              <!-- Pause/Resume -->
+              <UButton
+                v-if="recorderStatus === 'recording'"
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-pause"
+                @click="pauseRecording"
+              />
+              <UButton
+                v-else
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-play"
+                @click="resumeRecording"
+              />
+
+              <!-- Stop & Send -->
+              <UButton
+                size="xs"
+                color="error"
+                variant="solid"
+                icon="i-lucide-square"
+                :loading="isUploading"
+                @click="handleStopAndSend"
+              />
+            </div>
+
+            <!-- Upload indicator (shown while uploading after stop) -->
+            <div
+              v-else-if="isUploading"
+              class="w-16 h-16 rounded-full flex items-center justify-center bg-default text-default shadow-lg shadow-peach-500/40"
+            >
+              <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin" />
+            </div>
+          </div>
         </div>
       </Transition>
 
       <!-- Navbar bar -->
       <div
-        class="flex items-end justify-around px-4 pt-2 pb-6 bg-[var(--ui-bg)]/90 backdrop-blur-xl border-t border-[var(--ui-text)]/10"
+        class="flex items-end justify-around px-4 pt-2 pb-6 bg-(--ui-bg)/90 backdrop-blur-xl border-t border-(--ui-text)/10"
       >
         <!-- Notes button -->
         <button
-          class="flex flex-col items-center gap-1 text-[var(--ui-text)]/60 hover:text-[var(--ui-text)] transition-colors active:scale-95"
+          class="flex flex-col items-center gap-1 text-(--ui-text)/60 hover:text-default transition-colors active:scale-95"
           @click="layoutModals.openNotes()"
         >
           <UIcon name="i-lucide-file-text" class="w-6 h-6" />
           <span class="text-[10px] font-medium">Notes</span>
         </button>
 
-        <!-- Center Brain/Mic button -->
+        <!-- Center area: Brain/Mic button OR Recording controls -->
         <div class="relative -mt-5">
+          <!-- Default Brain/Mic button -->
           <button
             ref="brainButtonRef"
             class="relative w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-200"
             :class="[
               isMicMode
                 ? 'bg-peach-500 text-white shadow-peach-500/40'
-                : 'bg-[var(--ui-bg)] text-[var(--ui-text)] ring-2 ring-peach-500/50 shadow-peach-500/20',
+                : 'bg-default text-default ring-2 ring-peach-500/50 shadow-peach-500/20',
               isLongPressing ? 'scale-110 ring-peach-500' : '',
             ]"
             @click="handleCenterButtonClick"
@@ -142,7 +211,7 @@
 
         <!-- Timeline button -->
         <button
-          class="flex flex-col items-center gap-1 text-[var(--ui-text)]/60 hover:text-[var(--ui-text)] transition-colors active:scale-95"
+          class="flex flex-col items-center gap-1 text-(--ui-text)/60 hover:text-default transition-colors active:scale-95"
           @click="layoutModals.openTimeline()"
         >
           <UIcon name="i-lucide-chart-column" class="w-6 h-6" />
@@ -155,6 +224,7 @@
 
 <script setup lang="ts">
 import { breakpointsTailwind, useBreakpoints } from "@vueuse/core";
+import { getAudioStoragePath } from "~~/shared/utils/jornada";
 
 definePageMeta({
   layout: "default",
@@ -192,6 +262,110 @@ watch(profileController.profile, () => {
   }
 });
 
+// --- Audio Recording from Navbar ---
+const {
+  status: recorderStatus,
+  formattedDuration,
+  startRecording,
+  stopRecording,
+  pauseRecording,
+  resumeRecording,
+  getAudioBlob,
+  clearAfterUpload,
+  getFileExtension,
+} = useAudioRecorder();
+
+const supabase = useSupabaseClient();
+const { setPendingAudio } = usePendingAudio();
+const isUploading = ref(false);
+const toast = useToast();
+
+async function activateMicAndRecord() {
+  isMicMode.value = true;
+  const success = await startRecording();
+  if (!success) {
+    isMicMode.value = false;
+    toast.add({
+      description: "No se pudo acceder al micrófono",
+      icon: "i-lucide-alert-circle",
+      color: "error",
+    });
+  }
+}
+
+async function handleStopAndSend() {
+  await stopRecording();
+
+  // Wait a tick for the recorder to build the blob
+  await nextTick();
+
+  isUploading.value = true;
+  try {
+    const blob = await getAudioBlob();
+    if (!blob) {
+      toast.add({
+        description: "No hay audio para enviar",
+        icon: "i-lucide-alert-circle",
+        color: "error",
+      });
+      return;
+    }
+
+    const userId = user.value?.sub || "";
+    const extension = getFileExtension();
+    const fileName = `audio-${Date.now()}.${extension}`;
+    const storagePath = getAudioStoragePath(userId, fileName);
+    const mimeType = blob.type || "audio/webm";
+
+    // 1. Upload to Supabase
+    const { error: uploadError } = await supabase.storage
+      .from("yourfocus")
+      .upload(storagePath, blob, {
+        contentType: mimeType,
+        upsert: true,
+      });
+
+    if (uploadError) throw uploadError;
+
+    // 2. Register via API
+    const uploadResult = await $fetch<{
+      audio?: { path: string; name: string; url: string; mimeType: string };
+      text?: { path: string; name: string; url: string; mimeType: string };
+      formatted_id?: string;
+    }>("/api/audio/upload", {
+      method: "POST",
+      body: {
+        audioPath: storagePath,
+        mimeType,
+      },
+    });
+
+    if (!uploadResult?.audio) {
+      throw new Error("Error al registrar el audio");
+    }
+
+    // 3. Set pending audio for chat container to consume
+    setPendingAudio(uploadResult);
+
+    // 4. Clear recorder state
+    await clearAfterUpload();
+    isMicMode.value = false;
+
+    // 5. Open chat drawer
+    openChatDrawer.value = true;
+  } catch (error) {
+    console.error("Upload error:", error);
+    toast.add({
+      description: "Error al subir el audio",
+      icon: "i-lucide-alert-circle",
+      color: "error",
+    });
+  } finally {
+    recorderStatus.value = "idle";
+    isUploading.value = false;
+  }
+}
+
 // --- Long press + slide to mic logic ---
 const brainButtonRef = ref<HTMLButtonElement | null>(null);
 const micTargetRef = ref<HTMLDivElement | null>(null);
@@ -203,15 +377,20 @@ let didLongPress = false;
 
 function handleCenterButtonClick() {
   if (isMicMode.value) {
-    // If in mic mode, tapping again turns off mic mode
-    isMicMode.value = false;
+    // If in mic mode but not recording, tapping toggles mic off
+    if (recorderStatus.value === "idle") {
+      isMicMode.value = false;
+    }
+    // If recording, tap is ignored (use stop button)
   } else {
     openChatDrawer.value = !openChatDrawer.value;
   }
 }
 
 function handleTouchStart(e: TouchEvent) {
-  touchStartY = e.touches[0].clientY;
+  const touch = e.touches[0];
+  if (!touch) return;
+  touchStartY = touch.clientY;
   isOverMic.value = false;
   didLongPress = false;
 
@@ -222,9 +401,12 @@ function handleTouchStart(e: TouchEvent) {
 }
 
 function handleTouchMove(e: TouchEvent) {
+  const touch = e.touches[0];
+  if (!touch) return;
+
   if (!isLongPressing.value) {
     // If finger moves significantly before long press triggers, cancel it
-    const dy = touchStartY - e.touches[0].clientY;
+    const dy = touchStartY - touch.clientY;
     if (Math.abs(dy) > 10 && longPressTimer) {
       clearTimeout(longPressTimer);
       longPressTimer = null;
@@ -233,7 +415,6 @@ function handleTouchMove(e: TouchEvent) {
   }
 
   // Check if the touch is over the mic target
-  const touch = e.touches[0];
   const micEl = micTargetRef.value;
   if (micEl) {
     const rect = micEl.getBoundingClientRect();
@@ -254,8 +435,8 @@ function handleTouchEnd() {
 
   if (isLongPressing.value) {
     if (isOverMic.value) {
-      // Activate mic mode
-      isMicMode.value = true;
+      // Activate mic mode and start recording
+      activateMicAndRecord();
     }
     isLongPressing.value = false;
     isOverMic.value = false;

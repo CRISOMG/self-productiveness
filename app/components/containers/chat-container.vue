@@ -368,6 +368,22 @@ function copy(e: MouseEvent, message: UIMessage) {
   }, 2000);
 }
 
+// Watch for pending audio from bottom navbar mic recording
+const { pendingAudio, consumePendingAudio } = usePendingAudio();
+
+watch(
+  pendingAudio,
+  (value) => {
+    if (value) {
+      const data = consumePendingAudio();
+      if (data) {
+        handleAudioUploaded(data);
+      }
+    }
+  },
+  { immediate: true },
+);
+
 onMounted(() => {
   const queryMessage = route.query.q as string;
   if (queryMessage) {
