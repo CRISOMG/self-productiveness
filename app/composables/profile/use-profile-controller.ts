@@ -1,6 +1,7 @@
 import { useProfileService } from "./use-profile-service";
 import { useSuccessErrorToast } from "../use-success-error-toast";
 import type { Database, Tables } from "~/types/database.types";
+import type { TimeIntervalConfigs } from "~/utils/pomodoro-domain";
 
 export const useProfileController = () => {
   const service = useProfileService();
@@ -152,6 +153,48 @@ export const useProfileController = () => {
     }
   }
 
+  async function handleSetActiveStage(stage: string) {
+    if (!profile.value) return;
+    try {
+      const updatedProfile = await service.updateProfile(profile.value.id, {
+        ...profile.value,
+        settings: {
+          ...((profile.value.settings as Record<string, any>) || {}),
+          active_stage: stage,
+        },
+      });
+      profile.value = updatedProfile;
+      return updatedProfile;
+    } catch (error: any) {
+      console.error(error);
+      toast.addErrorToast({
+        title: "Error updating active stage",
+        description: error.message,
+      });
+    }
+  }
+
+  async function handleSetTimeIntervalConfigs(configs: TimeIntervalConfigs) {
+    if (!profile.value) return;
+    try {
+      const updatedProfile = await service.updateProfile(profile.value.id, {
+        ...profile.value,
+        settings: {
+          ...((profile.value.settings as Record<string, any>) || {}),
+          time_interval_configs: configs,
+        },
+      });
+      profile.value = updatedProfile;
+      return updatedProfile;
+    } catch (error: any) {
+      console.error(error);
+      toast.addErrorToast({
+        title: "Error updating time interval configs",
+        description: error.message,
+      });
+    }
+  }
+
   return {
     profile,
     loading,
@@ -161,5 +204,7 @@ export const useProfileController = () => {
     createToken,
     handleSetKeepTagsSetting,
     handleSetTagFilterMode,
+    handleSetActiveStage,
+    handleSetTimeIntervalConfigs,
   };
 };

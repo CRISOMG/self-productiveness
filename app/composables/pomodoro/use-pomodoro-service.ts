@@ -3,6 +3,8 @@ import {
   calculateTimelineFromNow,
   DEFAULT_POMODORO_DURATION_IN_MINUTES,
   PomodoroType,
+  buildDurationMap,
+  DEFAULT_TIME_INTERVAL_CONFIGS,
 } from "~/utils/pomodoro-domain";
 import {
   usePomodoroRepository,
@@ -18,6 +20,12 @@ export const usePomodoroService = () => {
   const pomodoroRepository = usePomodoroRepository();
   const cycleRepository = usePomodoroCycleRepository();
   const tagRepository = useTagRepository();
+  const { profile } = useProfileController();
+
+  const durationMap = computed(() => {
+    const configs = (profile.value?.settings as any)?.time_interval_configs;
+    return buildDurationMap(configs ?? DEFAULT_TIME_INTERVAL_CONFIGS);
+  });
 
   async function checkIsCurrentCycleEnd() {
     const currCycle = await cycleRepository.getCurrent();
@@ -71,8 +79,7 @@ export const usePomodoroService = () => {
 
     const _type: PomodoroType =
       type || (await getTagByCycleSecuense(cycle)) || PomodoroType.FOCUS;
-    const defaultDurationBytag =
-      PomodoroDurationInSecondsByDefaultCycleConfiguration[_type];
+    const defaultDurationBytag = durationMap.value[_type];
 
     const isStarting = state === "current";
     const { started_at, expected_end } = isStarting

@@ -57,6 +57,7 @@
             Long Break
           </UButton>
         </div>
+
         <div class="flex items-center justify-center">
           <h1
             class="w-82 text-center text-8xl sm:text-9xl font-title text-primary-500 overflow-hidden"
@@ -64,7 +65,18 @@
             {{ timeController.clockInMinutes }}
           </h1>
         </div>
-        <div class="flex items-center justify-center p-4">
+        <div class="relative flex items-center justify-center p-4">
+          <div class="absolute left-14">
+            <UTooltip text="Intervals Settings">
+              <UButton
+                icon="i-lucide-settings"
+                size="xl"
+                variant="ghost"
+                color="neutral"
+                @click="openTimeIntervalsModal = true"
+              />
+            </UTooltip>
+          </div>
           <div class="relative flex items-center h-12">
             <UButton
               size="xl"
@@ -133,6 +145,7 @@
       <p>Today Completed #{{ pomodoroFocusCompletedToday }}</p>
     </div>
     <ManageTagsModal v-model:open="manageTagModal" multiple />
+    <TimeIntervalsModal v-model:open="openTimeIntervalsModal" />
   </section>
 </template>
 
@@ -141,6 +154,7 @@ const pomodoroController = usePomodoroController();
 const taskController = useTaskController();
 
 const manageTagModal = ref(false);
+const openTimeIntervalsModal = ref(false);
 
 const pomodoroFocusCompletedToday = computed(() => {
   if (!pomodoroController?.pomodorosListToday) {

@@ -46,6 +46,30 @@ export const PomodoroDurationInSecondsByDefaultCycleConfiguration = {
   [TagIdByType.LONG_BREAK]: DEFAULT_LONG_BREAK_DURATION_IN_MINUTES * 60,
 };
 
+export type TimeIntervalConfigs = {
+  focus: number; // minutes
+  short_break: number; // minutes
+  long_break: number; // minutes
+  long_break_interval: number;
+  autoplay: boolean;
+};
+
+export const DEFAULT_TIME_INTERVAL_CONFIGS: TimeIntervalConfigs = {
+  focus: 25,
+  short_break: 5,
+  long_break: 15,
+  long_break_interval: 4,
+  autoplay: true,
+};
+
+export function buildDurationMap(configs: TimeIntervalConfigs) {
+  return {
+    [TagIdByType.FOCUS]: configs.focus * 60,
+    [TagIdByType.BREAK]: configs.short_break * 60,
+    [TagIdByType.LONG_BREAK]: configs.long_break * 60,
+  };
+}
+
 export function calculateSecondsRemaining({
   estimated_start,
   expected_end,

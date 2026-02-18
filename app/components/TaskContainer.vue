@@ -330,7 +330,8 @@ type TaskStage = Database["public"]["Enums"]["task_stage"];
 const taskController = useTaskController();
 const tagController = useTagController();
 const { currPomodoro } = usePomodoroController();
-const { profile, handleSetTagFilterMode } = useProfileController();
+const { profile, handleSetTagFilterMode, handleSetActiveStage } =
+  useProfileController();
 
 // Breakpoints for responsive Kanban
 const breakpoints = useBreakpoints(breakpointsTailwind);
@@ -344,7 +345,11 @@ const STAGES: { value: TaskStage; label: string; icon: string }[] = [
   { value: "done", label: "Done", icon: "i-lucide-check-circle" },
 ];
 
-const activeStage = ref<TaskStage>("to_do");
+const activeStage = computed({
+  get: () =>
+    ((profile.value?.settings as any)?.active_stage as TaskStage) || "to_do",
+  set: (val: TaskStage) => handleSetActiveStage(val),
+});
 const focusMode = ref(true);
 
 // Tabs items for mobile

@@ -3,6 +3,8 @@ import { useNotificationController } from "../system/use-notification-controller
 import {
   PomodoroDurationInSecondsByDefaultCycleConfiguration,
   TagIdByType,
+  buildDurationMap,
+  DEFAULT_TIME_INTERVAL_CONFIGS,
 } from "~/utils/pomodoro-domain";
 import { useBroadcastPomodoro } from "./use-broadcast-pomodoro";
 import type { TPomodoro } from "../types";
@@ -15,6 +17,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
   const notificationController = useNotificationController();
   const keepTags = useKeepSelectedTags();
   const toast = useSuccessErrorToast();
+  const { profile } = useProfileController();
   //#endregion
 
   //#region STATE
@@ -134,8 +137,12 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     }
     await pomodoroService.finishCurrentCycle();
 
+    debugger;
+    const configs =
+      (profile.value?.settings as any)?.time_interval_configs ??
+      DEFAULT_TIME_INTERVAL_CONFIGS;
     timeController.setClockInSeconds(
-      PomodoroDurationInSecondsByDefaultCycleConfiguration[TagIdByType.FOCUS],
+      buildDurationMap(configs)[TagIdByType.FOCUS],
     );
     send({ type: "RESET" });
     localStorage.removeItem("currPomodoro.value");
