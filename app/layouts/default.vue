@@ -8,6 +8,31 @@ const openWebhookModal = ref(false);
 const openPersonalAccessTokenModal = ref(false);
 const openNotesModal = ref(false);
 const openPushNotificationsModal = ref(false);
+
+// Provide modal controls to child pages/components
+provideLayoutModals({
+  openNotes: () => {
+    openNotesModal.value = true;
+  },
+  openTimeline: () => {
+    openTimelineModal.value = true;
+  },
+  openProfile: () => {
+    openProfileModal.value = true;
+  },
+  openShortcuts: () => {
+    openShortcutsModal.value = true;
+  },
+  openWebhook: () => {
+    openWebhookModal.value = true;
+  },
+  openPersonalAccessToken: () => {
+    openPersonalAccessTokenModal.value = true;
+  },
+  openPushNotifications: () => {
+    openPushNotificationsModal.value = true;
+  },
+});
 </script>
 
 <template>

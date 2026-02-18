@@ -133,6 +133,7 @@ const items = ref<DropdownMenuItem[][]>([
         @click="emit('openNotes')"
         icon="i-lucide:file-text"
         :label="breakpoints.sm.value ? 'Notes' : ''"
+        class="hidden sm:inline-flex"
       />
 
       <UButton
@@ -140,6 +141,7 @@ const items = ref<DropdownMenuItem[][]>([
         @click="emit('openTimeline')"
         icon="i-lucide:chart-column"
         :label="breakpoints.sm.value ? 'Timeline' : ''"
+        class="hidden sm:inline-flex"
       />
 
       <UDropdownMenu

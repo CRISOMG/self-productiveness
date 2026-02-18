@@ -11,7 +11,7 @@
       <UChatMessages
         should-auto-scroll
         should-scroll-to-bottom
-        :messages="chat.messages"
+        :messages="chat.messages || []"
         :status="chat.status"
         :assistant="
           chat.status !== 'streaming'
@@ -224,35 +224,6 @@ const chat = new Chat({
   messages: data?.value?.messages || [],
   transport: new DefaultChatTransport({
     api: `/api/chat`,
-    // body: {},
-    fetch: async (api, options = {}) => {
-      const body = JSON.parse(options?.body as string);
-      return fetch(api, options);
-
-      // const hasFiles = files.value.length > 0;
-
-      // if (!hasFiles) {
-      //   return fetch(api, options);
-      // }
-
-      // const formData = new FormData();
-      // formData.append("messages", JSON.stringify([lastMessage]));
-
-      // files.value.forEach((f) => {
-      //   formData.append("file", f.file, f.file.name);
-      // });
-
-      // // Clonamos headers y eliminamos el Content-Type para que fetch lo genere con el boundary
-      // const headers = { ...options?.headers } as Record<string, string>;
-      // delete headers["content-type"];
-      // delete headers["Content-Type"];
-
-      // return fetch(api, {
-      //   method: "POST",
-      //   headers,
-      //   body: formData,
-      // });
-    },
   }),
   onData: (dataPart) => {
     if (dataPart.type === "data-chat-title") {
