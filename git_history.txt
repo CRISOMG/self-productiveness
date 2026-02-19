@@ -1,0 +1,1804 @@
+commit da35294a575ec93037a23e03fd1a3cc5f21f7b01
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 18 00:42:07 2026 -0400
+
+    feat(pomodoro): add persistent settings and configurable time intervals
+    
+    - Persist activeStage to profile.settings.active_stage across sessions
+    - Add TimeIntervalConfigs type and DEFAULT_TIME_INTERVAL_CONFIGS
+    - Add buildDurationMap utility for configurable pomodoro durations
+    - Add handleSetActiveStage and handleSetTimeIntervalConfigs to profile controller
+    - Use profile-based durations in pomodoro service and controller
+    - Add TimeIntervalsModal with inputs for focus, breaks, interval, and autoplay
+
+ app/components/TaskContainer.vue                   |   9 +-
+ app/components/YourfocusTimer.vue                  |  16 +++-
+ app/components/modals/time-intervals-modal.vue     | 104 +++++++++++++++++++++
+ .../pomodoro/use-pomodoro-controller.ts            |   9 +-
+ app/composables/pomodoro/use-pomodoro-service.ts   |  11 ++-
+ app/composables/profile/use-profile-controller.ts  |  45 +++++++++
+ app/utils/pomodoro-domain.ts                       |  24 +++++
+ 7 files changed, 212 insertions(+), 6 deletions(-)
+
+commit d5f05deb19c28b04f08acc5baf5c7bb2a274190e
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Feb 17 23:36:32 2026 -0400
+
+    feat: integrate mic recording in mobile bottom navbar
+    
+    - Add use-pending-audio composable for shared state between navbar and chat
+    - Implement slide-to-mic gesture that starts recording immediately
+    - Show recording controls (duration, pause, stop) floating above navbar
+    - Upload audio to Supabase on stop, open chat drawer with file attached
+    - Add pending audio watcher in chat-container to consume navbar recordings
+    - Remove brackets from formatted_id in jornada utils
+
+ app/components/containers/chat-container.vue |  16 ++
+ app/composables/use-pending-audio.ts         |  45 +++++
+ app/pages/index.vue                          | 249 +++++++++++++++++++++++----
+ shared/utils/jornada.ts                      |   2 +-
+ 4 files changed, 277 insertions(+), 35 deletions(-)
+
+commit c2a2f8c7807708b05f391cda263657045ff6e95e
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Feb 17 23:05:11 2026 -0400
+
+    checkpoint: botton navbar in mobile view and mic shortcut
+
+ app/components/AppHeader.vue                 |   2 +
+ app/components/containers/chat-container.vue |  31 +---
+ app/composables/use-layout-modals.ts         |  35 ++++
+ app/layouts/default.vue                      |  25 +++
+ app/pages/index.vue                          | 242 ++++++++++++++++++++++++++-
+ 5 files changed, 298 insertions(+), 37 deletions(-)
+
+commit 0949b6467577b52c65e3e9bfd236cf96e2c26540
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Feb 17 17:51:37 2026 -0400
+
+    checkpoint: i18n, landing page, colors and timegrid fix
+
+ .vscode/settings.json                        |   7 +-
+ app/app.vue                                  |  28 +-
+ app/assets/css/main.css                      |  89 +--
+ app/components/TimeGrid.vue                  |  17 +-
+ app/layouts/landing.vue                      |  11 +
+ app/pages/landing/index.vue                  | 984 +++++++++++++++++++++++++++
+ docs/business_model_canvas/design_concept.md |   4 +-
+ docs/features/design/Yourfocus.pdf           | Bin 2207450 -> 2201272 bytes
+ docs/standards.md                            |  50 +-
+ i18n/locales/en.json                         | 122 ++++
+ i18n/locales/es.json                         | 122 ++++
+ nuxt.config.ts                               |  14 +-
+ 12 files changed, 1361 insertions(+), 87 deletions(-)
+
+commit 6f73714d0c9d63dc8cb8e9601e33fb712ded8b0a
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Feb 17 00:15:33 2026 -0400
+
+    chore(db): pull remote schema changes (push_subscriptions, triggers)
+
+ .../migrations/20260217041110_remote_schema.sql    | 163 +++++++++++++++++++++
+ 1 file changed, 163 insertions(+)
+
+commit a3abf1047ba514a50eb1993829aae7aa2021d515
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Feb 16 23:57:40 2026 -0400
+
+    docs: rename Yourfocus branding and move feature docs to features/
+
+ docs/business_model_canvas/design_concept.md              | 4 ++--
+ docs/{ => features}/cloudflare_tunnel_protocols.md        | 0
+ docs/{ => features}/feat-push-notifications-management.md | 0
+ 3 files changed, 2 insertions(+), 2 deletions(-)
+
+commit ede20820b1b4c52ef23ee021e3e1970866e9a703
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Feb 16 23:57:29 2026 -0400
+
+    chore: add backup scripts and disaster recovery docs
+    
+    - scripts/backup.sh: full DB dump
+    - scripts/backup-auth.sh: auth users export
+    - scripts/backup-storage.sh: storage objects download
+    - docs/secrets-checklist.md: env vars to reconfigure after restore
+    - docs/restore-playbook.md: step-by-step restore guide
+
+ docs/restore-playbook.md  | 110 ++++++++++++++++++++++++++++++
+ docs/secrets-checklist.md |  51 ++++++++++++++
+ scripts/backup-auth.sh    |  55 +++++++++++++++
+ scripts/backup-storage.sh | 169 ++++++++++++++++++++++++++++++++++++++++++++++
+ scripts/backup.sh         |  67 ++++++++++++++++++
+ 5 files changed, 452 insertions(+)
+
+commit 274bb1b21b356dba2b351e036a4ce572acfd1706
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Feb 16 23:57:22 2026 -0400
+
+    ci: add GitHub Actions workflows for Supabase CI/CD
+    
+    - ci.yml: validate schema and TypeScript types on PRs
+    - deploy-dev.yml: push migrations + deploy functions on push to dev
+    - deploy-prod.yml: push migrations + deploy functions on push to main
+
+ .github/workflows/ci.yml          | 28 ++++++++++++++++++++++++++++
+ .github/workflows/deploy-dev.yml  | 30 ++++++++++++++++++++++++++++++
+ .github/workflows/deploy-prod.yml | 30 ++++++++++++++++++++++++++++++
+ 3 files changed, 88 insertions(+)
+
+commit ef444ffb7719c24a1760fe1fa7cb4479fe5555c9
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Feb 16 23:57:16 2026 -0400
+
+    fix(pomodoro): prevent timer drift on next pomodoro creation
+    
+    - startPomodoro: only set started_at and toggle_timeline start entry
+      when state is 'current', not when creating paused pomodoros
+    - calculatePomodoroTimelapse: fallback to first 'play' entry if no
+      'start' entry exists, so resumed pomodoros calculate time correctly
+
+ app/composables/pomodoro/use-pomodoro-service.ts | 20 ++++++++++++--------
+ app/utils/pomodoro-domain.ts                     |  4 +++-
+ 2 files changed, 15 insertions(+), 9 deletions(-)
+
+commit a5c462cc8ef1d9e4c196f5ba297e20b2312f81ad
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Feb 16 10:04:41 2026 -0400
+
+    fix(db): prevent smallint overflow in pomodoro timelapse calculation
+    
+    - Cap early return in calculate_pomodoro_timelapse_sql when toggle_timeline
+      is NULL to respect expected_duration limit
+    - Add defensive LEAST(..., 32767) cast in sync_pomodoro_expected_end to
+      prevent smallint out of range errors
+
+ .antigravity/skills/nuxt-ui/SKILL.md               | 340 +++++++++++++++
+ .../skills/nuxt-ui/references/components.md        | 400 ++++++++++++++++++
+ .../skills/nuxt-ui/references/composables.md       | 127 ++++++
+ .../skills/nuxt-ui/references/layouts/chat.md      | 205 ++++++++++
+ .../skills/nuxt-ui/references/layouts/dashboard.md | 225 ++++++++++
+ .../skills/nuxt-ui/references/layouts/docs.md      | 145 +++++++
+ .../skills/nuxt-ui/references/layouts/editor.md    | 175 ++++++++
+ .../skills/nuxt-ui/references/layouts/page.md      | 341 +++++++++++++++
+ .antigravity/skills/nuxt-ui/references/theming.md  | 455 +++++++++++++++++++++
+ supabase/schemas/functions_and_triggers.sql        |   4 +-
+ 10 files changed, 2415 insertions(+), 2 deletions(-)
+
+commit 1631b65f14ebc0d9da546dd162280ca14e92e8cb
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sat Feb 14 14:19:01 2026 -0400
+
+    qstyle: improve UI components styling and timer design
+    
+    - Redesign YourfocusTimer with UButton components and solid/ghost variants
+    - Add font-title, overflow-hidden, and 3D push-button effect to timer
+    - Fix TimeGrid pomodoro blocks dark mode visibility (opacity /20 → /50)
+    - Use green-600 bg for focus pomodoros in dark mode
+    - Refactor TimeGrid to use pomodorosListToday from store directly
+    - Update main.css with expanded design tokens and utilities
+    - Improve AppHeader, TaskContainer, and chat-container styling
+    - Simplify timeline-modal layout
+    - Fix send-push edge function minor updates
+
+ app/app.config.ts                            |  7 +-
+ app/assets/css/main.css                      | 93 +++++++++++++++++++++++----
+ app/components/AppHeader.vue                 | 19 +++++-
+ app/components/TaskContainer.vue             | 19 ++++--
+ app/components/TimeGrid.vue                  | 20 +++---
+ app/components/YourfocusTimer.vue            | 95 +++++++++++++++++++---------
+ app/components/containers/chat-container.vue |  9 ++-
+ app/components/timeline-modal .vue           | 10 +--
+ app/pages/index.vue                          | 13 ++--
+ supabase/functions/send-push/index.ts        |  4 +-
+ 10 files changed, 205 insertions(+), 84 deletions(-)
+
+commit ca90071434875afd7a41ea329c4148957050e130
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Thu Feb 12 23:32:10 2026 -0400
+
+    chore: update favicon.ico
+
+ app/components/YourfocusTimer.vue |   4 ----
+ nuxt.config.ts                    |   2 +-
+ public/_favicon.ico               | Bin 0 -> 19416 bytes
+ public/favicon.ico                | Bin 19416 -> 540821 bytes
+ 4 files changed, 1 insertion(+), 5 deletions(-)
+
+commit 078552697c3c84587736aa8e5b763a45aac3b9e0
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 23:22:21 2026 -0400
+
+    fix: using supabase for legacy root user
+
+ server/api/notes/content/[id].get.ts | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+commit cef2aa37071d064f8dbf50d8fdeaf5fcf74422bf
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 23:22:01 2026 -0400
+
+    chore: type navigation using f12
+
+ app/composables/task/use-task-controller.ts |  9 +++----
+ app/types/tables.ts                         | 41 +++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+), 5 deletions(-)
+
+commit cf00085d2308b4021a8f02e0cfd5e28ea7904ad6
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 23:01:59 2026 -0400
+
+    feat(tasks): auto-assign pomodoro on in_progress stage
+    
+    - Show pomodoro timer button only when task stage is 'in_progress'
+    - Auto-set keep=true when moving task to 'in_progress' stage
+    - Auto-set keep=false when moving task out of 'in_progress'
+    - Strip joined fields (tags, tag) from update payload to fix PGRST204
+
+ app/components/TaskCard.vue      | 3 ++-
+ app/components/TaskContainer.vue | 8 +++++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+commit db096a306394ad10f8b3e428172ca37ce726699b
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 22:52:12 2026 -0400
+
+    fix(tasks): include tags relation in all task queries (PGRST204)
+    
+    - Add SELECT_WITH_TAGS constant with 'tags!tasks_tags(*)' join
+    - Apply to all repository functions: getOne, insert, update,
+      listByPomodoroId, listByUserId, search
+    - Fixes 'Could not find tags column' error when updating tasks
+    - Also: add chat persistence migration docs and @deprecated notice
+
+ app/composables/task/use-task-repository.ts |  19 ++---
+ docs/features/chat-persistence-migration.md | 103 ++++++++++++++++++++++++++++
+ server/api/chat.get.ts                      |   7 +-
+ 3 files changed, 118 insertions(+), 11 deletions(-)
+
+commit 1f7f7605eae0d5ac8c914a3d30cad4c3a28081ea
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 22:11:52 2026 -0400
+
+    refactor(chat): migrate providerMetadata from googleDrive to supabaseStorage
+    
+    - Frontend now sends supabaseStorage providerMetadata with path, url,
+      and mimeType instead of googleDrive metadata for uploaded files
+    - Backend extracts storage path and regenerates fresh signed URLs
+      (10min expiry) to prevent expired URL issues
+    - Template FileAvatar reads from supabaseStorage first with googleDrive
+      fallback for backward compatibility with existing chat history
+
+ app/components/containers/chat-container.vue |  8 ++++---
+ server/api/chat.post.ts                      | 36 +++++++++++++++++++++-------
+ 2 files changed, 32 insertions(+), 12 deletions(-)
+
+commit 52dcdb5e59c34a35db897cabec5069698961a4ae
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 22:10:15 2026 -0400
+
+    feat(chat): enable native multimodal file processing via signed URLs
+    
+    - Replace text-based metadata injection with native FilePart injection
+    - Extract URLs and mimeTypes from source-url parts (supports both
+      supabaseStorage and googleDrive providerMetadata)
+    - Inject file parts directly into the last UserModelMessage so Gemini
+      can natively process audio, images, and documents
+    - Remove unused contentType variable from previous multipart handling
+    - Add multimodal agent feature docs (requirements and spec)
+
+ .../Implementar Chat Multimodal Nuxt Gemini.md     | 310 +++++++++++++++++++++
+ .../features/multimodal-agent-by-source-url/raw.md |   0
+ .../features/multimodal-agent-by-source-url/req.md | 239 ++++++++++++++++
+ server/api/chat.post.ts                            |  54 +++-
+ 4 files changed, 591 insertions(+), 12 deletions(-)
+
+commit a3753c436fa29034a3a9953b3043ce5d7a974234
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 21:27:22 2026 -0400
+
+    docs: update lean canvas and add design/pricing/security docs
+    
+    - Revise lean canvas pricing tiers (Básico/Tech/Pro/Anual)
+    - Update unit economics and cost structure with realistic estimates
+    - Refresh acquisition channels and KPIs
+    - Add design concept, design system, and pricing strategy v3 docs
+    - Add payment gateway feature docs and security vault spec
+
+ docs/business_model_canvas/design_concept.md     |  21 ++++
+ docs/business_model_canvas/lean_canvas.md        |  98 +++++++++---------
+ docs/features/design-system.md                   |  49 +++++++++
+ docs/features/design/Yourfocus.pdf               | Bin 0 -> 2207450 bytes
+ docs/features/design/colors.md                   | 122 +++++++++++++++++++++++
+ docs/features/payment-gateway/payment-gateway.md |  90 +++++++++++++++++
+ docs/features/pricing-strategy-v3.md             |  64 ++++++++++++
+ docs/technical/security-vault-zk.md              |  78 +++++++++++++++
+ test/tsconfig.tsbuildinfo                        |   2 +-
+ 9 files changed, 476 insertions(+), 48 deletions(-)
+
+commit ba1d4170ce2e26b9ae5cee324f21e3163ad549a6
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 21:27:16 2026 -0400
+
+    feat(notes): enable Supabase Storage as default for all users
+    
+    - Set useSupabaseStorage to true unconditionally
+    - Remove user-specific feature flag check
+
+ app/components/notes-modal.vue | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+commit 4375e9e47338b99d2b7146b86de5dcd63ca88ab0
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 21:27:12 2026 -0400
+
+    fix(pomodoro): ensure manual type selection starts in current state
+    
+    - Pass state 'current' when manually selecting a pomodoro type
+    - Await handleSelectPomodoro for proper async sequencing
+    - Use new Date().toISOString() for started_at to ensure consistency
+    - Remove debug artifacts (debugger statements, commented data)
+
+ app/components/YourfocusTimer.vue                  |  2 +-
+ .../pomodoro/use-pomodoro-controller.ts            |  2 +-
+ app/composables/pomodoro/use-pomodoro-service.ts   | 62 +++++++++++++++++++++-
+ 3 files changed, 63 insertions(+), 3 deletions(-)
+
+commit 43c8098e04c3ea7f16afb9d4ee795187fef6a0a5
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 21:27:06 2026 -0400
+
+    refactor(chat): simplify API removing multipart handling and inline pro flag
+    
+    - Remove multipart/form-data parsing from chat API
+    - Replace text-based '[use pro]' marker with structured usePro boolean
+    - Pass usePro flag as part of message object from chat-container
+    - Pass skipTranscription: true when adding files from chat
+    - Remove post-conversion file injection logic
+
+ app/components/containers/chat-container.vue |  7 +--
+ server/api/chat.post.ts                      | 75 +++++-----------------------
+ 2 files changed, 14 insertions(+), 68 deletions(-)
+
+commit dcee653d255d088b2b4f4d65e0963e4f7d2bc47b
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 11 21:27:00 2026 -0400
+
+    refactor(audio): separate upload from transcription pipeline
+    
+    - Create /api/audio/upload endpoint for standalone file registration
+    - Refactor /api/audio/transcribe to accept audioPath and use signed URLs
+      with Gemini AI SDK instead of raw file processing
+    - Update AudioRecorderButton to use upload-only flow (transcription disabled)
+    - Add skipTranscription option to useFileUpload composable
+    - useFileUpload now handles transcription as an independent optional step
+
+ app/components/AudioRecorderButton.vue |  44 +++--
+ app/composables/useFileUpload.ts       |  42 ++++-
+ server/api/audio/transcribe.post.ts    | 304 ++++++++++++++-------------------
+ server/api/audio/upload.post.ts        |  99 +++++++++++
+ 4 files changed, 300 insertions(+), 189 deletions(-)
+
+commit 3b2accd447fb26619c7b845e2e205cfb9d1d9737
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Feb 8 11:56:21 2026 -0400
+
+    docs(bmc): add lean canvas and strategy v3.0 documentation
+    - add lean canvas template
+    - add strategy and engineering report v3.0
+    - add synthesis v3 documents
+    - fix folder name typo (bussines -> business)
+
+ ...ngenier\303\255a de Negocio_ Yourfocus v3.0.md" |  94 ++++++
+ .../bmc.md                                         | 357 +++++++++++++++------
+ docs/business_model_canvas/image-1.png             | Bin 0 -> 430991 bytes
+ docs/business_model_canvas/image.png               | Bin 0 -> 54817 bytes
+ docs/business_model_canvas/lean_canvas.md          | 221 +++++++++++++
+ .../raw_chat.md                                    |   0
+ docs/business_model_canvas/raw_chat.v3.md          | 283 ++++++++++++++++
+ docs/business_model_canvas/sintesis.raw.v3.md      |   3 +
+ .../sintesis.v1.md}                                |   0
+ docs/business_model_canvas/sintesis.v3.md          |  82 +++++
+ 10 files changed, 946 insertions(+), 94 deletions(-)
+
+commit 1c634af17b4642d703786ab79f5636363920bc04
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Feb 8 11:56:11 2026 -0400
+
+    refactor(audio): improve file upload and transcription flow
+
+ app/components/AudioRecorderButton.vue       | 16 ++++--
+ app/components/containers/chat-container.vue | 74 +++++++++++++++++++++-------
+ app/composables/useFileUpload.ts             | 36 +++-----------
+ server/api/audio/transcribe.post.ts          |  8 ++-
+ shared/utils/file.ts                         |  1 +
+ test/tsconfig.tsbuildinfo                    |  2 +-
+ 6 files changed, 83 insertions(+), 54 deletions(-)
+
+commit ff32ac3b0481a1084d0f4067253d4d8ab2925d14
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 4 17:59:33 2026 -0400
+
+    fix(audio): bypass Vercel payload limit with direct Supabase uploads
+    - Upload audio files directly to Supabase Storage from client
+    - Use signed URLs instead of base64 for Gemini transcription
+    - Extract jornada/path logic to shared utils for client reuse
+    - Remove unnecessary buffer downloads in server handler
+    Fixes FUNCTION_PAYLOAD_TOO_LARGE error on mobile audio uploads
+
+ app/components/AudioRecorderButton.vue |  25 ++++-
+ app/composables/useFileUpload.ts       | 122 +++++++++++++++--------
+ server/api/audio/transcribe.post.ts    | 173 ++++++++++++---------------------
+ shared/utils/jornada.ts                |  75 ++++++++++++++
+ 4 files changed, 240 insertions(+), 155 deletions(-)
+
+commit 6125fb20f0a02dbea25ced999f0fd9d936f98f5b
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 4 15:37:25 2026 -0400
+
+    feat(pomodoro): mejorar el manejo de errores, estados de la máquina y lógica de "skipped"
+    - chore: corregir lógica de handleError en el repositorio para evitar excepciones nulas.
+    - fix: actualizar getCurrentPomodoro para excluir tanto estados 'finished' como 'skipped'.
+    - feat: integrar sistema de Toast en la máquina de estados para mostrar errores visuales en la UI.
+    - feat: sincronizar el evento de "saltar" (skip) entre dispositivos mediante broadcast.
+    - feat: mejorar la lógica de ciclos y etiquetas para considerar pomodoros saltados como estados terminales.
+    - style: ajustar formato de 24h y posicionamiento de etiquetas en el TimeGrid.
+    - style: aumentar el ancho máximo (max-w) del TaskContainer.
+
+ app/components/TaskContainer.vue                   |  2 +-
+ app/components/TimeGrid.vue                        | 30 +++++-----
+ app/composables/pomodoro/pomodoro.machine.ts       | 68 +++++++++++++++-------
+ app/composables/pomodoro/use-broadcast-pomodoro.ts |  2 +
+ .../pomodoro/use-pomodoro-controller.ts            |  8 +++
+ .../pomodoro/use-pomodoro-repository.ts            |  5 +-
+ app/composables/pomodoro/use-pomodoro-service.ts   |  6 +-
+ test/tsconfig.tsbuildinfo                          |  2 +-
+ 8 files changed, 82 insertions(+), 41 deletions(-)
+
+commit 1591813d6c4dda7973a8060cf23ba8aab8fa9ab5
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Feb 4 14:33:43 2026 -0400
+
+    chore: refine task management UI, repository logic and environment config
+    - Update task repository to support many-to-many tag relations
+    - Implement confirmation dialog for archiving tasks in TaskCard
+    - Redesign TaskCard layout and enhance badge visibility
+    - Set consistent widths for Kanban stages and grid layout responsiveness
+    - Add lucide icons dependency and update docker restart policy
+
+ app/components/TaskCard.vue                 | 124 ++++++++++++++++++----------
+ app/components/TaskContainer.vue            |  10 +--
+ app/components/YourfocusTimer.vue           |   6 +-
+ app/composables/task/use-task-repository.ts |   4 +-
+ bun.lock                                    |   3 +
+ n8n/.n8n/crash.journal                      |   0
+ n8n/docker-compose.yml                      |   2 +-
+ package.json                                |   1 +
+ supabase/.temp/cli-latest                   |   2 +-
+ test/tsconfig.tsbuildinfo                   |   2 +-
+ 10 files changed, 98 insertions(+), 56 deletions(-)
+
+commit 5d694ba137f0ffed3f632c65fd23740f843b5326
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Feb 3 18:53:38 2026 -0400
+
+    chore: update profile controller and AI provider configuration
+
+ app/components/AppHeader.vue                      | 20 ++++++++++++++------
+ app/composables/profile/use-profile-controller.ts | 22 ++++++++++++++++++++++
+ server/utils/ai/provider.ts                       |  7 +------
+ 3 files changed, 37 insertions(+), 12 deletions(-)
+
+commit faa7eb8a436eff22fd2e17a2aa0ce1eb113bf435
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Feb 3 18:53:14 2026 -0400
+
+    feat(pomodoro): add skipped state for terminated pomodoros
+    
+    - Add 'skipped' value to pomodoro_state enum
+    - Update state machine to handle skip transitions
+    - Update pomodoro controller and service for skip logic
+    - Modify YourfocusTimer to use skipped state on type change
+
+ app/components/YourfocusTimer.vue                  | 14 ++------
+ app/composables/pomodoro/pomodoro.machine.ts       | 39 +++++++++++++++++++++-
+ .../pomodoro/use-pomodoro-controller.ts            |  2 +-
+ app/composables/pomodoro/use-pomodoro-service.ts   | 22 ++++++++++++
+ app/composables/types.ts                           |  2 +-
+ app/utils/pomodoro-domain.ts                       | 11 +++---
+ ...0260203211330_add_skipped_to_pomodoro_state.sql |  4 +++
+ 7 files changed, 75 insertions(+), 19 deletions(-)
+
+commit 85e37ea387d2bf7bb741026309f28e61c2a95e31
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Feb 3 18:52:57 2026 -0400
+
+    feat(tasks): add multi-tag support for tasks
+    
+    - Create tasks_tags junction table with RLS policies
+    - Add task-tag composables (repository, service, controller)
+    - Create supabase-tags.ts agent tool for tag management
+    - Update supabase-tasks.ts to support tagIds and tagLabels arrays
+    - Register tag tools in agent tools index
+
+ .../task-tag/use-task-tag-controller.ts            |  83 +++++++++
+ .../task-tag/use-task-tag-repository.ts            |  86 +++++++++
+ app/composables/task-tag/use-task-tag-service.ts   |  28 +++
+ server/utils/ai/tools/index.ts                     |   5 +
+ server/utils/ai/tools/supabase-tags.ts             | 170 ++++++++++++++++++
+ server/utils/ai/tools/supabase-tasks.ts            | 193 +++++++++++++++++++--
+ .../20260203211305_create_tasks_tags.sql           |  44 +++++
+ supabase/schemas/policies.sql                      |  15 ++
+ 8 files changed, 605 insertions(+), 19 deletions(-)
+
+commit b2b16eeede9058539e6bc106e5af44a1c33538e5
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Feb 3 18:52:22 2026 -0400
+
+    feat(tasks): add Kanban board view with stage management
+    
+    - Add task_stage enum (backlog, to_do, in_progress, done, archived)
+    - Create TaskCard.vue component for task display
+    - Implement mobile tabs view and desktop grid layout
+    - Add focus mode toggle to show single stage at a time
+    - Extend TTask type with tags array and stage property
+
+ app/components/TaskCard.vue                        | 163 +++++++
+ app/components/TaskContainer.vue                   | 476 ++++++++++++++++-----
+ app/composables/task/use-task-controller.ts        |   7 +-
+ app/types/database.types.ts                        |  71 +--
+ .../migrations/20260203220352_add_task_stage.sql   |   6 +
+ supabase/schemas/tables.sql                        |  30 +-
+ 6 files changed, 623 insertions(+), 130 deletions(-)
+
+commit 93a5971b462380a9f841a6c1a8cbe8704a7d6717
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Feb 2 02:34:47 2026 -0400
+
+    feat(notes): add unified notes content endpoint with storage provider toggle
+    
+    - Create /api/notes/content/[id] endpoint that internally decides storage provider
+    - Add /api/storage/content/[id] for direct Supabase Storage access
+    - Simplify note page to use unified endpoint (no client-side decision)
+    - Use user ID to determine: legacy user -> Google Drive, others -> Supabase Storage
+
+ app/pages/note/[id].vue                |   8 +-
+ server/api/notes/content/[id].get.ts   | 172 +++++++++++++++++++++++++++++++++
+ server/api/storage/content/[id].get.ts | 113 ++++++++++++++++++++++
+ 3 files changed, 289 insertions(+), 4 deletions(-)
+
+commit 9082222ded68181426850f182586397d95eed22b
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Feb 2 01:28:03 2026 -0400
+
+    fix(AppHeader): hidde button when no session
+
+ app/components/AppHeader.vue | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+commit fec6ed9fa56b0e1a9eade22782ea0b751e743b0d
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Feb 2 01:18:31 2026 -0400
+
+    feat(notes): add storage provider toggle with Supabase Storage API
+    
+    - Add /api/storage/notes endpoint for listing notes from Supabase Storage
+    - Update notes-modal.vue to switch between Google Drive and Supabase Storage
+    - Use user-based flag to determine storage provider
+
+ app/components/notes-modal.vue  | 21 ++++++++-
+ server/api/storage/notes.get.ts | 99 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 119 insertions(+), 1 deletion(-)
+
+commit b67997175b92edee120369a67a2f02d179d02dc7
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Feb 2 00:54:33 2026 -0400
+
+    feat: migrate from n8n to AI SDK v6 with Supabase Storage
+    
+    BREAKING CHANGE: Replace n8n webhook with native AI SDK implementation
+    
+    - Add AI SDK v6 configuration with Google Gemini provider
+    - Create native chat API with streamText and tool support
+    - Migrate audio transcription from Google Drive to Supabase Storage
+    - Create 'yourfocus' storage bucket with RLS policies (80MB limit)
+    - Add 7 AI agent tools for Supabase Storage operations
+    - Add RLS policies for n8n_chat_histories table
+    - Keep Google Drive tools for legacy file access
+    
+    Storage structure:
+      {user_id}/bitacora/YYYY_MM_DD/ - audio + transcriptions
+      {user_id}/notas/ - zettelkasten notes
+      {user_id}/inbox/ - chat attachments
+    
+    Files added:
+      server/api/audio/transcribe.post.ts
+      server/utils/ai/provider.ts
+      server/utils/ai/tools/*.ts
+      server/utils/ai/types.ts
+      supabase/migrations/20260202030000_chat_histories_rls.sql
+      supabase/migrations/20260202040000_yourfocus_storage_bucket.sql
+
+ app/components/AudioRecorderButton.vue             |    7 +-
+ app/components/containers/chat-container.vue       |    2 -
+ app/composables/useFileUpload.ts                   |    5 +-
+ bun.lock                                           |   13 +
+ docs/ai-sdk.spec.md                                |  560 ++++++++
+ docs/n8n/agent-workflow.json                       | 1468 ++++++++++++++++++++
+ docs/n8n/process-audio.json                        | 1119 +++++++++++++++
+ docs/n8n/supabase-rag.json                         |  246 ++++
+ nuxt.config.ts                                     |    1 +
+ package.json                                       |    3 +
+ server/api/audio/transcribe.post.ts                |  275 ++++
+ server/api/chat.get.ts                             |    2 -
+ server/api/chat.post.ts                            |  183 ++-
+ server/utils/ai/provider.ts                        |   73 +
+ server/utils/ai/tools/google-drive.ts              |  193 +++
+ server/utils/ai/tools/index.ts                     |   48 +
+ server/utils/ai/tools/supabase-storage.ts          |  400 ++++++
+ server/utils/ai/tools/supabase-tasks.ts            |  167 +++
+ server/utils/ai/tools/think.ts                     |   30 +
+ server/utils/ai/types.ts                           |   74 +
+ server/utils/{n8n-db.ts => messages-db.ts}         |    0
+ server/utils/n8n-provider.ts                       |  304 ----
+ .../20260202030000_chat_histories_rls.sql          |   24 +
+ .../20260202040000_yourfocus_storage_bucket.sql    |  118 ++
+ system_prompt.txt                                  |  138 ++
+ test/tsconfig.tsbuildinfo                          |    1 +
+ transcript_prompt.txt                              |   27 +
+ 27 files changed, 5109 insertions(+), 372 deletions(-)
+
+commit ba761c06c92724005cce308877b7337fa4dbfc54
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Feb 1 18:59:47 2026 -0400
+
+    docs(bmc): Unit Economics v2 - Pivot pricing basado en consumo real de Gemini 3
+    
+    - Añadida síntesis completa del BMC desde chat logs
+    - Actualizado pricing: Architect →, Builder →
+    - Nuevo tier BYOK /mes (usuario trae su API Key)
+    - Documentado consumo real: .19/28 días (~-30/usuario)
+    - Añadido gancho filosófico: cadena pensamiento→destino
+    - Corregidas proyecciones financieras con datos reales
+    - Reorganizado BMC en carpeta docs/bussines_model_canvas/
+
+ app/components/timeline-modal .vue     |   4 +
+ docs/bussines_model_canvas/bmc.md      | 442 +++++++++++++++++++++++++++++++++
+ docs/bussines_model_canvas/raw_chat.md | 284 +++++++++++++++++++++
+ docs/bussines_model_canvas/sintesis.md | 332 +++++++++++++++++++++++++
+ public/bmc.md                          | 177 -------------
+ server/api/chat.get.ts                 |   2 +-
+ 6 files changed, 1063 insertions(+), 178 deletions(-)
+
+commit a34ce0561112af88d81bc37309a2f8dacae28ada
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Feb 1 13:16:34 2026 -0400
+
+    feat(push): implement web push notifications
+    
+    - Add push_subscriptions table migration with RLS
+    - Create send-push Edge Function for sending notifications
+    - Add sw-push.js service worker for receiving push events
+    - Create usePushNotifications composable for subscription management
+    - Add PushNotificationsModal.vue for UI management
+    - Add database trigger to call Edge Function on pomodoro finish
+    - Configure VAPID_PUBLIC_KEY in nuxt.config.ts
+    - Update .env.example with VAPID_PUBLIC_KEY placeholder
+
+ .env.example                                       |   2 +
+ app/components/AppHeader.vue                       |   8 +
+ app/components/PushNotificationsModal.vue          | 190 ++++++
+ app/composables/pomodoro/pomodoro.machine.ts       |  10 +-
+ app/composables/system/usePushNotifications.ts     | 193 ++++++
+ app/layouts/default.vue                            |   3 +
+ app/types/database.types.ts                        | 145 ++++-
+ nuxt.config.ts                                     |   1 +
+ public/sw-push.js                                  |  51 ++
+ supabase/.temp/cli-latest                          |   1 +
+ supabase/functions/send-push/index.ts              | 136 +++++
+ .../20260131220000_push_subscriptions.sql          |  29 +
+ .../migrations/20260201022353_remote_schema.sql    | 679 +++++++++++++++++++++
+ .../20260201164500_push_webhook_trigger.sql        |  81 +++
+ 14 files changed, 1509 insertions(+), 20 deletions(-)
+
+commit e2e356894f78510572149beab1efb1d24fe36f1b
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sat Jan 31 17:02:24 2026 -0400
+
+    fix(pomodoro-timer): 'at' property in pomodoro start recod in timeline json
+
+ app/components/YourfocusTimer.vue                |  6 +++---
+ app/composables/pomodoro/use-pomodoro-service.ts | 12 ++++++------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
+
+commit fa6ff9b1c36cfe938f39f6981743947c50d44d63
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sat Jan 31 15:30:44 2026 -0400
+
+    feat(google-drive): add notes modal and refactor to service layer
+    
+    - Create centralized google-drive.service.ts with reusable functions
+    - Add NotesModal component with search functionality
+    - Add /api/google-drive/files endpoint to list notes from user folder
+    - Add /api/google-drive/content/[name] endpoint to get file content
+    - Add 'Notas' button to AppHeader with modal integration
+    - Refactor search.get.ts to use the new service layer
+
+ app/components/AppHeader.vue                  |  16 +-
+ app/components/notes-modal.vue                | 157 ++++++++++++++++++++
+ app/layouts/default.vue                       |   3 +
+ app/pages/note/[id].vue                       |   2 +-
+ server/api/google-drive/content/[name].get.ts |  58 ++++++++
+ server/api/google-drive/files.get.ts          |  62 ++++++++
+ server/api/google-drive/search.get.ts         | 141 ++++--------------
+ server/services/google-drive.service.ts       | 205 ++++++++++++++++++++++++++
+ 8 files changed, 529 insertions(+), 115 deletions(-)
+
+commit bef21662dcf3ab4ae83710e5471f838008647ef9
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Thu Jan 29 18:16:16 2026 -0400
+
+    feat(ui): add shared layout, SSR, and task search
+    
+    Layout & SSR:
+    - Create AppHeader component with configurable timeline/profile options
+    - Create default layout with shared header and modals
+    - Refactor index.vue and note/[id].vue to use default layout
+    - Add /editor/[id] redirect to /note/[id] with 301 status
+    - Enable SSR in nuxt.config.ts
+    - Add /note/* routes to auth-protected routes
+    - Improve note page loading UX with skeleton states
+    
+    Tasks:
+    - Add search input to filter tasks by title or description
+    - Search state persisted in URL query param
+
+ app/components/AppHeader.vue                 | 119 ++++++++++++++++
+ app/components/TaskContainer.vue             |  50 ++++++-
+ app/components/containers/chat-container.vue |   2 +-
+ app/composables/useFileUpload.ts             |   2 +-
+ app/layouts/default.vue                      |  35 +++++
+ app/pages/editor/[id].vue                    |  44 ++----
+ app/pages/index.vue                          | 197 +++++++--------------------
+ app/pages/note/[id].vue                      |  76 +++++++++++
+ nuxt.config.ts                               |   5 +-
+ public/bmc.md                                | 177 ++++++++++++++++++++++++
+ 10 files changed, 518 insertions(+), 189 deletions(-)
+
+commit 401ce5df831ef395ec5d8af860743d7799c8d8d1
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Jan 28 22:47:21 2026 -0400
+
+    fix: layout
+
+ app/components/TaskContainer.vue           | 119 +++++----
+ app/components/YourfocusTimer.vue          |   5 +-
+ app/components/prose/PreStream.vue         |   4 +-
+ app/pages/index.vue                        |   2 +-
+ docs/feat-push-notifications-management.md | 400 +++++++++++++++++++++++++++++
+ 5 files changed, 463 insertions(+), 67 deletions(-)
+
+commit c97f89384ad51309e3608855041dbbcfd7cb2269
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Jan 28 18:19:28 2026 -0400
+
+    feat(editor/viewer): Editor and Google Drive Config
+    - add google drive search endpoint
+    - add file content editor page and api
+
+ app/pages/editor/[id].vue             |  40 +++++
+ bun.lock                              | 293 ++++++++++++++++++++++++++++++----
+ nuxt.config.ts                        |   6 +
+ package.json                          |   3 +-
+ server/api/editor/[id].ts             |  36 +++++
+ server/api/google-drive/search.get.ts | 138 ++++++++++++++++
+ 6 files changed, 481 insertions(+), 35 deletions(-)
+
+commit 148ca2868c2aa1c027e7053646e67418517184bf
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Jan 28 18:17:14 2026 -0400
+
+    UI Link Parsing: feat(ui): implement link text parsing in prestream
+
+ app/components/prose/PreStream.vue              |   4 +-
+ app/components/prose/ShikiLinkifiedRenderer.vue | 143 ++++++++++++++++++++++++
+ 2 files changed, 145 insertions(+), 2 deletions(-)
+
+commit 9ca68311d1493683710ef4ef53a477938b6a1c2e
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Jan 28 18:16:51 2026 -0400
+
+    Timer Update: fix(timer): refactor pomodoro type handling
+
+ app/components/YourfocusTimer.vue | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
+
+commit 466fe30b27f661d47d1f0f329a1a1d014292720e
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Jan 27 18:32:49 2026 -0400
+
+    feat(audio): add robust audio recorder with crash recovery
+    
+    - Add useAudioRecorder composable with IndexedDB persistence
+    - Support 5-60 min recordings (max 80MB) with chunked storage
+    - Implement Wake Lock API to keep screen on during recording
+    - Disable audio processing (echo cancellation, noise suppression, auto gain)
+    - Add recovery flow for interrupted recordings
+    - Integrate with n8n webhook for audio upload
+
+ app/components/AudioRecorderButton.vue       | 310 +++++++++++++++
+ app/components/containers/chat-container.vue |  55 ++-
+ app/composables/useAudioRecorder.ts          | 567 +++++++++++++++++++++++++++
+ feat-audio-recorder.md                       | 366 +++++++++++++++++
+ 4 files changed, 1280 insertions(+), 18 deletions(-)
+
+commit 65417af2c1e425d535338385596b38bbd70abf79
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Jan 27 15:09:32 2026 -0400
+
+    feat: improve layout and enhance task management UI
+    
+    - add expandable task descriptions in TaskContainer
+    - implement "show archived tasks" filter toggle
+    - set full-height layout and responsive containers in main page
+    - refactor chat-container template for better structure
+
+ app/components/TaskContainer.vue             |  46 +++-
+ app/components/UserMessage.vue               |   2 +-
+ app/components/YourfocusTimer.vue            |  29 +--
+ app/components/containers/chat-container.vue | 304 ++++++++++++++-------------
+ app/pages/index.vue                          |  35 +--
+ 5 files changed, 228 insertions(+), 188 deletions(-)
+
+commit 2bcf9847c6a3bc2bfe8beea62c8fc0a656735f01
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Jan 26 17:01:48 2026 -0400
+
+    fix add user id to upload file inbox
+
+ app/composables/useFileUpload.ts | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 1528d123512d24be49b2a18a5c93d3839f91a608
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Jan 25 21:32:36 2026 -0400
+
+    feat(chat): implement logbook chat integration with n8n and pomodoro timer
+    
+    - Add `user_id` to `n8n-provider` and server API endpoints (`/api/chat.get`, `/api/chat.post`) to enable user-specific chat history.
+    - Fix `useFileUpload` to handle text without audio.
+    - Refactor the `task controller` to react to the `tasks table` changes via the `postgres_changes` channel.
+    - Fix `YourfocusTimer` when click start button..
+
+ .gitignore                                         |  1 +
+ app/app.vue                                        | 18 ++++----
+ app/assets/css/main.css                            |  5 ++-
+ app/components/TaskContainer.vue                   |  8 ++--
+ app/components/YourfocusTimer.vue                  | 38 +++++++---------
+ app/components/containers/chat-container.vue       | 41 +++++++++--------
+ app/composables/pomodoro/pomodoro.machine.ts       | 18 ++++----
+ app/composables/pomodoro/use-broadcast-pomodoro.ts | 18 +++++---
+ app/composables/task/use-task-controller.ts        | 52 ++++++++++++++++++++--
+ app/composables/useFileUpload.ts                   |  7 +--
+ app/pages/index.vue                                |  4 +-
+ server/api/chat.get.ts                             | 19 ++++----
+ server/api/chat.post.ts                            | 12 ++++-
+ server/utils/n8n-provider.ts                       |  3 +-
+ 14 files changed, 152 insertions(+), 92 deletions(-)
+
+commit 17bf654c5b7e2d977141a65baabad32957f21fb5
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Jan 23 22:22:59 2026 -0400
+
+    fix: chat layout
+
+ app/components/containers/chat-container.vue |  2 +-
+ app/pages/index.vue                          | 28 +++++++++++++++++-----------
+ 2 files changed, 18 insertions(+), 12 deletions(-)
+
+commit 708461f9db8a209677419ae61cd623a988653c0a
+Merge: 5cb6552 00eecdb
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Jan 23 20:20:43 2026 -0400
+
+    Merge pull request #1 from CRISOMG/dev
+    
+    ai agent chat with ai sdk using a n8n custom provider
+
+commit 00eecdb11fa6913d04793bf91994a1c377c8702a
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Jan 23 20:14:44 2026 -0400
+
+    feat: ai agent chat with ai sdk and n8n custom provider
+
+ .antigravity/mcp_config.example.json               |   9 +
+ .env.example                                       |  14 +-
+ app/app.vue                                        |  13 +
+ app/components/DragDropOverlay.vue                 | 116 ++++++
+ app/components/FileAvatar.vue                      |  68 ++++
+ app/components/FileUploadButton.vue                |  44 +++
+ app/components/Reasoning.vue                       |  41 ++
+ app/components/ToolDebugResult.vue                 |  49 +++
+ app/components/UserMessage.vue                     |  49 +++
+ .../{pomofocus-clone.vue => YourfocusTimer.vue}    |  36 +-
+ app/components/containers/chat-container.vue       | 336 ++++++++++++++++
+ app/components/prose/PreStream.vue                 |  57 +++
+ .../pomodoro/use-pomodoro-controller.ts            |  22 +-
+ .../pomodoro/use-pomodoro-repository.ts            |  18 +-
+ app/composables/useFileUpload.ts                   | 163 ++++++++
+ app/composables/useHighlighter.ts                  |  37 ++
+ app/pages/chat/index.vue                           |   5 +
+ app/pages/index.vue                                |  48 ++-
+ bun.lock                                           | 430 ++++++++++++++++++++-
+ docs/database_backup_restore.md                    |  73 ++++
+ nuxt.config.ts                                     |  49 +++
+ package.json                                       |  14 +-
+ server/api/chat.get.ts                             |  78 ++++
+ server/api/chat.post.ts                            | 168 ++++++++
+ server/api/hello.ts                                |  15 -
+ server/utils/n8n-db.ts                             |   8 +
+ server/utils/n8n-provider.ts                       | 303 +++++++++++++++
+ shared/utils/file.ts                               | 192 +++++++++
+ shared/utils/index.ts                              |   1 +
+ shared/utils/messageParser.ts                      | 183 +++++++++
+ supabase/.temp/cli-latest                          |   1 -
+ supabase/{seed.sql => _seed.sql}                   |   0
+ supabase/config.toml                               |  15 +-
+ supabase/docker/.env                               |   0
+ .../20260123120000_enable_extensions.sql           |   7 +
+ supabase/seeds/seed.sql                            |   8 +
+ test/UMessage.example.js                           |  11 +
+ test/case_1.json                                   |   8 +
+ test/case_2.json                                   |   8 +
+ test/extractContent.md                             |  46 +++
+ test/extractContent.ts                             |  74 ++++
+ test/messageParser.test.ts                         |  64 +++
+ 42 files changed, 2808 insertions(+), 73 deletions(-)
+
+commit 8c18de15203046755a0e4d945cd544152eef0224
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Jan 21 23:44:18 2026 -0400
+
+    feat: enhance n8n local infrastructure with custom Dockerfile, Supabase configuration, and new execution analysis documentation.
+
+ .antigravity/mcp_config.example.json     |  33 ++++++
+ .gitignore                               |   7 +-
+ docs/Project_Master_Spec.concept.ia.md   | 108 +++++++++++---------
+ docs/database-erm.md                     | 169 +++++++++++++++++++++++++++++++
+ docs/n8n_execution_1392_analysis.md      |  77 ++++++++++++++
+ docs/n8n_execution_1396_1397_analysis.md |  96 ++++++++++++++++++
+ docs/specification.md                    | 125 +++++++++++++----------
+ n8n/.env.example                         |  19 +++-
+ n8n/.gitignore                           |   9 +-
+ n8n/.n8n/nodes/package.json              |   3 +-
+ n8n/docker-compose.yml                   |  35 ++++---
+ n8n/docker/n8n/Dockerfile                |  29 ++++++
+ 12 files changed, 592 insertions(+), 118 deletions(-)
+
+commit a9622f03398c6dab02d6a3ba89db9f13c25ae799
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Jan 13 16:38:25 2026 -0400
+
+    [docs] conventional commits
+
+ docs/conventional_commits.md | 134 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 134 insertions(+)
+
+commit a0cad4799d96f449b6c361aa1bc36bedc9d6ffbd
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Jan 13 16:38:25 2026 -0400
+
+    [feat] n8n development
+
+ .antigravity/mcp_config.example.json               |   26 +
+ .antigravity/mcp_config.json                       |   12 -
+ .gitignore                                         |    3 +
+ docs/cloudflare_tunnel_protocols.md                |   43 +
+ n8n/.env.example                                   |   10 +
+ n8n/.gitignore                                     |   94 +
+ n8n/.n8n/config                                    |    3 +
+ n8n/.n8n/crash.journal                             |    0
+ ...vMqXMOWA1-Yourfocus_Telegram_Binnacle_Prod.json | 2014 ++++++++++++++++
+ .../TXB8ZLHMEAedwHM1-AI_Agent_workflow.json        |  302 +++
+ n8n/.n8n/cris2brain-workflows/afs.json             |   39 +
+ .../dbwHIYx23nK6youy-My_Sub_Workflow_1.json        |  674 ++++++
+ ..._txt_file_to_supabase_vector_store_for_rag.json |  253 ++
+ ...k60AcN04k7H-Error_Notification_to_Telegram.json |  115 +
+ n8n/.n8n/cris2brain-workflows/mini-backup.json     |  326 +++
+ ...eEISdf9JDp-Yourfocus_Telegram_Binnacle_Dev.json |  445 ++++
+ n8n/.n8n/nodes/package.json                        |    7 +
+ n8n/cloudflare/config.yml                          |    0
+ n8n/docker-compose.yml                             |   37 +
+ n8n/prompts/information_extractor.schema.json      |   52 +
+ n8n/prompts/system_prompt.md                       |   81 +
+ n8n/start_tunnel_with_cloudflare.sh                |   38 +
+ n8n/start_tunnel_with_localtunnel.sh               |   41 +
+ prod_supabase_structure_backup.sql                 | 2512 ++++++++++++++++++++
+ 24 files changed, 7115 insertions(+), 12 deletions(-)
+
+commit 5cb6552151f0cc339d2bdf7a1e921ee73b25a6ce
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Dec 26 22:29:58 2025 -0400
+
+    [refactor] improve pomodoro timelapse precision and data consistency
+    
+    - refactor `calculatePomodoroTimelapse` in TS and SQL to remove redundant `startedAt` argument and rely on timeline events
+    
+    - update `calculate_pomodoro_timelapse_sql` to return `double precision` to prevent time drift from millisecond rounding
+    
+    - update `sync_pomodoro_expected_end` trigger to correctly calculate remaining time using floating point math and store rounded result
+    
+    - ensure `start` and `finish` events are properly recorded in `toggle_timeline` in `use-pomodoro-service.ts`
+    
+    - add comprehensive unit tests for both TypeScript and SQL calculation logic to verify precision and edge cases
+
+ app/composables/pomodoro/pomodoro.machine.ts     |   9 +-
+ app/composables/pomodoro/use-pomodoro-service.ts |  19 +++--
+ app/utils/pomodoro-domain.ts                     |  10 ++-
+ supabase/schemas/functions_and_triggers.sql      |  28 +++----
+ test/supabase/sql-calculation.test.ts            | 101 +++++++++++++++++++++++
+ test/unit/utils/pomodoro-domain.test.ts          |  76 +++++++++++++++++
+ 6 files changed, 215 insertions(+), 28 deletions(-)
+
+commit 53d700413863f83570fe7beabe288df551c157e5
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Thu Dec 25 17:58:14 2025 -0400
+
+    [refactor] pomodoro state machine and webhooks optimization
+    - implement XState for robust pomodoro state management
+    - centralize webhook processing logic and behavior
+    - optimize RLS policies and database performance
+    - refactor type definitions and remove legacy types
+    - update migrations for schema consistency
+
+ .antigravity/mcp_config.json                       |  12 +
+ app/components/PomodoroTagSelector.vue             |   1 -
+ app/components/TimeGrid.vue                        |   1 -
+ app/components/pomofocus-clone.vue                 |   8 +-
+ app/components/timeline-modal .vue                 |   2 -
+ app/composables/pomodoro/pomodoro.machine.ts       | 384 +++++++++++++++
+ .../pomodoro/use-pomodoro-controller.ts            | 517 ++++++---------------
+ .../pomodoro/use-pomodoro-repository.ts            |   7 +-
+ app/composables/pomodoro/use-pomodoro-service.ts   |   1 -
+ app/composables/tag/use-tag-controller.ts          |   1 -
+ app/composables/tag/use-tag-repository.ts          |   6 +-
+ app/composables/types.ts                           |  28 ++
+ app/stores/auth.ts                                 |   1 -
+ app/types/Pomodoro.ts                              |  17 -
+ app/utils/pomodoro-domain.ts                       |   2 +-
+ bun.lock                                           |  23 +-
+ nuxt.config.ts                                     |   4 -
+ package.json                                       |   2 +
+ supabase/migrations/20251224033129_squash.sql      |   2 +-
+ .../20251224190000_schedule_cron_jobs.sql          |  27 ++
+ .../20251224190500_fix_function_search_paths.sql   |  15 +
+ supabase/migrations/20251224191000_perf_fixes.sql  | 130 ++++++
+ .../20251225170515_new_webhook_behavior.sql        | 182 ++++++++
+ supabase/schemas/functions_and_triggers.sql        |  70 +--
+ supabase/schemas/policies.sql                      |  76 +--
+ supabase/schemas/webhooks.sql                      | 156 +++++--
+ 26 files changed, 1111 insertions(+), 564 deletions(-)
+
+commit e672eb86a7121d97f5758fb5777546e7fba8eda1
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Dec 24 15:01:31 2025 -0400
+
+    [dx] squash and development data seed
+
+ .vscode/settings.json                              |    3 +-
+ docs/commands.md                                   |   21 +
+ .../20251208170500_update_handle_new_user.sql      |   26 -
+ supabase/migrations/20251208235534_splash.sql      |  527 -------
+ .../migrations/20251209000000_add_has_password.sql |   55 -
+ .../20251209171350_add_settings_to_profiles.sql    |    1 -
+ .../20251210230000_secure_realtime_channels.sql    |   14 -
+ .../migrations/20251214150000_enable_user_tags.sql |   59 -
+ supabase/migrations/20251217172806_api_keys.sql    |   48 -
+ .../migrations/20251217175833_create_tasks_.sql    |   53 -
+ ...34019_automatic_pomodoro_finish_and_webhook.sql |  154 --
+ ...543_rls_for_personal_access_token_in_tables.sql |   16 -
+ ...251219222500_update_tasks_pomodoro_nullable.sql |    1 -
+ .../20251220023132_task_tag_id_nullable.sql        |    1 -
+ ...251221214400_delete_pomodoro_tag_permission.sql |    6 -
+ .../20251221215520_add_done_at_to_taks_table.sql   |   44 -
+ .../20251222193500_create_pomodoro_tasks.sql       |   22 -
+ .../20251222200000_add_keep_to_tasks.sql           |   91 --
+ .../migrations/20251223192718_task_and_storage.sql |   82 -
+ .../20251223225412_usign_declarative_schemas.sql   |   34 -
+ .../20251223233633_implement_webhooks_pgmq.sql     |  132 --
+ .../20251223234500_fix_webhooks_permissions.sql    |   61 -
+ .../20251224020739_new_diff_webhooks.sql           |   58 -
+ .../20251224030224_new_diff_webhooks.sql           |  184 ---
+ .../migrations/20251224033121_update_webhooks.sql  |   45 -
+ supabase/migrations/20251224033129_squash.sql      | 1600 ++++++++++++++++++++
+ ...ql => 20251224165620_realtime_messages_rls.sql} |    9 +-
+ supabase/seed.sql                                  |  475 ++++++
+ 28 files changed, 2105 insertions(+), 1717 deletions(-)
+
+commit c69787eeb86fea1b4a68e8101989af83f92d5a06
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Dec 23 23:39:30 2025 -0400
+
+    [feat] pgmq, pg_net and pg_cron for webhooks scalability
+
+ docs/prompts/postgres_pgmq_pgnet_pgcron.md         | 427 +++++++++++++++++++++
+ supabase/config.toml                               |   4 +-
+ .../20251223233633_implement_webhooks_pgmq.sql     | 132 +++++++
+ .../20251223234500_fix_webhooks_permissions.sql    |  61 +++
+ .../20251224020739_new_diff_webhooks.sql           |  58 +++
+ .../20251224030224_new_diff_webhooks.sql           | 184 +++++++++
+ .../migrations/20251224033121_update_webhooks.sql  |  45 +++
+ supabase/schemas/functions_and_triggers.sql        |  44 +--
+ supabase/schemas/webhooks.sql                      | 228 +++++++++++
+ 9 files changed, 1141 insertions(+), 42 deletions(-)
+
+commit 5cb483c217ae3658ffa6909850df9c6e58ac397f
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Dec 23 19:59:41 2025 -0400
+
+    [dx] using declative schemas
+
+ supabase/config.toml                               |   8 +-
+ supabase/migrations/20251208235534_splash.sql      |  22 +-
+ .../20251223225412_usign_declarative_schemas.sql   |  34 ++
+ supabase/schemas/functions_and_triggers.sql        |  36 +-
+ supabase/schemas/main.sql                          |  79 ++++
+ supabase/schemas/policies.sql                      |  83 +++-
+ supabase/schemas/prod.sql                          | 431 ---------------------
+ .../schemas/{tasks_and_storage.sql => storage.sql} |  85 ++--
+ supabase/schemas/tables.sql                        | 311 +++++++++++++++
+ .../seeds/{pomodoros_and_cycles.sql => seed.sql}   |   0
+ 10 files changed, 577 insertions(+), 512 deletions(-)
+
+commit df9a688b4ba2efb00ec57fd4818235361226cb45
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Dec 23 16:04:53 2025 -0400
+
+    [feat] task and pomodos
+    - M:M tasks to pomodoros
+    - keep task between pomodoro sesions
+    - task done webhook
+    - database declarative schemas
+    - migrations
+
+ app/components/TaskContainer.vue                   |  38 +-
+ .../login.vue => containers/login-container.vue}   |   0
+ .../sign-up-container.vue}                         |   0
+ .../pomodoro/use-pomodoro-controller.ts            |  37 +-
+ .../pomodoro/use-pomodoro-repository.ts            |  37 ++
+ app/composables/pomodoro/use-pomodoro-service.ts   |  19 +
+ app/composables/task/use-task-controller.ts        |  63 +--
+ app/composables/task/use-task-service.ts           |   3 +
+ app/pages/login.vue                                |   2 +-
+ app/pages/sign-up.vue                              |   2 +-
+ app/types/database.types.ts                        |  45 ++
+ docs/objects/img/Vienna_Development_Method.png     | Bin 0 -> 14805 bytes
+ docs/standards.md                                  |  12 +-
+ .../20251222193500_create_pomodoro_tasks.sql       |  22 +
+ .../20251222200000_add_keep_to_tasks.sql           |  91 ++++
+ .../migrations/20251223192718_task_and_storage.sql |  82 +++
+ supabase/schemas/functions_and_triggers.sql        | 456 ++++++++++++++++
+ supabase/schemas/policies.sql                      |  79 +++
+ supabase/schemas/prod.sql                          | 590 ++-------------------
+ supabase/schemas/tables.sql                        |   0
+ supabase/schemas/tasks_and_storage.sql             | 127 +++++
+ 21 files changed, 1105 insertions(+), 600 deletions(-)
+
+commit 0da33eb734aacd3529d434e10320d32303933af8
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Dec 22 15:11:49 2025 -0400
+
+    [feat] task management
+    - add task module
+    - clean code conventions warnings
+    - wrap usePomodoroController into a pinia store for singletone behavior
+    - improve types implementations in service and repository layers
+    - posgrestool extention configuration
+
+ .vscode/extensions.json                            |   7 +-
+ app/components/PomodoroTagSelector.vue             |  15 +-
+ app/components/TaskContainer.vue                   | 226 +++++
+ app/components/TimeGrid.vue                        |  20 +-
+ app/components/modals/manage-tags-modal.vue        |  98 +++
+ app/components/pomofocus-clone.vue                 | 133 +--
+ app/components/timeline-modal .vue                 |   7 +-
+ app/components/user-profile-modal.vue              |  14 -
+ app/composables/pomodoro/use-broadcast-pomodoro.ts |   2 +-
+ .../pomodoro/use-pomodoro-controller.ts            |  52 +-
+ app/composables/profile/use-profile-controller.ts  |  13 +-
+ app/composables/profile/use-profile-repository.ts  |  17 +-
+ app/composables/profile/use-profile-service.ts     |   4 +-
+ .../system/use-notification-controller.ts          |   5 +-
+ app/composables/task/use-task-controller.ts        | 219 +++++
+ app/composables/task/use-task-domain.ts            |   7 +
+ app/composables/task/use-task-repository.ts        | 112 +++
+ app/composables/task/use-task-service.ts           |  84 ++
+ app/stores/pomodoro.ts                             |  12 -
+ app/types/database.types.ts                        |  12 +-
+ docs/prompts/DTO and DAO.concept.ia.md             | 131 +++
+ nuxt.config.ts                                     |  10 +
+ postgres-language-server.jsonc                     |  32 +-
+ postgrestools.jsonc                                |  47 ++
+ ...34019_automatic_pomodoro_finish_and_webhook.sql |   9 +-
+ ...251219222500_update_tasks_pomodoro_nullable.sql |   1 +
+ .../20251220023132_task_tag_id_nullable.sql        |   1 +
+ ...251221214400_delete_pomodoro_tag_permission.sql |   6 +
+ .../20251221215520_add_done_at_to_taks_table.sql   |  44 +
+ supabase/schemas/prod.sql                          | 937 +++++++++++++++++++++
+ 30 files changed, 2128 insertions(+), 149 deletions(-)
+
+commit e9eb1992f390f59ad02071178f9baaaa85c85400
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Dec 19 21:20:16 2025 -0400
+
+    update spec-log
+
+ docs/specs-log.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit a971fd62ed1aebd2471ff1f346486ae4712d3448
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Dec 19 21:13:33 2025 -0400
+
+    [feat] persist "keep tags" in settings field of profile
+
+ app/composables/profile/use-profile-controller.ts | 23 +++++++++++++++++++++++
+ app/composables/tag/use-tag-controller.ts         | 19 +++++++++++++------
+ 2 files changed, 36 insertions(+), 6 deletions(-)
+
+commit 454c433124f1c76bf213fc70bf11f3f853a9844d
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Dec 19 17:43:33 2025 -0400
+
+    [refactor] pomodoro controller
+    - split real-time logic into useBroadcastPomodoro (SoC)
+    - replace window.onbeforeunload with reactive watch for state persistence
+    - implement optimistic UI updates for pause action
+    - simplify controller by extracting helper functions (updateLocalState, computeExpectedEnd)
+    - improve today's list synchronization after session finish and sync
+    - remove legacy internal broadcast implementation and cleanup unused imports
+
+ app/composables/pomodoro/use-broadcast-pomodoro.ts | 105 ++++
+ .../pomodoro/use-pomodoro-controller.ts            | 558 +++++++--------------
+ 2 files changed, 287 insertions(+), 376 deletions(-)
+
+commit 2ccdee49e9d9f44b6aa75c5f66f886cf348095ad
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Dec 19 17:06:00 2025 -0400
+
+    [feat] webhooks and personal access token
+    - improve timer behavior when switch pomodoro state using handleSelectPomodoro
+    - improve typescript in pomodoro module
+    - extract use of repository from controller layer to service layer
+    - migrations for data integrity
+    - improve timeline behavior
+    - testing for db functions
+
+ app/components/TimeGrid.vue                        |  65 +--
+ app/components/personal-access-token-modal.vue     | 155 ++++++++
+ app/components/pomofocus-clone.vue                 |  11 +-
+ app/components/timeline-modal .vue                 |   3 +-
+ app/components/user-profile-modal.vue              |  33 +-
+ app/components/webhook-modal.vue                   |  51 +++
+ .../pomodoro/use-pomodoro-controller.ts            | 169 ++++----
+ .../pomodoro/use-pomodoro-repository.ts            |  23 +-
+ app/composables/pomodoro/use-pomodoro-service.ts   |  76 +++-
+ app/composables/profile/use-profile-controller.ts  |  17 +-
+ app/pages/index.vue                                |  18 +-
+ app/stores/pomodoro.ts                             |   4 +-
+ app/types/Pomodoro.ts                              |  24 +-
+ app/types/database.types.ts                        |  65 ++-
+ app/utils/pomodoro-domain.ts                       |  28 +-
+ docs/debugging/431_header_too_large.md             |  54 +++
+ docs/standards.md                                  |  29 +-
+ supabase/config.toml                               |   2 +-
+ supabase/migrations/20251208235534_splash.sql      | 442 +++++----------------
+ ...34019_automatic_pomodoro_finish_and_webhook.sql | 151 +++++++
+ ...543_rls_for_personal_access_token_in_tables.sql |  16 +
+ test/supabase/pomodoro-trigger.test.ts             | 118 ++++++
+ test/supabase/toggle_timeline.example.json         | 182 +++++++++
+ vitest.config.ts                                   |   7 +-
+ 24 files changed, 1215 insertions(+), 528 deletions(-)
+
+commit 0d627ea0444b1c3df226c4199744ab50a16e561d
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Dec 17 23:38:25 2025 -0400
+
+    feat: Implement personal access token generation, management, and associated database schema.
+
+ app/composables/profile/use-profile-controller.ts  |  16 +
+ app/pages/index.vue                                |  18 +-
+ app/types/database.types.ts                        |  26 +-
+ bun.lock                                           | 791 ++++++++++++++-------
+ docs/prompts/api_keys.concept.ia.md                | 411 +++++++++++
+ package.json                                       |   4 +-
+ postgres-language-server.jsonc                     |  23 +
+ server/api/hello.ts                                |  15 +
+ server/api/token/generate.post.ts                  |  81 +++
+ server/middleware/auth.ts                          |   7 +
+ supabase/.temp/cli-latest                          |   2 +-
+ supabase/migrations/20251217172806_api_keys.sql    |  48 ++
+ .../migrations/20251217175833_create_tasks_.sql    |  53 ++
+ test/nuxt/use-pomodoro.test.ts                     |  12 -
+ 14 files changed, 1225 insertions(+), 282 deletions(-)
+
+commit f1bc4543e80436daf495ebfb81ee51eadb875823
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Dec 14 23:46:37 2025 -0400
+
+    [feat] tags
+    - implement user-specific tag management for pomodoros with dedicated components, services, and database migration.
+    - fix profile bug (requested many times)
+    - docs for standards and specs
+    - keep tags between pomodoros feature
+
+ app/components/PomodoroTagSelector.vue             | 137 +++++++++++++++++++++
+ app/components/pomofocus-clone.vue                 | 137 +++++++++++++--------
+ app/components/timeline-modal .vue                 |  12 +-
+ .../pomodoro/use-pomodoro-controller.ts            |  39 +++++-
+ .../pomodoro/use-pomodoro-repository.ts            | 121 ++++--------------
+ app/composables/pomodoro/use-pomodoro-service.ts   |  27 +++-
+ app/composables/profile/use-profile-controller.ts  |   4 +-
+ app/composables/tag/use-tag-controller.ts          |  84 +++++++++++++
+ app/composables/tag/use-tag-domain.ts              |   7 ++
+ app/composables/tag/use-tag-repository.ts          |  77 ++++++++++++
+ app/composables/tag/use-tag-service.ts             |  34 +++++
+ app/pages/index.vue                                |   1 +
+ app/types/Pomodoro.ts                              |   4 +-
+ app/types/database.types.ts                        |  15 ++-
+ app/utils/pomodoro-domain.ts                       |   2 +-
+ docs/specs-log.md                                  |  67 +++++++---
+ docs/standards.md                                  |  52 ++++++++
+ docs/tactical_knowledge.md                         |   2 +-
+ .../20251210230000_secure_realtime_channels.sql    |   2 +-
+ .../migrations/20251214150000_enable_user_tags.sql |  59 +++++++++
+ 20 files changed, 697 insertions(+), 186 deletions(-)
+
+commit b7daf115795bc24524a8534df800714fa7a4b4fa
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sat Dec 13 20:34:54 2025 -0400
+
+    [RNF] Add comprehensive project specification in spacs-log.md, refine TimeGrid pomodoro duration display.
+
+ app/components/TimeGrid.vue                        | 18 ++++++++--
+ docs/commands.md                                   | 22 ++++++++++--
+ docs/{specifications.md => specification.md}       |  0
+ docs/specs-log.md                                  | 20 ++++++++---
+ .../migrations/20251214002514_remote_schema.sql    | 41 ++++++++++++++++++++++
+ 5 files changed, 92 insertions(+), 9 deletions(-)
+
+commit 71608c11b7b1fc35c0efd02c273be313a31c7d70
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sat Dec 13 19:38:28 2025 -0400
+
+    [feat] implement login page redirection for authenticated users, enhance Supabase queries with `maybeSingle`, and adjust time display.
+
+ app/components/TimeGrid.vue                        |  4 +---
+ .../pomodoro/use-pomodoro-repository.ts            | 28 +++++++++++-----------
+ app/pages/login.vue                                | 14 +++++++++++
+ nuxt.config.ts                                     |  2 +-
+ 4 files changed, 30 insertions(+), 18 deletions(-)
+
+commit b6e36a029ce70d3596e7442778655a7edb6e9f9e
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sat Dec 13 19:08:25 2025 -0400
+
+    [doc] track knowledge and specs from notion draft
+
+ docs/Project_Master_Spec.concept.ia.md             | 103 +++++++++
+ docs/archived/Ethos_and_Destiny.concept.ia.md      |  49 +++++
+ docs/archived/draf-specs.ia.md                     |  73 +++++++
+ docs/archived/draf_specs_from_notion.md            | 238 +++++++++++++++++++++
+ docs/from_notion/jerarquia de requerimientos.md    |  88 ++++++++
+ docs/from_notion/pasos para definir un proyecto.md | 103 +++++++++
+ docs/specs-log.md                                  |   2 +-
+ 7 files changed, 655 insertions(+), 1 deletion(-)
+
+commit 4a38c9842dca3ec9989c84f537010a4111233ccc
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Dec 12 15:43:58 2025 -0400
+
+    [feat] Implement distributed pomodoro control with presence-based main handler election and optimize modal rendering.
+
+ app/components/user-profile-modal.vue              | 115 +++++++++----------
+ .../pomodoro/use-pomodoro-controller.ts            | 124 ++++++++++++++++-----
+ app/composables/pomodoro/use-pomodoro-service.ts   |   8 +-
+ app/composables/use-timer.ts                       |  17 +--
+ app/pages/index.vue                                |   6 +-
+ 5 files changed, 171 insertions(+), 99 deletions(-)
+
+commit fe130e7245c6b27b83ff418dcb789346288d9cbf
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Dec 12 12:17:07 2025 -0400
+
+    [refactor] Delegate pomodoro timer and notification responsibilities to dedicated controllers, remove old pomodoro container, add controller diagram and split broadcast logic to a composable.
+
+ app/components/TimeGrid.vue                        |  10 +-
+ app/components/pomodoro-container.vue              |  75 ------
+ app/components/pomofocus-clone.vue                 |   5 +-
+ .../pomodoro/use-pomodoro-controller.ts            | 255 ++++++++++++---------
+ app/stores/pomodoro.ts                             |   3 +
+ docs/pomodoro-controller-diagram.md                | 122 ++++++++++
+ 6 files changed, 281 insertions(+), 189 deletions(-)
+
+commit 3c4db8a8f2319c177fc4d99f589176c07e315f60
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Dec 10 22:56:47 2025 -0400
+
+    [feat] Implement secure Realtime synchronization for pomodoro state with dedicated user channels and update profile ID handling.
+
+ app/components/pomofocus-clone.vue                 |  26 ++--
+ .../pomodoro/use-pomodoro-controller.ts            | 160 +++++++++++++++++----
+ app/composables/profile/use-profile-controller.ts  |   2 +-
+ app/composables/use-timer.ts                       |   6 +
+ .../20251210230000_secure_realtime_channels.sql    |  14 ++
+ 5 files changed, 168 insertions(+), 40 deletions(-)
+
+commit 62f10cfad96efa63e737ec857dccb042e8c93eb6
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Dec 10 22:13:33 2025 -0400
+
+    [feat] Refactor pomodoro timer to use `toggle_timeline` for accurate timelapse calculation and introduce `TPomodoro` type.
+
+ app/components/TimeGrid.vue                        | 106 ++++++++++++++-----
+ .../pomodoro/use-pomodoro-controller.ts            | 117 ++++++++++++++++-----
+ app/composables/pomodoro/use-pomodoro-service.ts   |   7 +-
+ app/composables/use-timer.ts                       |  24 ++---
+ app/stores/pomodoro.ts                             |   6 +-
+ app/types/Pomodoro.ts                              |   7 ++
+ app/utils/pomodoro-domain.ts                       |  54 ++++++++++
+ 7 files changed, 247 insertions(+), 74 deletions(-)
+
+commit bb0a248289f417195f22c247ff8b53d96c16b6ce
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Dec 9 19:22:29 2025 -0400
+
+    [feat] Implement system-level notifications for pomodoro completion, add user settings to profiles, and refactor pomodoro lifecycle management.
+
+ app/app.vue                                        |   8 +--
+ app/components/pomodoro-container.vue              |  30 ++--------
+ app/components/pomofocus-clone.vue                 |  19 -------
+ .../pomodoro/use-pomodoro-controller.ts            |  56 ++++++++++++++++++-
+ app/composables/pomodoro/use-pomodoro-service.ts   |   2 +-
+ app/composables/profile/use-profile-controller.ts  |   1 +
+ .../system/use-notification-controller.ts          |  62 +++++++++++++++++++++
+ app/composables/use-auth-controller.ts             |   9 +++
+ app/types/database.types.ts                        |   3 +
+ app/utils/pomodoro-domain.ts                       |  34 +++++++----
+ docs/specs-log.md                                  |   7 ++-
+ nuxt.config.ts                                     |   6 ++
+ public/favicon.ico                                 | Bin 4286 -> 19416 bytes
+ public/nuxt-favicon.ico                            | Bin 0 -> 4286 bytes
+ .../20251209171350_add_settings_to_profiles.sql    |   1 +
+ 15 files changed, 172 insertions(+), 66 deletions(-)
+
+commit cdb42e574735b8a2f899e95dd0e8a3cb131fd807
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Dec 8 21:41:56 2025 -0400
+
+    [feat] reset or update password flow
+    - when oauth login, if profile.has_password is false, open PasswordSetupModal.
+
+ app/components/container/login.vue                 |  20 +-
+ app/components/password-setup-modal.vue            |  38 ++
+ app/components/user-profile-modal.vue              |  14 +-
+ app/pages/index.vue                                |   8 +
+ app/pages/request-reset-password.vue               |  94 +++--
+ app/pages/update-password.vue                      | 100 +++--
+ app/types/database.types.ts                        | 412 ++++++++++-----------
+ docs/specs-log.md                                  |   1 +
+ supabase/migrations/20251208235534_splash.sql      |  31 +-
+ .../migrations/20251209000000_add_has_password.sql |  55 +++
+ 10 files changed, 476 insertions(+), 297 deletions(-)
+
+commit 6aca9cff6e9b4942783e557acb2c4c9e4f9f4f93
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Dec 8 19:56:32 2025 -0400
+
+    [dx] splash migrations
+
+ .../migrations/20251128192542_remote_schema.sql    | 501 -------------
+ .../migrations/20251201025250_remote_schema.sql    | 256 -------
+ .../migrations/20251203191355_remote_schema.sql    |  20 -
+ .../20251206234651_create_profiles_table.sql       | 111 ---
+ .../migrations/20251208025915_remote_schema.sql    |   7 -
+ supabase/migrations/20251208235534_splash.sql      | 776 +++++++++++++++++++++
+ 6 files changed, 776 insertions(+), 895 deletions(-)
+
+commit a4ea02fe4c82b254b00d0fb06d2060f13c2a3baa
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Dec 8 17:25:46 2025 -0400
+
+    [feat] sign in with google or github
+    - relocate .md files in docs folder
+
+ .env.example                                       |  6 ++
+ README.md                                          | 76 +---------------------
+ app/components/container/login.vue                 | 28 ++++----
+ app/composables/use-auth-controller.ts             | 40 ++++++++++++
+ app/pages/callback.vue                             | 54 ++++++++++-----
+ commands.md                                        |  8 ---
+ docs/README.md                                     | 75 +++++++++++++++++++++
+ analysis.md => docs/analysis.md                    |  0
+ docs/commands.md                                   | 11 ++++
+ specifications.md => docs/specifications.md        |  0
+ docs/specs-log.md                                  | 13 ++++
+ .../tactical_knowledge.md                          |  0
+ nuxt.config.ts                                     |  6 +-
+ supabase/config.toml                               | 18 ++++-
+ .../20251206234651_create_profiles_table.sql       |  3 +-
+ .../migrations/20251208025915_remote_schema.sql    |  7 ++
+ .../20251208170500_update_handle_new_user.sql      | 26 ++++++++
+ 17 files changed, 247 insertions(+), 124 deletions(-)
+
+commit cc0d8a6a847ee6b2db44ac2058cd83beb3453741
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Dec 7 22:14:16 2025 -0400
+
+    [feat] add keyboard shortcuts modal, remove login 'remember me' checkbox, and improve logout navigation.
+
+ app/components/container/login.vue | 10 ++++----
+ app/components/shortcuts-modal.vue | 47 ++++++++++++++++++++++++++++++++++++++
+ app/pages/index.vue                |  9 +++++++-
+ 3 files changed, 60 insertions(+), 6 deletions(-)
+
+commit e6534955b41ffec6b9d9dbd62f08d49f0b218e7e
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Dec 7 19:36:42 2025 -0400
+
+    [feat] shortcuts for switch focus,break,long-break types of pomodoros
+
+ .gitignore                                         | 11 ++++++
+ app/components/pomodoro-container.vue              |  2 +-
+ app/components/pomofocus-clone.vue                 | 41 +++++++++++++++++++++-
+ .../{ => pomodoro}/use-pomodoro-controller.ts      | 35 +++++++++++-------
+ app/composables/pomodoro/use-pomodoro-service.ts   |  6 ++--
+ app/pages/index.vue                                |  4 ++-
+ app/pages/v2/index.vue                             |  8 -----
+ nuxt.config.ts                                     |  7 ++++
+ 8 files changed, 89 insertions(+), 25 deletions(-)
+
+commit 4e8ee2d2d3942726e366d57e40e7c10a798421f6
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Dec 7 15:50:10 2025 -0400
+
+    [feat] add timeline modal and better modal props flow
+
+ app/components/TimeGrid.vue           |  2 +-
+ app/components/timeline-modal .vue    | 30 +++++++++++
+ app/components/user-profile-modal.vue | 95 +++++++++++++++++++++++++++++++++
+ app/pages/index.vue                   | 98 +++--------------------------------
+ 4 files changed, 134 insertions(+), 91 deletions(-)
+
+commit 86eaeb61884c6fc683e2588ce67a204e4a57e97c
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Sun Dec 7 15:02:03 2025 -0400
+
+    [feat] User Profile and Avatar Storage
+    - better sign up flow
+    - user profile modal for view and edit
+    - upload avatar with supabase storage
+    - migration file include supabase storage creation
+    - profile module in nuxt context [composables]
+    - customization theme using app.config.ts
+    - better layout
+
+ app/app.config.ts                                  |  13 +
+ app/app.vue                                        |  14 +-
+ app/assets/css/main.css                            |  24 ++
+ app/components/container/login.vue                 |  10 +-
+ app/components/container/sign-up.vue               | 112 ++++++
+ app/components/pomofocus-clone.vue                 |   2 +-
+ app/composables/profile/use-profile-controller.ts  |  99 ++++++
+ app/composables/profile/use-profile-repository.ts  |  51 +++
+ app/composables/profile/use-profile-service.ts     |  29 ++
+ .../{use-login.ts => use-auth-controller.ts}       |  38 +-
+ app/pages/index.vue                                | 165 ++++++++-
+ app/pages/login.vue                                |   2 +-
+ app/pages/sign-up.vue                              |   5 +
+ app/types/database.types.ts                        | 393 +++++++++++----------
+ nuxt.config.ts                                     |   2 +-
+ public/check-focus.png                             | Bin 0 -> 19416 bytes
+ public/user-white.png                              | Bin 0 -> 2151 bytes
+ .../20251206234651_create_profiles_table.sql       | 110 ++++++
+ 18 files changed, 867 insertions(+), 202 deletions(-)
+
+commit 60a8911f65e6736e17c10e4535b3453c219e74f5
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Dec 5 16:28:46 2025 -0400
+
+    [fix] Pomodoro type logic
+
+ app/components/pomofocus-clone.vue                 |   4 +-
+ .../pomodoro/use-pomodoro-repository.ts            |  46 ++++----
+ app/composables/pomodoro/use-pomodoro-service.ts   | 127 +++++++--------------
+ app/composables/use-pomodoro-controller.ts         |  17 +--
+ app/types/database.types.ts                        |  37 +++++-
+ app/utils/pomodoro-domain.ts                       |   6 +-
+ commands.md                                        |   4 +
+ 7 files changed, 112 insertions(+), 129 deletions(-)
+
+commit c4a7c8a3f5d62315f82d056ce75173f4293c265c
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Fri Dec 5 13:05:28 2025 -0400
+
+    [improve] Pomodoro
+    - ia assisted analysis for define strategical requirements and tactical implementetions of pomodoro module in .md documents
+    - better ui for pomodoro clock and focus,break,long-break secuense inspired in pomofocus.io
+    - better login ui
+
+ analysis.md                                        | 121 ++++++++++++++++++
+ app/components/container/login.vue                 |  77 ++++++++++++
+ app/components/container/pomodoro.vue              |   0
+ app/components/pomofocus-clone.vue                 | 138 +++++++++++++++++++++
+ .../pomodoro/use-pomodoro-repository.ts            |  66 ++++++++--
+ app/composables/pomodoro/use-pomodoro-service.ts   |  54 +++++++-
+ app/composables/use-login.ts                       |  86 +++++++++++++
+ app/composables/use-pomodoro-controller.ts         |  37 +++++-
+ app/pages/login.vue                                |  89 +------------
+ app/pages/v2/index.vue                             |   8 ++
+ app/utils/pomodoro-domain.ts                       |   6 +
+ bun.lock                                           |   3 +
+ package.json                                       |   3 +-
+ snaplet/seed.ts                                    |  29 +----
+ supabase/.temp/cli-latest                          |   2 +-
+ tactical_knowledge.md                              |  77 ++++++++++++
+ 16 files changed, 665 insertions(+), 131 deletions(-)
+
+commit 36b9774cc34e570719a5ab2391d21522328f9755
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Thu Dec 4 16:36:30 2025 -0400
+
+    [improve] Pomodoro
+    - Refactor pomodoro cycle management logic to respect tag order.
+    - unit test for domain logic of pomodoro tags checks for cycle end logic
+    - update default cycle sequence
+    - add project specifications (AI assisted)
+
+ app/components/TimeGrid.vue                        |  99 ++++++++++++++------
+ app/components/pomodoro-container.vue              |  13 ++-
+ app/composables/pomodoro/use-pomodoro-service.ts   |  11 +--
+ ...{use-pomodoro.ts => use-pomodoro-controller.ts} |  21 +++++
+ app/composables/use-timer.ts                       |   5 +-
+ app/utils/pomodoro-domain.ts                       |  36 +++++---
+ specifications.md                                  | 100 +++++++++++++++++++++
+ .../migrations/20251201025250_remote_schema.sql    |   2 +-
+ test/nuxt/use-pomodoro.test.ts                     |  64 +++++++++----
+ 9 files changed, 281 insertions(+), 70 deletions(-)
+
+commit b766bd33c53f88e053af8496a9c42784e9488139
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Dec 3 19:14:45 2025 -0400
+
+    [feat] Integrate Snaplet for database seeding, update pomodoro schema with RLS, and enhance Vitest setup and tests.
+
+ snaplet/.snaplet/config.json                       |    3 +
+ snaplet/.snaplet/dataModel.json                    | 7040 ++++++++++++++++++++
+ snaplet/package-lock.json                          | 4050 +++++++++++
+ snaplet/package.json                               |   19 +
+ snaplet/seed.config.ts                             |   31 +
+ snaplet/seed.ts                                    |  130 +
+ supabase/config.toml                               |    2 +-
+ .../migrations/20251203191355_remote_schema.sql    |   20 +
+ supabase/seeds/pomodoros_and_cycles.sql            |    0
+ test/nuxt/use-pomodoro.test.ts                     |   52 +-
+ test/setup.ts                                      |    4 +-
+ vitest.config.ts                                   |    1 +
+ 12 files changed, 11329 insertions(+), 23 deletions(-)
+
+commit 8d685e6532a59ec921c23232010897a517b2580e
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Wed Dec 3 15:11:48 2025 -0400
+
+    feat: Improve pomodoro cycle management by synchronizing timer state, dynamically setting durations, and determining next tags based on cycle sequence.
+
+ app/components/pomodoro-container.vue              | 15 ----
+ .../pomodoro/use-pomodoro-repository.ts            | 96 ++++++++++++++++++++--
+ app/composables/pomodoro/use-pomodoro-service.ts   | 64 +++++++++++++--
+ app/composables/use-pomodoro.ts                    | 24 +++++-
+ app/composables/use-timer.ts                       | 26 ++++--
+ app/types/database.types.ts                        |  6 +-
+ app/utils/pomodoro-domain.ts                       | 38 ++++++++-
+ supabase/.temp/cli-latest                          |  2 +-
+ 8 files changed, 226 insertions(+), 45 deletions(-)
+
+commit 340f84536503cfb9ed0ce06f34e8b5ff86b09315
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Dec 2 19:21:15 2025 -0400
+
+    [feat] auth pinia store for supabase auth session
+
+ app/components/TimeGrid.vue                        |   5 +-
+ app/components/pomodoro-container.vue              |   7 --
+ .../pomodoro/use-pomodoro-repository.ts            |   1 -
+ app/composables/pomodoro/use-pomodoro-service.ts   |  13 +++
+ app/composables/use-pomodoro.ts                    |  18 +++-
+ app/middleware/auth-state.global.ts                |  13 +--
+ app/pages/login.vue                                |  81 +++++++++-------
+ app/pages/update-password.vue                      | 104 +++++++++++----------
+ app/stores/auth.ts                                 |  12 +++
+ 9 files changed, 151 insertions(+), 103 deletions(-)
+
+commit f5e9e50565f208d4dc6ac402733f3557357cde10
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Tue Dec 2 17:11:17 2025 -0400
+
+    [feat] base pomodoro timeline
+
+ app/components/TimeGrid.vue           | 139 ++++++++++++++++++++++++++++++++++
+ app/components/pomodoro-container.vue |  49 ++++++------
+ app/pages/test-timegrid.vue           |  47 ++++++++++++
+ 3 files changed, 212 insertions(+), 23 deletions(-)
+
+commit 11e5c5d23d00a1901ec6a5e293b25aee4628c8c3
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Dec 1 16:47:28 2025 -0400
+
+    [refactor] split code into files
+
+ app/components/pomodoro-container.vue              |   4 +-
+ .../pomodoro/use-pomodoro-repository.ts            | 182 +++++++++++++
+ app/composables/pomodoro/use-pomodoro-service.ts   | 115 ++++++++
+ app/composables/use-pomodoro.ts                    | 301 +--------------------
+ app/composables/use-timer.ts                       |  45 +++
+ app/utils/pomodoro-domain.ts                       |   8 +
+ 6 files changed, 361 insertions(+), 294 deletions(-)
+
+commit 7998e7a46cbef53eb729d18b99d9c6a6c0f882b7
+Author: Cristian <cristiancaraballo112@gmail.com>
+Date:   Mon Dec 1 13:01:35 2025 -0400
+
+    [feat] pomodoro | initial project configs
+    - pomodoro composables, repository, pinia-store and container.
+    - test suite for integration test of supabase and some functions.
+    - simple timer for record pomodoros.
+    - simple auth flow with user and password.
+    - simple callback page for other supabase auth flows.
+
+ .env.example                                       |   14 +
+ .gitignore                                         |   41 +
+ .vscode/extensions.json                            |    3 +
+ .vscode/settings.json                              |   24 +
+ README.md                                          |   75 +
+ app/app.vue                                        |   19 +
+ app/assets/css/main.css                            |    2 +
+ app/components/container/pomodoro.vue              |    0
+ app/components/pomodoro-container.vue              |  113 ++
+ app/composables/use-pomodoro.ts                    |  430 +++++
+ app/composables/use-success-error-toast.ts         |   28 +
+ app/middleware/auth-state.global.ts                |   13 +
+ app/pages/callback.vue                             |   30 +
+ app/pages/config.vue                               |    3 +
+ app/pages/dashboard.vue                            |    9 +
+ app/pages/index.vue                                |   12 +
+ app/pages/login.vue                                |   79 +
+ app/pages/request-reset-password.vue               |   41 +
+ app/pages/update-password.vue                      |   63 +
+ app/stores/pomodoro.ts                             |    9 +
+ app/types/Pomodoro.ts                              |    6 +
+ app/types/database.types.ts                        |  284 +++
+ app/utils/pomodoro-domain.ts                       |   36 +
+ app/utils/supabase.ts                              |   15 +
+ bun.lock                                           | 2040 ++++++++++++++++++++
+ commands.md                                        |    4 +
+ nuxt.config.ts                                     |   41 +
+ package.json                                       |   31 +
+ public/favicon.ico                                 |  Bin 0 -> 4286 bytes
+ public/robots.txt                                  |    2 +
+ supabase/.gitignore                                |    8 +
+ supabase/.temp/cli-latest                          |    1 +
+ supabase/.temp/gotrue-version                      |    1 +
+ supabase/.temp/pooler-url                          |    1 +
+ supabase/.temp/postgres-version                    |    1 +
+ supabase/.temp/project-ref                         |    1 +
+ supabase/.temp/rest-version                        |    1 +
+ supabase/.temp/storage-migration                   |    1 +
+ supabase/.temp/storage-version                     |    1 +
+ supabase/config.toml                               |  357 ++++
+ .../migrations/20251128192542_remote_schema.sql    |  501 +++++
+ .../migrations/20251201025250_remote_schema.sql    |  256 +++
+ test/nuxt/use-pomodoro.test.ts                     |   54 +
+ test/setup.ts                                      |    3 +
+ test/tsconfig.json                                 |    8 +
+ tsconfig.json                                      |   21 +
+ vitest.config.ts                                   |   35 +
+ 47 files changed, 4718 insertions(+)

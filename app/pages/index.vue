@@ -54,6 +54,7 @@
   </div>
 
   <PasswordSetupModal v-model="openPasswordSetupModal" />
+  <SpecialOfferModal v-model="openSpecialOfferModal" />
 
   <!-- Mobile Bottom Navbar -->
   <Teleport to="body">
@@ -255,10 +256,20 @@ const user_id = computed(() => {
 });
 
 const openPasswordSetupModal = ref(false);
+const openSpecialOfferModal = ref(false);
+const route = useRoute();
+const router = useRouter();
 
 watch(profileController.profile, () => {
   if (!profileController.profile.value?.has_password) {
     openPasswordSetupModal.value = true;
+  }
+});
+
+onMounted(() => {
+  if (route.query.source === "landing") {
+    openSpecialOfferModal.value = true;
+    router.replace({ query: {} });
   }
 });
 

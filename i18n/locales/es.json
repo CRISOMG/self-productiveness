@@ -14,13 +14,19 @@
             "emailPlaceholder": "tu{'@'}correo.com",
             "badge": "Primeros 250 usuarios · $24/año"
         },
+        "magicLink": {
+            "successTitle": "¡Enlace enviado!",
+            "successDescription": "Revisa tu correo electrónico para acceder a tu cuenta.",
+            "sending": "Enviando...",
+            "sent": "✓ Correo enviado"
+        },
         "why": {
             "sectionLabel": "¿POR QUÉ?",
             "title": "El Origen del Destino",
             "subtitle": "Dos realidades que definen quién eres",
             "internal": {
                 "title": "Realidad Interna",
-                "description": "Lo que cuidas con tu atención, moldea tus pensamientos. Tus pensamientos forjan tu carácter. Tu carácter decide tu destino.",
+                "description": "La atencion plena sobre tu propio pensamiento es lo que forja el caracter con el que marcas tu destino.",
                 "step1": "Atención",
                 "step2": "Pensamiento",
                 "step3": "Carácter",
@@ -28,30 +34,30 @@
             },
             "external": {
                 "title": "Realidad Externa",
-                "description": "En un mundo de datos caóticos, la transformación ocurre cuando conviertes el ruido en resultados atómicos y medibles.",
-                "step1": "Datos caóticos",
-                "step2": "Transformación",
-                "step3": "Resultados atómicos"
+                "description": "En la era de la hiperinformación, la transformación ocurre cuando conviertes el ruido en resultados atómicos y medibles que impacten tu vida atraves de un efecto compuesto.",
+                "step1": "Hiperinformación",
+                "step2": "Efecto compuesto",
+                "step3": "Impacto en la vida"
             }
         },
         "how": {
             "sectionLabel": "¿CÓMO?",
             "title": "Arquitectura del Impacto",
-            "subtitle": "El Círculo Dorado de Sinek aplicado a tu productividad",
+            "subtitle": "El Círculo Dorado de Yourfocus",
             "why": {
-                "label": "Why",
-                "title": "Creer en algo",
-                "description": "Lucidez radical sobre tus motivaciones internas"
+                "label": "¿Por qué?",
+                "title": "Queremos potenciar el Exito de las personas.",
+                "description": "Creemos que todos podemos ser geniales y queremos ayudarte a descubrir y desarrollar tu potencial."
             },
             "howCircle": {
-                "label": "How",
+                "label": "¿Cómo?",
                 "title": "Sistema con disciplina",
-                "description": "Kaizen + Pomodoro como motor de mejora continua"
+                "description": "Recopilamos las mejores metodologias para desarrollar sinergia con tu agencia como motor de mejora continua."
             },
             "what": {
-                "label": "What",
-                "title": "Resultados tangibles",
-                "description": "Conocimiento estructurado que produce acción real"
+                "label": "¿Qué?",
+                "title": "Resultados e Impacto medible",
+                "description": "Conocimiento estructurado que produce acción e impacto real desde lo mas simple hasta lo extraordinario"
             },
             "mission": "Democratizar la autogestión cognitiva",
             "vision": "Que cada persona tenga un sistema de ejecución personal",
@@ -67,11 +73,11 @@
             },
             "bitacora": {
                 "title": "Bitácora de Voz",
-                "description": "Captura ideas con notas de voz transcritas por IA"
+                "description": "Captura ideas con notas de voz como principal entrada de datos con soporte de IA."
             },
             "agent": {
                 "title": "Agente IA",
-                "description": "Tu asistente personal que estructura y conecta tu conocimiento"
+                "description": "Tu asistente personal que te ayuda a estructurar y conectar tu conocimiento"
             },
             "knowledge": {
                 "title": "Base de Conocimiento",
@@ -82,16 +88,16 @@
                 "description": "Métricas reales de tu productividad y patrones"
             },
             "api": {
-                "title": "API Abierta",
-                "description": "Conecta tus herramientas favoritas via webhooks"
+                "title": "API con Webhooks",
+                "description": "Conecta tus herramientas favoritas; Google, Notion, Obsidian, Trello, N8N."
             },
             "byok": {
                 "title": "BYOK",
-                "description": "Bring Your Own Key — usa tu propia API key de IA"
+                "description": "Bring Your Own Key — usa tu propia credencial de IA para aumentar los limites de inteligencia."
             },
             "tasks": {
                 "title": "Tareas Kanban",
-                "description": "Gestiona tus tareas con tablero visual por etapas"
+                "description": "Gestiona tus tareas con tablero visual por etapas y autogeneradas por tu agente IA."
             }
         },
         "pricing": {
@@ -103,9 +109,9 @@
             "period": "/año",
             "badge": "Primeros 250 usuarios",
             "cta": "Reservar mi lugar",
-            "features": "Ecosistema completo, BYOK — Bring Your Own Key + Community Tokens, API abierta + Webhooks, Agente IA personal, Bitácora de voz con transcripción, Pomodoro con analytics, Precio fijo anual garantizado, Pago via Coingate (crypto)",
-            "emailPlaceholder": "email",
-            "guarantee": "Sin riesgo. Si no te convence en 30 días, te devolvemos el 100%."
+            "features": "Ecosistema completo, BYOK — Bring Your Own Key + Community Tokens, API + Webhooks (Interoperatibilidad), Agente IA personal, Bitácora de voz con transcripción, Pomodoro con analytics, Precio fijo anual garantizado, Pago via Coingate (crypto)",
+            "emailPlaceholder": "tu{'@'}correo.com",
+            "guarantee": "Sin riesgo. Si no te convence en 30 días, no tienes que pagar."
         },
         "cta": {
             "title": "¿Listo para tomar control de tu ejecución?",
@@ -118,5 +124,15 @@
             "tagline": "Gestión activa de conocimiento basada en kaizen",
             "legal": "© {year} Yourfocus. Todos los derechos reservados."
         }
+    },
+    "specialOffer": {
+        "title": "Términos y Condiciones para la Oferta Especial",
+        "description": "¡Bienvenido a Yourfocus! Has sido registrado como uno de los primeros 250 usuarios con acceso a la oferta especial ProTech Early Access.",
+        "stepsTitle": "Pasos a seguir",
+        "steps": "Explora el ecosistema completo: Timer, Bitácora de Voz, Agente IA y Tareas Kanban|Configura tu perfil y preferencias de productividad|Conecta tu clave de IA (BYOK) para desbloquear el potencial completo del agente|Realiza el pago de $24 USD/año vía Coingate antes de que se agoten los 250 cupos",
+        "requirementsTitle": "Requisitos para mantener tu precio especial",
+        "requirements": "Mantener una cuenta activa con al menos 1 sesión por mes|Completar el pago dentro de los primeros 30 días después del registro|El precio de $24 USD/año se mantiene fijo mientras tu suscripción esté activa",
+        "acceptTerms": "He leído y acepto los términos y condiciones de la oferta especial",
+        "startButton": "Empezar"
     }
 }

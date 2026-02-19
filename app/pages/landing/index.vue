@@ -2,16 +2,44 @@
 definePageMeta({ layout: "landing" });
 
 const { t, locale } = useI18n();
+const supabase = useSupabaseClient();
+const toast = useSuccessErrorToast();
 
 const features = computed(() => t("landing.pricing.features").split(","));
 
 const email = ref("");
-const emailPricing = ref("");
-const emailCta = ref("");
+const loading = ref(false);
+const sent = ref(false);
 
 const toggleLocale = () => {
   locale.value = locale.value === "es" ? "en" : "es";
 };
+
+// Magic link sign-in
+async function handleMagicLink() {
+  if (!email.value) return;
+  loading.value = true;
+  try {
+    const redirectTo = `${window.location.origin}/callback?source=landing`;
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.value,
+      options: { emailRedirectTo: redirectTo },
+    });
+    if (error) throw error;
+    sent.value = true;
+    toast.addSuccessToast({
+      title: t("landing.magicLink.successTitle"),
+      description: t("landing.magicLink.successDescription"),
+    });
+  } catch (e: any) {
+    toast.addErrorToast({
+      title: "Error",
+      description: e.message || "Error sending magic link",
+    });
+  } finally {
+    loading.value = false;
+  }
+}
 
 // Scroll reveal animation
 const observerCallback: IntersectionObserverCallback = (entries) => {
@@ -34,37 +62,94 @@ onMounted(() => {
 <template>
   <div class="landing-page">
     <!-- ==================== NAV ==================== -->
-    <nav class="landing-nav">
-      <div class="nav-inner">
-        <span class="nav-logo">Yourfocus</span>
-        <div class="nav-links">
-          <a href="#why">{{ t("landing.nav.why") }}</a>
-          <a href="#how">{{ t("landing.nav.how") }}</a>
-          <a href="#ecosystem">{{ t("landing.nav.ecosystem") }}</a>
-          <a href="#pricing">{{ t("landing.nav.pricing") }}</a>
-          <button class="locale-toggle" @click="toggleLocale">
-            {{ locale === "es" ? "EN" : "ES" }}
-          </button>
+    <div class="h-15">
+      <nav class="landing-nav">
+        <div class="nav-inner">
+          <span class="nav-logo">
+            <NuxtLink to="/" class="flex items-baseline">
+              <i class="mr-1 w-6 flex self-center">
+                <img src="/favicon.ico" alt="focus" />
+              </i>
+              <p class="font-bold">Yourfocus</p>
+            </NuxtLink>
+          </span>
+          <div class="nav-links">
+            <a href="#why">{{ t("landing.nav.why") }}</a>
+            <a href="#how">{{ t("landing.nav.how") }}</a>
+            <a href="#ecosystem">{{ t("landing.nav.ecosystem") }}</a>
+            <a href="#pricing">{{ t("landing.nav.pricing") }}</a>
+            <button class="locale-toggle" @click="toggleLocale">
+              {{ locale === "es" ? "EN" : "ES" }}
+            </button>
+          </div>
         </div>
-      </div>
-    </nav>
-
-    <!-- ==================== HERO ==================== -->
+      </nav>
+    </div>
+    <div class="p-2 bg-green-800">
+      <p class="text-center flex items-center justify-center gap-2">
+        <UBadge
+          color="success"
+          variant="subtle"
+          :ui="{ base: 'inline-flex items-center gap-1.5' }"
+        >
+          <span class="relative flex h-2 w-2">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
+            />
+            <span
+              class="relative inline-flex rounded-full h-2 w-2 bg-green-400"
+            />
+          </span>
+          IN DEVELOPMENT
+        </UBadge>
+        Open Beta for Platzi Developers Foundation Challenge!
+      </p>
+    </div>
     <section class="hero-section">
+      <!-- ==================== HERO ==================== -->
       <div class="hero-content">
+        <div
+          class="reveal relative border-2 rounded-2xl overflow-hidden mb-4 cursor-pointer"
+        >
+          <a target="_blank" href="/Yourfocus.pdf" class="">
+            <img src="/presentando_yourfocus.png" alt="presentando yourfocus" />
+            <div class="absolute top-2 right-2">
+              <UBadge
+                color="neutral"
+                variant="subtle"
+                :ui="{
+                  base: 'inline-flex items-center gap-1.5 text-white',
+                }"
+              >
+                <UIcon name="i-lucide-external-link" class="size-6" />
+              </UBadge>
+            </div>
+          </a>
+        </div>
         <span class="hero-badge reveal">{{ t("landing.hero.badge") }}</span>
         <h1 class="hero-headline reveal">{{ t("landing.hero.headline") }}</h1>
         <p class="hero-sub reveal">{{ t("landing.hero.subheadline") }}</p>
-        <form class="hero-form reveal" @submit.prevent>
+        <form class="hero-form reveal" @submit.prevent="handleMagicLink">
           <input
             v-model="email"
             type="email"
             :placeholder="t('landing.hero.emailPlaceholder')"
             class="hero-input"
             required
+            :disabled="loading || sent"
           />
-          <button type="submit" class="hero-cta-btn">
-            {{ t("landing.hero.cta") }}
+          <button
+            type="submit"
+            class="hero-cta-btn"
+            :disabled="loading || sent"
+          >
+            {{
+              sent
+                ? t("landing.magicLink.sent")
+                : loading
+                  ? t("landing.magicLink.sending")
+                  : t("landing.hero.cta")
+            }}
           </button>
         </form>
       </div>
@@ -95,7 +180,7 @@ onMounted(() => {
             <span class="flow-arrow">→</span>
             <span class="flow-step">{{ t("landing.why.internal.step3") }}</span>
             <span class="flow-arrow">→</span>
-            <span class="flow-step accent-step">{{
+            <span class="flow-step accent-step-orange">{{
               t("landing.why.internal.step4")
             }}</span>
           </div>
@@ -114,7 +199,7 @@ onMounted(() => {
             <span class="flow-arrow">→</span>
             <span class="flow-step">{{ t("landing.why.external.step2") }}</span>
             <span class="flow-arrow">→</span>
-            <span class="flow-step accent-step">{{
+            <span class="flow-step accent-step-green">{{
               t("landing.why.external.step3")
             }}</span>
           </div>
@@ -134,10 +219,12 @@ onMounted(() => {
       <div class="golden-circle-wrapper reveal">
         <div class="golden-circle">
           <div class="circle-ring ring-what">
-            <span class="ring-label">{{ t("landing.how.what.label") }}</span>
+            <span class="ring-label relative top-26">{{
+              t("landing.how.what.label")
+            }}</span>
           </div>
           <div class="circle-ring ring-how">
-            <span class="ring-label">{{
+            <span class="ring-label relative top-15">{{
               t("landing.how.howCircle.label")
             }}</span>
           </div>
@@ -150,6 +237,8 @@ onMounted(() => {
             <span class="golden-label why-color">{{
               t("landing.how.why.label")
             }}</span>
+            <br />
+
             <strong>{{ t("landing.how.why.title") }}</strong>
             <p>{{ t("landing.how.why.description") }}</p>
           </div>
@@ -157,6 +246,8 @@ onMounted(() => {
             <span class="golden-label how-color">{{
               t("landing.how.howCircle.label")
             }}</span>
+            <br />
+
             <strong>{{ t("landing.how.howCircle.title") }}</strong>
             <p>{{ t("landing.how.howCircle.description") }}</p>
           </div>
@@ -164,6 +255,8 @@ onMounted(() => {
             <span class="golden-label what-color">{{
               t("landing.how.what.label")
             }}</span>
+
+            <br />
             <strong>{{ t("landing.how.what.title") }}</strong>
             <p>{{ t("landing.how.what.description") }}</p>
           </div>
@@ -243,16 +336,27 @@ onMounted(() => {
             {{ feat }}
           </li>
         </ul>
-        <form class="pricing-form" @submit.prevent>
+        <form class="pricing-form" @submit.prevent="handleMagicLink">
           <input
-            v-model="emailPricing"
+            v-model="email"
             type="email"
             :placeholder="t('landing.pricing.emailPlaceholder')"
             class="hero-input"
             required
+            :disabled="loading || sent"
           />
-          <button type="submit" class="hero-cta-btn">
-            {{ t("landing.pricing.cta") }}
+          <button
+            type="submit"
+            class="hero-cta-btn"
+            :disabled="loading || sent"
+          >
+            {{
+              sent
+                ? t("landing.magicLink.sent")
+                : loading
+                  ? t("landing.magicLink.sending")
+                  : t("landing.pricing.cta")
+            }}
           </button>
         </form>
         <p class="pricing-guarantee">{{ t("landing.pricing.guarantee") }}</p>
@@ -264,16 +368,27 @@ onMounted(() => {
       <div class="cta-content reveal">
         <h2>{{ t("landing.cta.title") }}</h2>
         <p>{{ t("landing.cta.subtitle") }}</p>
-        <form class="cta-form" @submit.prevent>
+        <form class="cta-form" @submit.prevent="handleMagicLink">
           <input
-            v-model="emailCta"
+            v-model="email"
             type="email"
             :placeholder="`${t('landing.cta.emailPlaceholder')}`"
             class="hero-input"
             required
+            :disabled="loading || sent"
           />
-          <button type="submit" class="hero-cta-btn">
-            {{ t("landing.cta.button") }}
+          <button
+            type="submit"
+            class="hero-cta-btn"
+            :disabled="loading || sent"
+          >
+            {{
+              sent
+                ? t("landing.magicLink.sent")
+                : loading
+                  ? t("landing.magicLink.sending")
+                  : t("landing.cta.button")
+            }}
           </button>
         </form>
         <small class="cta-note">{{ t("landing.cta.note") }}</small>
@@ -285,6 +400,14 @@ onMounted(() => {
       <div class="footer-inner">
         <span class="nav-logo">Yourfocus</span>
         <p class="footer-tagline">{{ t("landing.footer.tagline") }}</p>
+        <div class="flex gap-4 justify-center m-4">
+          <a target="_blank" href="https://www.linkedin.com/in/crisomg/">
+            <UIcon name="i-lucide-linkedin" size="42" />
+          </a>
+          <a target="_blank" href="https://github.com/CRISOMG/yourfocus">
+            <UIcon name="i-lucide-github" size="42" />
+          </a>
+        </div>
         <p class="footer-legal">
           {{ t("landing.footer.legal", { year: new Date().getFullYear() }) }}
         </p>
@@ -296,13 +419,17 @@ onMounted(() => {
 <style scoped>
 /* ===== VARIABLES ===== */
 :root {
+  html {
+    font-size: 24px !important;
+  }
+
   --landing-bg: #0d222d;
   --landing-surface: rgba(255, 255, 255, 0.05);
   --landing-border: rgba(255, 255, 255, 0.12);
   --landing-text: #f7efc5;
   --landing-text-muted: rgba(247, 239, 197, 0.65);
-  --landing-orange: #db6c03;
-  --landing-green: #174909;
+  --landing-orange: #ffaa5b;
+  --landing-green: #5ba546;
   --landing-brown: #602d1f;
   --landing-cream: #f7efc5;
 }
@@ -314,9 +441,9 @@ onMounted(() => {
   --landing-border: rgba(255, 255, 255, 0.12);
   --landing-text: #f7efc5;
   --landing-text-muted: rgba(247, 239, 197, 0.65);
-  --landing-orange: #db6c03;
-  --landing-green: #174909;
-  --landing-brown: #602d1f;
+  --landing-orange: #cb8747;
+  --landing-green: #6db758;
+  --landing-brown: #ab6552;
   --landing-cream: #f7efc5;
 
   background: var(--landing-bg);
@@ -428,7 +555,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6rem 1.5rem 4rem;
+  padding: 4rem 1.5rem 4rem;
   text-align: center;
   overflow: hidden;
 }
@@ -610,10 +737,15 @@ onMounted(() => {
   font-size: 0.8rem;
   font-weight: 400;
 }
-.accent-step {
+.accent-step-orange {
   background: rgba(217, 101, 3, 0.15);
   border-color: rgba(217, 101, 3, 0.3);
   color: var(--landing-orange);
+}
+.accent-step-green {
+  background: #6db7582b;
+  border-color: #6db758;
+  color: var(--landing-green);
 }
 .flow-arrow {
   color: var(--landing-text-muted);
@@ -699,8 +831,8 @@ onMounted(() => {
   margin-top: 0.25rem;
 }
 .golden-label {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
