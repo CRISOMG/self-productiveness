@@ -86,7 +86,9 @@ onMounted(() => {
       </nav>
     </div>
     <div class="p-2 bg-green-800">
-      <p class="text-center flex items-center justify-center gap-2">
+      <p
+        class="text-center flex flex-col sm:flex-row items-center justify-center gap-2"
+      >
         <UBadge
           color="success"
           variant="subtle"
@@ -100,7 +102,7 @@ onMounted(() => {
               class="relative inline-flex rounded-full h-2 w-2 bg-green-400"
             />
           </span>
-          IN DEVELOPMENT
+          <span class="text-xs whitespace-nowrap"> IN DEVELOPMENT</span>
         </UBadge>
         Open Beta for Platzi Developers Foundation Challenge!
       </p>
@@ -115,13 +117,16 @@ onMounted(() => {
             <img src="/presentando_yourfocus.png" alt="presentando yourfocus" />
             <div class="absolute top-2 right-2">
               <UBadge
-                color="neutral"
+                color="info"
                 variant="subtle"
                 :ui="{
                   base: 'inline-flex items-center gap-1.5 text-white',
                 }"
               >
-                <UIcon name="i-lucide-external-link" class="size-6" />
+                <UIcon
+                  name="i-lucide-external-link"
+                  class="size-6 text-secondary"
+                />
               </UBadge>
             </div>
           </a>
@@ -555,7 +560,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4rem 1.5rem 4rem;
+  padding: 0rem 1.5rem 2rem;
   text-align: center;
   overflow: hidden;
 }

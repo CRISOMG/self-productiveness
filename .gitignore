@@ -55,5 +55,8 @@ supabase/db/volumes/
 *.sync-conflict.*
 n8n/.n8n/creds_decrypted.json
 n8n/.n8n/workflows.json
+n8n/.n8n/cris2brain-workflows/
 .antigravity/mcp_config.json
 backups/
+git_history.txt
+prod_supabase_structure_backup.sql
