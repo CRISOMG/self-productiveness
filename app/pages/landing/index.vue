@@ -10,8 +10,49 @@ const showSuccessModal = ref(false);
 
 const route = useRoute();
 
+useHead({
+  title: "Yourfocus | Focus with AI",
+  meta: [
+    { charset: "utf-8" },
+    { name: "viewport", content: "width=device-width, initial-scale=1" },
+    { name: "description", content: "Focus with AI" },
+    {
+      name: "keywords",
+      content:
+        "focus, ai, productivity, time management, task management, note taking, pomodoro, productivity app, ai productivity, ai time management, ai task management, ai note taking, ai pomodoro, productivity tool, ai productivity tool, ai time management tool, ai task management tool, ai note taking tool, ai pomodoro tool",
+    },
+    { name: "author", content: "Cristian Caraballo" },
+    { name: "robots", content: "index, follow" },
+    { name: "googlebot", content: "index, follow" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:site", content: "@yourfocus" },
+    { name: "twitter:title", content: "Yourfocus | Focus with AI" },
+    { name: "twitter:description", content: "Focus with AI" },
+    { name: "twitter:image", content: "/p.png" },
+    { name: "og:title", content: "Yourfocus | Focus with AI" },
+    { name: "og:description", content: "Focus with AI" },
+    { name: "og:image", content: "/p.png" },
+    { name: "og:url", content: "https://yourfocus.io" },
+    { name: "og:type", content: "website" },
+    { name: "og:locale", content: "es_ES" },
+    { name: "og:site_name", content: "Yourfocus" },
+    { name: "og:image:width", content: "1200" },
+    { name: "og:image:height", content: "630" },
+    { name: "og:image:type", content: "image/png" },
+    { name: "og:image:alt", content: "Yourfocus | Focus with AI" },
+    { name: "og:type", content: "website" },
+    { name: "og:locale", content: "es_ES" },
+    { name: "og:site_name", content: "Yourfocus" },
+    { name: "og:image:width", content: "1200" },
+    { name: "og:image:height", content: "630" },
+    { name: "og:image:type", content: "image/png" },
+    { name: "og:image:alt", content: "Yourfocus | Focus with AI" },
+  ],
+  link: [{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" }],
+});
+
 onMounted(() => {
-  if (route.query.source) {
+  if (route.query.source || route.query.s) {
     localStorage.setItem("source", route.query.source as string);
     localStorage.setItem("s", route.query.s as string);
   }

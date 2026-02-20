@@ -137,7 +137,6 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     }
     await pomodoroService.finishCurrentCycle();
 
-    debugger;
     const configs =
       (profile.value?.settings as any)?.time_interval_configs ??
       DEFAULT_TIME_INTERVAL_CONFIGS;

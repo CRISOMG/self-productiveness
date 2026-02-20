@@ -101,6 +101,35 @@
                 /> -->
           </template>
         </template>
+
+        <template #indicator>
+          <div class="flex items-center gap-3 px-4 py-3">
+            <div class="relative">
+              <img
+                src="/favicon.ico"
+                alt="Loading"
+                class="w-8 h-8 rounded-full animate-pulse"
+              />
+              <span
+                class="absolute inset-0 rounded-full bg-peach-500/20 animate-ping"
+              />
+            </div>
+            <div class="flex items-center gap-1">
+              <span
+                class="w-1.5 h-1.5 rounded-full bg-peach-400 animate-bounce"
+                style="animation-delay: 0ms"
+              />
+              <span
+                class="w-1.5 h-1.5 rounded-full bg-peach-400 animate-bounce"
+                style="animation-delay: 150ms"
+              />
+              <span
+                class="w-1.5 h-1.5 rounded-full bg-peach-400 animate-bounce"
+                style="animation-delay: 300ms"
+              />
+            </div>
+          </div>
+        </template>
       </UChatMessages>
 
       <UChatPrompt
@@ -265,7 +294,6 @@ async function handleSubmit(e: Event) {
 
     if (uploadedFiles.value.length > 0) {
       brainPulse.value = false;
-      debugger;
       uploadedFiles.value.forEach((f) => {
         parts.push({
           type: "source-url",

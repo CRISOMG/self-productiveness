@@ -61,7 +61,6 @@ export const useTaskController = () => {
     tagId?: number,
     stage?: TaskStage,
   ) {
-    if (!pomodoroController.currPomodoro || !profile.value) return;
     isLoading.value = true;
     try {
       const newTask = await createTask({
@@ -76,6 +75,8 @@ export const useTaskController = () => {
       if (newTask) {
         tasks.value.unshift(newTask); // Add to top
       }
+
+      console.log("newTask", newTask);
     } catch (e: any) {
       error.value = e.message;
       console.error(e);

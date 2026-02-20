@@ -246,6 +246,7 @@
 <script setup lang="ts">
 import { breakpointsTailwind, useBreakpoints } from "@vueuse/core";
 import { getAudioStoragePath } from "~~/shared/utils/jornada";
+import { useTaskController } from "~/composables/task/use-task-controller";
 
 definePageMeta({
   layout: "default",
@@ -300,17 +301,17 @@ useHead({
 });
 
 const { handleSetProfileSettingsKey } = useProfileController();
-async function handleSetProfileSource(s: string, source: string) {
-  await handleSetProfileSettingsKey("source", s || source);
-  localStorage.removeItem("s");
-  localStorage.removeItem("source");
+async function handleSetProfileSource(source: string) {
+  await handleSetProfileSettingsKey("source", source);
 }
 
 onMounted(() => {
   const source = localStorage.getItem("source");
   const s = localStorage.getItem("s");
   if (source || s) {
-    handleSetProfileSource(s, source);
+    handleSetProfileSource(s || source);
+    localStorage.removeItem("s");
+    localStorage.removeItem("source");
   }
 });
 
