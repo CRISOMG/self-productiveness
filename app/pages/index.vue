@@ -29,9 +29,26 @@
           icon="i-lucide-brain"
           class="rounded-4xl"
           :ui="{
-            leadingIcon: 'w-12 h-12',
+            leadingIcon: 'relative w-12 h-12',
           }"
         />
+        <UBadge
+          v-if="brainPulse"
+          color="neutral"
+          variant="soft"
+          :ui="{
+            base: 'inline-flex items-center gap-1.5 absolute top-5 right-[0.9rem] z-[9999] ',
+          }"
+        >
+          <span class="relative flex h-4 w-4">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"
+            />
+            <span
+              class="relative inline-flex rounded-full h-4 w-4 bg-orange-400"
+            />
+          </span>
+        </UBadge>
       </div>
 
       <template #body>
@@ -239,8 +256,18 @@ const { handleCreateTask } = useTaskController();
 const profileController = useProfileController();
 const openChatDrawer = ref(false);
 const isMicMode = ref(false);
+const brainPulse = useBrainPulseState();
 
-async function handleStartPromotion() {
+async function handleStartPromotion({ name }: { name: string }) {
+  // Save the user's name to their profile
+  await profileController.handleUpdateProfile({ fullname: name });
+
+  // Insert the welcome AI message in the chat
+  await $fetch("/api/chat/welcome", {
+    method: "POST",
+    body: { name },
+  });
+
   await handleStartPomodoro(
     user_id.value,
     PomodoroType.FOCUS,
@@ -253,6 +280,8 @@ async function handleStartPromotion() {
     undefined,
     "in_progress",
   );
+
+  brainPulse.value = true;
 }
 
 // Layout modal controls via provide/inject
@@ -270,13 +299,28 @@ useHead({
   },
 });
 
+const { handleSetProfileSettingsKey } = useProfileController();
+async function handleSetProfileSource(s: string, source: string) {
+  await handleSetProfileSettingsKey("source", s || source);
+  localStorage.removeItem("s");
+  localStorage.removeItem("source");
+}
+
+onMounted(() => {
+  const source = localStorage.getItem("source");
+  const s = localStorage.getItem("s");
+  if (source || s) {
+    handleSetProfileSource(s, source);
+  }
+});
+
 const user = useSupabaseUser();
 const user_id = computed(() => {
   return user.value?.sub || "";
 });
 
 const openPasswordSetupModal = ref(false);
-const openSpecialOfferModal = ref(true);
+const openSpecialOfferModal = ref(false);
 const route = useRoute();
 const router = useRouter();
 
@@ -290,6 +334,13 @@ onMounted(() => {
   if (route.query.source === "landing") {
     openSpecialOfferModal.value = true;
     router.replace({ query: {} });
+  }
+
+  if (
+    profileController.profile.value &&
+    !profileController.profile.value?.settings?.offerTermsAccepted
+  ) {
+    openSpecialOfferModal.value = true;
   }
 });
 

@@ -133,6 +133,8 @@
         "requirementsTitle": "Requirements to keep your special price",
         "requirements": "Keep an active account with at least 1 session per month|Complete payment within the first 30 days after registration|The $24 USD/year price stays fixed as long as your subscription is active",
         "acceptTerms": "I have read and accept the terms and conditions of the special offer",
-        "startButton": "Get Started"
+        "startButton": "Get Started",
+        "nameLabel": "What's your name?",
+        "namePlaceholder": "Your name"
     }
 }

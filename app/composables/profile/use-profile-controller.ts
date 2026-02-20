@@ -216,6 +216,40 @@ export const useProfileController = () => {
     }
   }
 
+  // Hi! from cristian caraballo <3
+  async function handleSetProfileSettingsKey(key: string, value: any) {
+    if (!profile.value) throw new Error("Profile not found");
+    try {
+      const newValue =
+        typeof value === "object"
+          ? {
+              [key]: {
+                ...((profile.value.settings[key] as Record<string, any>) || {}),
+                ...value,
+              },
+            }
+          : {
+              [key]: value,
+            };
+
+      const updatedProfile = await service.updateProfile(profile.value.id, {
+        ...profile.value,
+        settings: {
+          ...((profile.value.settings as Record<string, any>) || {}),
+          ...newValue,
+        },
+      });
+      profile.value = updatedProfile;
+      return updatedProfile;
+    } catch (error: any) {
+      console.error(error);
+      toast.addErrorToast({
+        title: "Error updating profile settings",
+        description: error.message,
+      });
+    }
+  }
+
   return {
     profile,
     loading,
@@ -228,5 +262,6 @@ export const useProfileController = () => {
     handleSetActiveStage,
     handleSetTimeIntervalConfigs,
     handleSetOfferTermsAccepted,
+    handleSetProfileSettingsKey,
   };
 };

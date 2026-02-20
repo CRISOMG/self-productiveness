@@ -127,12 +127,14 @@
     },
     "specialOffer": {
         "title": "Términos y Condiciones para la Oferta Especial",
-        "description": "¡Bienvenido a Yourfocus! Has sido registrado como uno de los primeros 250 usuarios con acceso a la oferta especial ProTech Early Access.",
-        "stepsTitle": "Pasos a seguir",
-        "steps": "Explora el ecosistema completo: Timer, Bitácora de Voz, Agente IA y Tareas Kanban|Configura tu perfil y preferencias de productividad|Conecta tu clave de IA (BYOK) para desbloquear el potencial completo del agente|Realiza el pago de $24 USD/año vía Crypto antes de que se agoten los 250 cupos",
+        "description": "¡Bienvenido a Yourfocus! Para registrar tu participación como uno de los primeros 250 usuarios con acceso a la oferta especial ProTech Early Access;",
+        "stepsTitle": "Sigue estos pasos para registrar tu participación",
+        "steps": "Configura tu perfil y preferencias;Explora el ecosistema completo: Timer, Bitácora de Voz, Agente IA, Tareas Kanban y Notas Zettelkasten;Conecta tu clave de IA (BYOK) para desbloquear el potencial completo del agente;Realiza el pago de $24 USD/AÑO vía Crypto antes de que se agoten los 250 cupos",
         "requirementsTitle": "Requisitos para mantener tu precio especial",
-        "requirements": "Mantener una cuenta activa con al menos 1 sesión por mes|Completar el pago dentro de los primeros 30 días después del registro|El precio de $24 USD/año se mantiene fijo mientras tu suscripción esté activa| Se el comunicara por correo electrónico a su correo registrado para confirmar el pago.",
+        "requirements": "Mantener una cuenta activa con al menos 1 sesión al día;Seguirme en LinkedIn y dar un ★ y 👁 al repo en GitHub.;Completar el pago dentro de los primeros 30 días después del registro;El precio de $24 USD/AÑO se mantiene fijo mientras tu suscripción esté activa; Se comunicara por correo electrónico o en los principales canales del proyecto el estatus para el pago del precio especial.",
         "acceptTerms": "He leído y acepto los términos y condiciones de la oferta especial",
-        "startButton": "Empezar"
+        "startButton": "Empezar",
+        "nameLabel": "¿Cómo te llamas?",
+        "namePlaceholder": "Tu nombre"
     }
 }

@@ -26,7 +26,9 @@ function parseMarkdownLinks(text: string) {
 </script>
 
 <template>
-  <div class="relative group">
+  <div
+    class="relative group py-2 pl-1 border-l-2 border-green-500/30 rounded-lg"
+  >
     <div
       class="text-sm transition-all duration-200 overflow-x-auto"
       :class="{

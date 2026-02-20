@@ -8,6 +8,15 @@ const toast = useSuccessErrorToast();
 const features = computed(() => t("landing.pricing.features").split(","));
 const showSuccessModal = ref(false);
 
+const route = useRoute();
+
+onMounted(() => {
+  if (route.query.source) {
+    localStorage.setItem("source", route.query.source as string);
+    localStorage.setItem("s", route.query.s as string);
+  }
+});
+
 const email = ref("");
 const loading = ref(false);
 const sent = ref(false);
@@ -107,7 +116,15 @@ onMounted(() => {
           </span>
           <span class="text-xs whitespace-nowrap"> IN DEVELOPMENT</span>
         </UBadge>
-        Open Beta for Platzi Developers Foundation Challenge!
+
+        <a
+          href="https://platzi.com/blog/reto-developer-foundations/"
+          target="_blank"
+          class="text-md whitespace-nowrap underline"
+        >
+          Open Beta for Platzi Developers Foundation Challenge!
+          <UIcon name="i-lucide-external-link" class="size-4" />
+        </a>
       </p>
     </div>
     <section class="hero-section">

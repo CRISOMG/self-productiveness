@@ -62,7 +62,7 @@
                   :cache-key="`${message.id}-${index}-${compIndex}`"
                   :components="components"
                   :parser-options="{ highlight: false }"
-                  class="*:first:mt-0 *:last:mb-0"
+                  class="*:first:mt-0 *:last:mb-0 border-r-2 border-orange-400/30 rounded-lg max-w-[600px]"
                 />
               </template>
             </template>
@@ -219,6 +219,8 @@ const { data, refresh } = await useFetch(`/api/chat`);
 const input = ref("");
 const isPro = ref(false);
 
+const brainPulse = useBrainPulseState();
+
 const chat = new Chat({
   id: "me",
   messages: data?.value?.messages || [],
@@ -262,6 +264,8 @@ async function handleSubmit(e: Event) {
     }
 
     if (uploadedFiles.value.length > 0) {
+      brainPulse.value = false;
+      debugger;
       uploadedFiles.value.forEach((f) => {
         parts.push({
           type: "source-url",

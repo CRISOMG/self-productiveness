@@ -78,6 +78,7 @@ export const useTaskController = () => {
       }
     } catch (e: any) {
       error.value = e.message;
+      console.error(e);
     } finally {
       isLoading.value = false;
     }
