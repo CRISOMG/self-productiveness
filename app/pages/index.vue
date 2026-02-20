@@ -54,7 +54,10 @@
   </div>
 
   <PasswordSetupModal v-model="openPasswordSetupModal" />
-  <SpecialOfferModal v-model="openSpecialOfferModal" />
+  <SpecialOfferModal
+    v-model="openSpecialOfferModal"
+    @start="handleStartPromotion"
+  />
 
   <!-- Mobile Bottom Navbar -->
   <Teleport to="body">
@@ -231,9 +234,26 @@ definePageMeta({
   layout: "default",
 });
 
+const { handleStartPomodoro } = usePomodoroController();
+const { handleCreateTask } = useTaskController();
 const profileController = useProfileController();
 const openChatDrawer = ref(false);
 const isMicMode = ref(false);
+
+async function handleStartPromotion() {
+  await handleStartPomodoro(
+    user_id.value,
+    PomodoroType.FOCUS,
+    PomodoroState.CURRENT,
+  );
+
+  await handleCreateTask(
+    "Recupera tu agencia!",
+    "- [ ] reportarte con tu segundo cerebro.\n- [ ] crear tu primera bitacora del dia en el chat de tu segundo cerebro.\n- [ ] que tu segundo cerebro registre tu primera tarea y notas respecto a cualquier tema de tu interes en base al procesamiento de tus bitacoras.\n- [ ] hacer tus tareas en menos de 25 minutos y marcarlas como hechas.\n- [ ] repasar tus notas.\n- [ ] iterar.",
+    undefined,
+    "in_progress",
+  );
+}
 
 // Layout modal controls via provide/inject
 const layoutModals = useLayoutModals();
@@ -256,7 +276,7 @@ const user_id = computed(() => {
 });
 
 const openPasswordSetupModal = ref(false);
-const openSpecialOfferModal = ref(false);
+const openSpecialOfferModal = ref(true);
 const route = useRoute();
 const router = useRouter();
 

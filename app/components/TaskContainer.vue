@@ -230,6 +230,7 @@
                 }
               "
               @stage-change="handleStageChange"
+              @update-description="handleUpdateDescription"
             />
             <p
               v-if="tasksByStage[stage.value].length === 0"
@@ -288,6 +289,7 @@
               }
             "
             @stage-change="handleStageChange"
+            @update-description="handleUpdateDescription"
           />
           <p
             v-if="tasksByStage[stage.value].length === 0"
@@ -347,7 +349,8 @@ const STAGES: { value: TaskStage; label: string; icon: string }[] = [
 
 const activeStage = computed({
   get: () =>
-    ((profile.value?.settings as any)?.active_stage as TaskStage) || "to_do",
+    ((profile.value?.settings as any)?.active_stage as TaskStage) ||
+    "in_progress",
   set: (val: TaskStage) => handleSetActiveStage(val),
 });
 const focusMode = ref(true);
@@ -392,6 +395,16 @@ async function handleStageChange(taskId: string, newStage: TaskStage) {
       ...task,
       stage: newStage,
       keep,
+    });
+  }
+}
+
+async function handleUpdateDescription(taskId: string, newDescription: string) {
+  const task = taskController.tasks.value.find((t) => t.id === taskId);
+  if (task) {
+    await taskController.handleUpdateTask(taskId, {
+      ...task,
+      description: newDescription,
     });
   }
 }

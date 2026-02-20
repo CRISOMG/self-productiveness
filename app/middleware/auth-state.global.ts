@@ -1,8 +1,12 @@
 import { useAuthStore } from "~/stores/auth";
 
+let listenerRegistered = false;
+
 export default defineNuxtRouteMiddleware(() => {
+  if (listenerRegistered) return;
+  listenerRegistered = true;
+
   const supabase = useSupabaseClient();
-  const user = useSupabaseUser();
 
   const authStore = useAuthStore();
   const authStoreRefs = storeToRefs(authStore);

@@ -6,6 +6,7 @@ const supabase = useSupabaseClient();
 const toast = useSuccessErrorToast();
 
 const features = computed(() => t("landing.pricing.features").split(","));
+const showSuccessModal = ref(false);
 
 const email = ref("");
 const loading = ref(false);
@@ -23,14 +24,16 @@ async function handleMagicLink() {
     const redirectTo = `${window.location.origin}/callback?source=landing`;
     const { error } = await supabase.auth.signInWithOtp({
       email: email.value,
-      options: { emailRedirectTo: redirectTo },
+      options: {
+        data: {
+          source: "landing",
+        },
+        emailRedirectTo: redirectTo,
+      },
     });
     if (error) throw error;
     sent.value = true;
-    toast.addSuccessToast({
-      title: t("landing.magicLink.successTitle"),
-      description: t("landing.magicLink.successDescription"),
-    });
+    showSuccessModal.value = true;
   } catch (e: any) {
     toast.addErrorToast({
       title: "Error",
@@ -399,6 +402,30 @@ onMounted(() => {
         <small class="cta-note">{{ t("landing.cta.note") }}</small>
       </div>
     </section>
+
+    <!-- ==================== SUCCESS MODAL ==================== -->
+    <UModal v-model:open="showSuccessModal" :dismissible="false" :close="false">
+      <template #default>
+        <span />
+      </template>
+      <template #content>
+        <div class="success-modal-content">
+          <div class="success-modal-icon">✉️</div>
+          <h3 class="success-modal-title">
+            {{ t("landing.magicLink.successTitle") }}
+          </h3>
+          <p class="success-modal-desc">
+            {{ t("landing.magicLink.successDescription") }}
+          </p>
+          <UButton
+            class="hero-cta-btn success-modal-btn"
+            @click="showSuccessModal = false"
+          >
+            OK
+          </UButton>
+        </div>
+      </template>
+    </UModal>
 
     <!-- ==================== FOOTER ==================== -->
     <footer class="landing-footer">
@@ -1102,6 +1129,39 @@ onMounted(() => {
   font-size: 0.75rem;
   margin-top: 1rem;
   opacity: 0.6;
+}
+
+/* ===== SUCCESS MODAL ===== */
+.success-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.5rem 2rem;
+  background: var(--landing-bg);
+  border-radius: 20px;
+  border: 1px solid var(--landing-border);
+}
+.success-modal-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+.success-modal-title {
+  font-family: "Fredoka", cursive;
+  font-weight: 500;
+  font-size: 1.4rem;
+  color: var(--landing-text);
+  margin-bottom: 0.75rem;
+}
+.success-modal-desc {
+  color: var(--landing-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  max-width: 360px;
+}
+.success-modal-btn {
+  min-width: 120px;
 }
 
 /* ===== MOBILE NAV ===== */

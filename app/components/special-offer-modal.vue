@@ -66,8 +66,10 @@
 
 <script setup lang="ts">
 const { t } = useI18n();
+const { handleSetOfferTermsAccepted } = useProfileController();
 const isOpen = defineModel<boolean>({ default: false });
 const acceptedTerms = ref(false);
+const emit = defineEmits<{ start: [] }>();
 
 const steps = computed(() =>
   t("specialOffer.steps")
@@ -81,7 +83,9 @@ const requirements = computed(() =>
     .map((s: string) => s.trim()),
 );
 
-function handleStart() {
+async function handleStart() {
+  await handleSetOfferTermsAccepted();
   isOpen.value = false;
+  emit("start");
 }
 </script>

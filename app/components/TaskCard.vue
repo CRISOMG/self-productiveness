@@ -26,9 +26,22 @@
         </p>
       </div>
     </div>
-
+    <div class="flex">
+      <UButton
+        class="w-full text-center justify-center"
+        :icon="
+          expandedDescriptions[task.id]
+            ? 'i-lucide-chevron-up'
+            : 'i-lucide-chevron-down'
+        "
+        size="xs"
+        variant="outline"
+        color="neutral"
+        @click="emit('toggleDescription', task.id)"
+      />
+    </div>
     <!-- Description -->
-    <p
+    <div
       v-if="task.description && !compact"
       class="text-sm text-muted mt-1 cursor-pointer overflow-hidden transition-all"
       :style="{
@@ -36,8 +49,26 @@
       }"
       @click="emit('toggleDescription', task.id)"
     >
-      {{ task.description }}
-    </p>
+      <template v-for="(line, idx) in descriptionLines" :key="idx">
+        <label
+          v-if="line.type === 'checkbox'"
+          class="flex items-start gap-2 cursor-pointer select-none py-0.5"
+          @click.stop
+        >
+          <input
+            type="checkbox"
+            :checked="line.checked"
+            class="mt-0.5 accent-peach-500 w-4 h-4 rounded cursor-pointer"
+            @change="toggleCheckbox(line.index)"
+          />
+          <span :class="{ 'line-through opacity-50': line.checked }">{{
+            line.text
+          }}</span>
+        </label>
+        <p v-else class="py-0.5">{{ line.text }}</p>
+      </template>
+    </div>
+
     <div class="flex items-center justify-between">
       <div>
         <!-- Archive -->
@@ -183,6 +214,7 @@ const emit = defineEmits<{
   assignPomodoro: [taskId: string];
   manageTag: [task: TTask];
   stageChange: [taskId: string, newStage: TaskStage];
+  updateDescription: [taskId: string, newDescription: string];
 }>();
 
 const stageItems = computed(
@@ -197,4 +229,38 @@ const currentStageIcon = computed(() => {
   const stage = props.stages?.find((s) => s.value === props.task.stage);
   return stage?.icon || "i-lucide-inbox";
 });
+
+// Markdown checkbox parsing
+type DescriptionLine =
+  | { type: "checkbox"; checked: boolean; text: string; index: number }
+  | { type: "text"; text: string; index: number };
+
+const descriptionLines = computed<DescriptionLine[]>(() => {
+  if (!props.task.description) return [];
+  return props.task.description.split("\n").map((line, index) => {
+    const checkboxMatch = line.match(/^- \[([ x])\] (.+)$/);
+    if (checkboxMatch) {
+      return {
+        type: "checkbox" as const,
+        checked: checkboxMatch[1] === "x",
+        text: checkboxMatch[2]!,
+        index,
+      };
+    }
+    return { type: "text" as const, text: line, index };
+  });
+});
+
+function toggleCheckbox(lineIndex: number) {
+  if (!props.task.description) return;
+  const lines = props.task.description.split("\n");
+  const line = lines[lineIndex];
+  if (!line) return;
+  if (line.includes("- [ ]")) {
+    lines[lineIndex] = line.replace("- [ ]", "- [x]");
+  } else if (line.includes("- [x]")) {
+    lines[lineIndex] = line.replace("- [x]", "- [ ]");
+  }
+  emit("updateDescription", props.task.id, lines.join("\n"));
+}
 </script>

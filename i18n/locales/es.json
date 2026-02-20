@@ -12,7 +12,7 @@
             "subheadline": "Gestión activa de conocimiento basada en kaizen. Convierte tus reflexiones en acción medible.",
             "cta": "Acceso anticipado",
             "emailPlaceholder": "tu{'@'}correo.com",
-            "badge": "Primeros 250 usuarios · $24/año"
+            "badge": "Primeros 250 usuarios · $2/mes"
         },
         "magicLink": {
             "successTitle": "¡Enlace enviado!",
@@ -104,12 +104,12 @@
             "sectionLabel": "OFERTA DE LANZAMIENTO",
             "title": "ProTech Early Access",
             "subtitle": "Acceso completo al ecosistema por un precio fijo",
-            "price": "24",
+            "price": "2",
             "currency": "USD",
-            "period": "/año",
+            "period": "/mes",
             "badge": "Primeros 250 usuarios",
             "cta": "Reservar mi lugar",
-            "features": "Ecosistema completo, BYOK — Bring Your Own Key + Community Tokens, API + Webhooks (Interoperatibilidad), Agente IA personal, Bitácora de voz con transcripción, Pomodoro con analytics, Precio fijo anual garantizado, Pago via Coingate (crypto)",
+            "features": "Ecosistema completo, BYOK — Bring Your Own Key + Community Tokens, API + Webhooks (Interoperatibilidad), Agente IA personal, Bitácora de voz con transcripción, Pomodoro con analytics, Precio fijo anual garantizado, Pago via crypto",
             "emailPlaceholder": "tu{'@'}correo.com",
             "guarantee": "Sin riesgo. Si no te convence en 30 días, no tienes que pagar."
         },
@@ -129,9 +129,9 @@
         "title": "Términos y Condiciones para la Oferta Especial",
         "description": "¡Bienvenido a Yourfocus! Has sido registrado como uno de los primeros 250 usuarios con acceso a la oferta especial ProTech Early Access.",
         "stepsTitle": "Pasos a seguir",
-        "steps": "Explora el ecosistema completo: Timer, Bitácora de Voz, Agente IA y Tareas Kanban|Configura tu perfil y preferencias de productividad|Conecta tu clave de IA (BYOK) para desbloquear el potencial completo del agente|Realiza el pago de $24 USD/año vía Coingate antes de que se agoten los 250 cupos",
+        "steps": "Explora el ecosistema completo: Timer, Bitácora de Voz, Agente IA y Tareas Kanban|Configura tu perfil y preferencias de productividad|Conecta tu clave de IA (BYOK) para desbloquear el potencial completo del agente|Realiza el pago de $24 USD/año vía Crypto antes de que se agoten los 250 cupos",
         "requirementsTitle": "Requisitos para mantener tu precio especial",
-        "requirements": "Mantener una cuenta activa con al menos 1 sesión por mes|Completar el pago dentro de los primeros 30 días después del registro|El precio de $24 USD/año se mantiene fijo mientras tu suscripción esté activa",
+        "requirements": "Mantener una cuenta activa con al menos 1 sesión por mes|Completar el pago dentro de los primeros 30 días después del registro|El precio de $24 USD/año se mantiene fijo mientras tu suscripción esté activa| Se el comunicara por correo electrónico a su correo registrado para confirmar el pago.",
         "acceptTerms": "He leído y acepto los términos y condiciones de la oferta especial",
         "startButton": "Empezar"
     }

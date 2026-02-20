@@ -1,5 +1,6 @@
 import { useTaskRepository, type TTaskUpdate } from "./use-task-repository";
 import { normalizeTaskTitle, isValidTaskTitle } from "./use-task-domain";
+import type { TaskStage } from "~/types/tables";
 
 // DTO type
 type CreateTaskParams = {
@@ -9,6 +10,7 @@ type CreateTaskParams = {
   tagId?: number;
   description?: string;
   keep?: boolean;
+  stage?: TaskStage;
 };
 export const useTaskService = () => {
   const repository = useTaskRepository();
@@ -20,6 +22,7 @@ export const useTaskService = () => {
     tagId,
     description,
     keep,
+    stage,
   }: CreateTaskParams) {
     const normalized = normalizeTaskTitle(title);
     if (!isValidTaskTitle(normalized)) {
@@ -34,6 +37,7 @@ export const useTaskService = () => {
       description: description || null,
       archived: false,
       keep: keep ?? false,
+      stage: stage || undefined,
     });
   }
 

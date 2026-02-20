@@ -21,7 +21,11 @@ onMounted(async () => {
       if (verifyError) throw verifyError;
 
       // Redirect to home, preserving source if from landing
-      router.push(source ? `/?source=${source}` : "/");
+      // router.push(source ? `/?source=${source}` : "/");
+      router.push({
+        path: "/",
+        query: route.query,
+      });
       return;
     }
 
@@ -29,7 +33,10 @@ onMounted(async () => {
     // Just wait for the user to be available and redirect.
     const user = useSupabaseUser();
     if (user.value) {
-      router.push("/");
+      router.push({
+        path: "/",
+        query: route.query,
+      });
       return;
     }
 
@@ -38,7 +45,10 @@ onMounted(async () => {
       (event, session) => {
         if (event === "SIGNED_IN" || session) {
           listener.subscription.unsubscribe();
-          router.push("/");
+          router.push({
+            path: "/",
+            query: route.query,
+          });
         }
       },
     );

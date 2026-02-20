@@ -195,6 +195,27 @@ export const useProfileController = () => {
     }
   }
 
+  async function handleSetOfferTermsAccepted() {
+    if (!profile.value) return;
+    try {
+      const updatedProfile = await service.updateProfile(profile.value.id, {
+        ...profile.value,
+        settings: {
+          ...((profile.value.settings as Record<string, any>) || {}),
+          offerTermsAccepted: true,
+        },
+      });
+      profile.value = updatedProfile;
+      return updatedProfile;
+    } catch (error: any) {
+      console.error(error);
+      toast.addErrorToast({
+        title: "Error updating offer terms acceptance",
+        description: error.message,
+      });
+    }
+  }
+
   return {
     profile,
     loading,
@@ -206,5 +227,6 @@ export const useProfileController = () => {
     handleSetTagFilterMode,
     handleSetActiveStage,
     handleSetTimeIntervalConfigs,
+    handleSetOfferTermsAccepted,
   };
 };

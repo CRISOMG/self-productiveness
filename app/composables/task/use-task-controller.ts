@@ -59,6 +59,7 @@ export const useTaskController = () => {
     title: string,
     description: string = "",
     tagId?: number,
+    stage?: TaskStage,
   ) {
     if (!pomodoroController.currPomodoro || !profile.value) return;
     isLoading.value = true;
@@ -70,6 +71,7 @@ export const useTaskController = () => {
         tagId: tagId,
         description,
         keep: false, // Default to false
+        stage,
       });
       if (newTask) {
         tasks.value.unshift(newTask); // Add to top
