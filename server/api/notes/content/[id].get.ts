@@ -11,7 +11,6 @@ import {
 
 const BUCKET_NAME = "yourfocus";
 const NOTES_FOLDER = "notas";
-const LEGACY_USER_ID = "4ddb8909-ef46-4cde-8feb-8ce0a3c72564";
 
 /**
  * Busca un archivo por nombre en Supabase Storage recursivamente

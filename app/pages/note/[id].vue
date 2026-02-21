@@ -20,7 +20,7 @@ const { data, status, error } = await useFetch<{ content: string }>(
 // Parse markdown con dependencia en data
 const { data: ast } = await useAsyncData(
   `markdown-${id.value}`,
-  () => parseMarkdown(data.value?.content || ""),
+  () => parseMarkdown(data.value?.content || "No content"),
   { watch: [data] },
 );
 

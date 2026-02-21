@@ -62,7 +62,7 @@
                   :cache-key="`${message.id}-${index}-${compIndex}`"
                   :components="components"
                   :parser-options="{ highlight: false }"
-                  class="*:first:mt-0 *:last:mb-0 border-r-2 border-orange-400/30 rounded-lg max-w-[600px]"
+                  class="*:first:mt-0 *:last:mb-0 border-r-2 border-orange-400/30 rounded-lg max-w-[320px] sm:max-w-[600px]"
                 />
               </template>
             </template>
