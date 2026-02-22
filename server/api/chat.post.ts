@@ -13,6 +13,7 @@ import {
   createAIProvider,
   loadSystemPrompt,
 } from "~~/server/utils/ai/provider";
+import { decryptSecret } from "~~/server/utils/vault";
 
 // 1. Tipos estrictos para la comunicación interna
 export interface IncomingMessage {
@@ -162,6 +163,53 @@ export default defineEventHandler(async (event) => {
   // 5. Cargar system prompt y crear provider
   const systemPrompt = await loadSystemPrompt();
 
+  // 5.5 BYOK Key Resolution: User Key > Community Key > Platform Default
+  let resolvedApiKey = config.googleAiApiKey as string;
+  let keySource = "platform";
+
+  try {
+    // Use service role to bypass RLS for community key lookup
+    const { data: userKey } = await supabase
+      .from("user_secrets")
+      .select("key_value, iv, tag")
+      .eq("user_id", user.sub)
+      .eq("name", "gemini_user")
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (userKey) {
+      resolvedApiKey = decryptSecret({
+        encrypted: userKey.key_value,
+        iv: userKey.iv,
+        tag: userKey.tag,
+      });
+      keySource = "user_byok";
+    } else {
+      // Try community key
+      const { data: communityKey } = await supabase
+        .from("user_secrets")
+        .select("key_value, iv, tag")
+        .is("user_id", null)
+        .eq("name", "gemini_community")
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (communityKey) {
+        resolvedApiKey = decryptSecret({
+          encrypted: communityKey.key_value,
+          iv: communityKey.iv,
+          tag: communityKey.tag,
+        });
+        keySource = "community";
+      }
+    }
+  } catch (e) {
+    console.error(
+      "[Chat API] BYOK key resolution failed, using platform key:",
+      e,
+    );
+  }
+
   // 6. Crear provider con modelo dinámico
   const { model, tools, modelId } = createAIProvider(
     { userId, isPro },
@@ -172,11 +220,13 @@ export default defineEventHandler(async (event) => {
         privateKey: config.google.privateKey,
       },
       supabase,
-      googleAiApiKey: config.googleAiApiKey,
+      googleAiApiKey: resolvedApiKey,
     },
   );
 
-  console.log(`[Chat API] Using model: ${modelId} for user: ${userId}`);
+  console.log(
+    `[Chat API] Using model: ${modelId} for user: ${userId} (key: ${keySource})`,
+  );
 
   // 7. Persistir mensaje del usuario ANTES de procesar
   const userMessageContent =

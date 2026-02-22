@@ -5,7 +5,7 @@ const openProfileModal = ref(false);
 const openTimelineModal = ref(false);
 const openShortcutsModal = ref(false);
 const openWebhookModal = ref(false);
-const openPersonalAccessTokenModal = ref(false);
+const openCredentialsModal = ref(false);
 const openNotesModal = ref(false);
 const openPushNotificationsModal = ref(false);
 
@@ -26,8 +26,8 @@ provideLayoutModals({
   openWebhook: () => {
     openWebhookModal.value = true;
   },
-  openPersonalAccessToken: () => {
-    openPersonalAccessTokenModal.value = true;
+  openCredentials: () => {
+    openCredentialsModal.value = true;
   },
   openPushNotifications: () => {
     openPushNotificationsModal.value = true;
@@ -42,7 +42,7 @@ provideLayoutModals({
       @open-profile="openProfileModal = true"
       @open-shortcuts="openShortcutsModal = true"
       @open-webhook="openWebhookModal = true"
-      @open-personal-access-token="openPersonalAccessTokenModal = true"
+      @open-credentials="openCredentialsModal = true"
       @open-notes="openNotesModal = true"
       @open-push-notifications="openPushNotificationsModal = true"
     />
@@ -59,7 +59,7 @@ provideLayoutModals({
     </template>
     <ShortcutsModal v-model="openShortcutsModal" />
     <WebhookModal v-model="openWebhookModal" />
-    <PersonalAccessTokenModal v-model="openPersonalAccessTokenModal" />
+    <CredentialsModal v-model="openCredentialsModal" />
     <NotesModal v-model="openNotesModal" />
     <PushNotificationsModal v-model="openPushNotificationsModal" />
   </UContainer>

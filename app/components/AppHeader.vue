@@ -41,7 +41,7 @@ const emit = defineEmits<{
   (e: "openProfile"): void;
   (e: "openShortcuts"): void;
   (e: "openWebhook"): void;
-  (e: "openPersonalAccessToken"): void;
+  (e: "openCredentials"): void;
   (e: "openNotes"): void;
   (e: "openPushNotifications"): void;
 }>();
@@ -68,10 +68,10 @@ const items = ref<DropdownMenuItem[][]>([
     },
 
     {
-      label: "Personal Access Token",
-      icon: "i-lucide-key",
+      label: "Credentials",
+      icon: "i-lucide-shield-check",
       onSelect: () => {
-        emit("openPersonalAccessToken");
+        emit("openCredentials");
       },
     },
 

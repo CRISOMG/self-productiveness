@@ -1,4 +1,5 @@
 # Prompt personal access token
+
 ```
 como puedo generar un jwt personalizado con supabase?
 
@@ -10,6 +11,7 @@ el objetivo es poder usar la api rest de supabase con un token que genero un usa
 ```
 
 # Response
+
 Para lograr lo que pides, necesitas crear un mecanismo de **"Personal Access Tokens" (PAT)**.
 
 La clave aquí es que **Supabase valida cualquier JWT que esté firmado con tu `JWT Secret` del proyecto**. No es necesario que el token sea generado por el sistema de Auth (GoTrue) estándar; tú puedes "acuñar" tus propios tokens manualmente usando una Edge Function o un backend seguro.
@@ -21,9 +23,9 @@ Aquí tienes la arquitectura y los pasos para implementarlo.
 1. **Base de Datos:** Una tabla `api_keys` para rastrear los tokens generados, a qué usuario pertenecen y si están activos (para poder revocar el acceso).
 2. **Generación (Edge Function):** Un endpoint que recibe la petición del usuario, crea el registro en la BD y **firma un JWT** usando el secreto de tu proyecto.
 3. **Payload del JWT:**
-* `sub`: Pondremos el **ID del Usuario**. Esto hará que `auth.uid()` funcione nativamente con tus políticas RLS existentes.
-* `jti` (JWT ID): Pondremos el **ID de la API Key**. Esto nos permitirá validar si ese token específico sigue siendo válido en la base de datos.
 
+- `sub`: Pondremos el **ID del Usuario**. Esto hará que `auth.uid()` funcione nativamente con tus políticas RLS existentes.
+- `jti` (JWT ID): Pondremos el **ID de la API Key**. Esto nos permitirá validar si ese token específico sigue siendo válido en la base de datos.
 
 4. **RLS:** Una política que verifica que el usuario sea el dueño (`auth.uid()`) Y Opcionalmente que el token (`jti`) exista en la tabla de keys y esté activo.
 
@@ -46,13 +48,13 @@ create table api_keys (
 alter table api_keys enable row level security;
 
 -- Política: El usuario puede ver sus propias keys
-create policy "Users can view their own keys" 
-on api_keys for select 
+create policy "Users can view their own keys"
+on api_keys for select
 using (auth.uid() = user_id);
 
 -- Política: Solo el usuario puede borrar (revocar) sus keys
-create policy "Users can delete their own keys" 
-on api_keys for delete 
+create policy "Users can delete their own keys"
+on api_keys for delete
 using (auth.uid() = user_id);
 
 ```
@@ -72,22 +74,27 @@ import { create, getNumericDate } from "https://deno.land/x/djwt@v2.8/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 serve(async (req) => {
-  // 1. Instanciar cliente de Supabase (Admin para escribir en api_keys sin restricciones si es necesario, 
+  // 1. Instanciar cliente de Supabase (Admin para escribir en api_keys sin restricciones si es necesario,
   // o usar el contexto del usuario si prefieres)
   const supabaseAdmin = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
   );
 
   // 2. Obtener el usuario que está solicitando el token
   // Pasamos el JWT del usuario actual en el header Authorization
   const authHeader = req.headers.get("Authorization");
-  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
-    authHeader?.replace("Bearer ", "") ?? ""
+  const {
+    data: { user },
+    error: authError,
+  } = await supabaseAdmin.auth.getUser(
+    authHeader?.replace("Bearer ", "") ?? "",
   );
 
   if (authError || !user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
   }
 
   const { name } = await req.json(); // El nombre para identificar el token (ej: "Mi Script Python")
@@ -95,22 +102,24 @@ serve(async (req) => {
   // 3. Insertar el registro en la tabla api_keys
   const { data: apiKeyData, error: dbError } = await supabaseAdmin
     .from("api_keys")
-    .insert({ user_id: user.id, name: name })
+    .insert({ user_id: user.sub, name: name })
     .select()
     .single();
 
   if (dbError) {
-    return new Response(JSON.stringify({ error: dbError.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: dbError.message }), {
+      status: 500,
+    });
   }
 
   // 4. GENERAR EL JWT PERSONALIZADO
   // IMPORTANTE: Este token debe ser firmado con el SUPABASE_JWT_SECRET
   // Puedes encontrar este secreto en tu Dashboard > Settings > API
-  
+
   const jwtSecret = Deno.env.get("JWT_SECRET"); // Debes configurar esto en tus secrets de edge functions
-  
+
   if (!jwtSecret) {
-      return new Response("JWT Secret not configured", { status: 500 });
+    return new Response("JWT Secret not configured", { status: 500 });
   }
 
   const key = await crypto.subtle.importKey(
@@ -118,36 +127,35 @@ serve(async (req) => {
     new TextEncoder().encode(jwtSecret),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign", "verify"]
+    ["sign", "verify"],
   );
 
   const payload = {
     // Claims estándar de Supabase
-    aud: "authenticated",   // Audiencia
-    role: "authenticated",  // Rol (para que pase las reglas básicas de PostgREST)
-    sub: user.id,           // Subject: EL ID DEL USUARIO (para que auth.uid() funcione)
+    aud: "authenticated", // Audiencia
+    role: "authenticated", // Rol (para que pase las reglas básicas de PostgREST)
+    sub: user.sub, // Subject: EL ID DEL USUARIO (para que auth.uid() funcione)
     exp: getNumericDate(60 * 60 * 24 * 365), // Expiración: 1 año (ajustar según necesidad)
-    
+
     // Custom Claims
-    jti: apiKeyData.id,     // JWT ID: El ID de la tabla api_keys
-    type: "personal_access_token" // Para diferenciarlo de un login normal
+    jti: apiKeyData.id, // JWT ID: El ID de la tabla api_keys
+    type: "personal_access_token", // Para diferenciarlo de un login normal
   };
 
   const token = await create({ alg: "HS256", typ: "JWT" }, payload, key);
 
   return new Response(
-    JSON.stringify({ 
-      token: token, 
-      id: apiKeyData.id, 
-      name: apiKeyData.name 
+    JSON.stringify({
+      token: token,
+      id: apiKeyData.id,
+      name: apiKeyData.name,
     }),
-    { headers: { "Content-Type": "application/json" } }
+    { headers: { "Content-Type": "application/json" } },
   );
 });
-
 ```
 
-*Nota: Recuerda establecer el secreto: `supabase secrets set JWT_SECRET=tu_secreto_del_dashboard*`
+_Nota: Recuerda establecer el secreto: `supabase secrets set JWT_SECRET=tu_secreto_del_dashboard_`
 
 ### Paso 3: Configurar RLS para usar y validar este token
 
@@ -155,11 +163,11 @@ Aquí es donde ocurre la magia. Tienes dos opciones dependiendo de qué tan estr
 
 #### Opción A: RLS Estándar (Alto rendimiento, revocación lenta)
 
-Si en el payload (`sub`) pusiste el `user.id`, tus políticas actuales seguirán funcionando tal cual:
+Si en el payload (`sub`) pusiste el `user.sub`, tus políticas actuales seguirán funcionando tal cual:
 
 ```sql
 -- Esta política funciona con el login normal Y con tu token personalizado
-create policy "Select data" on my_table 
+create policy "Select data" on my_table
 using ( auth.uid() = user_id );
 
 ```
@@ -192,8 +200,8 @@ begin
 
   -- Si es un PAT, verificamos que exista y esté activo en la tabla
   return exists (
-    select 1 from api_keys 
-    where id = token_id 
+    select 1 from api_keys
+    where id = token_id
     and is_active = true
   );
 end;
@@ -204,7 +212,7 @@ $$ language plpgsql security definer;
 **2. Aplicar en tus tablas:**
 
 ```sql
-create policy "Access with User ID and Valid Token" 
+create policy "Access with User ID and Valid Token"
 on todos
 for all
 using (
@@ -232,13 +240,14 @@ curl -X GET 'https://tu-proyecto.supabase.co/rest/v1/todos' \
 2. **Respeta RLS:** Sí, al tener el rol `authenticated` y el `sub` correcto, Supabase aplica las políticas automáticamente.
 3. **Consulta la tabla api_keys:** Sí, usando `auth.jwt() ->> 'jti'` en tus políticas (o función helper), puedes cruzar el token con tu tabla `api_keys` para validar permisos o realizar auditoría, cumpliendo tu requerimiento de "obtener la relación con el usuario".
 
-
 # Prompt Nuxt server
+
 ```
 en vez de usar una edge function puedo usar un nuxt server api?
 ```
 
 # Response
+
 ¡Absolutamente! De hecho, dado que ya estás trabajando con **Nuxt**, esta es una opción mucho más cómoda y centralizada. No necesitas añadir la complejidad de Deno/Edge Functions si ya tienes un servidor de Nuxt (Nitro) corriendo.
 
 Al usar un **Nuxt Server Route**, mantienes toda tu lógica en el mismo repositorio y aprovechas el ecosistema de Node.js.
@@ -273,80 +282,86 @@ Usaremos las utilidades de `@nuxtjs/supabase` (asumiendo que estás usando el m�
 
 ```typescript
 // server/api/tokens/generate.post.ts
-import jwt from 'jsonwebtoken'
-import { serverSupabaseUser, serverSupabaseServiceRole } from '#supabase/server'
+import jwt from "jsonwebtoken";
+import {
+  serverSupabaseUser,
+  serverSupabaseServiceRole,
+} from "#supabase/server";
 
 export default defineEventHandler(async (event) => {
   // 1. Obtener el usuario que hace la petición (seguridad primero)
-  const user = await serverSupabaseUser(event)
+  const user = await serverSupabaseUser(event);
 
   if (!user) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Unauthorized: Debes estar logueado para generar una API Key',
-    })
+      statusMessage:
+        "Unauthorized: Debes estar logueado para generar una API Key",
+    });
   }
 
   // 2. Leer el body para obtener el nombre del token
-  const body = await readBody(event)
-  const tokenName = body.name || 'Token sin nombre'
+  const body = await readBody(event);
+  const tokenName = body.name || "Token sin nombre";
 
   // 3. Insertar el registro en la base de datos (Tabla api_keys)
   // Usamos el ServiceRole para asegurarnos de poder escribir, aunque RLS
   // podría permitirlo con el cliente normal, esto es más robusto para operaciones administrativas.
-  const supabaseAdmin = serverSupabaseServiceRole(event)
+  const supabaseAdmin = serverSupabaseServiceRole(event);
 
   const { data: apiKeyData, error: dbError } = await supabaseAdmin
-    .from('api_keys')
+    .from("api_keys")
     .insert({
-      user_id: user.id,
+      user_id: user.sub,
       name: tokenName,
-      is_active: true
+      is_active: true,
     })
     .select()
-    .single()
+    .single();
 
   if (dbError) {
     throw createError({
       statusCode: 500,
       statusMessage: `Error creando registro: ${dbError.message}`,
-    })
+    });
   }
 
   // 4. Firmar el JWT Personalizado
   // Aquí ocurre la magia. Usamos el secreto de Supabase.
-  const jwtSecret = process.env.SUPABASE_JWT_SECRET
+  const jwtSecret = process.env.SUPABASE_JWT_SECRET;
 
   if (!jwtSecret) {
-    throw createError({ statusCode: 500, statusMessage: 'JWT Secret no configurado en servidor' })
+    throw createError({
+      statusCode: 500,
+      statusMessage: "JWT Secret no configurado en servidor",
+    });
   }
 
   const payload = {
     // Claims obligatorios para que Supabase lo acepte
-    aud: 'authenticated',
-    role: 'authenticated',
-    sub: user.id, // CRUCIAL: Esto hace que auth.uid() funcione en RLS
-    
+    aud: "authenticated",
+    role: "authenticated",
+    sub: user.sub, // CRUCIAL: Esto hace que auth.uid() funcione en RLS
+
     // Configuración del token
-    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 365), // 1 año de validez
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365, // 1 año de validez
     iat: Math.floor(Date.now() / 1000),
-    
+
     // Tus claims personalizados para enlazar con la tabla
     jti: apiKeyData.id, // ID de la key en base de datos
-    type: 'personal_access_token'
-  }
+    type: "personal_access_token",
+  };
 
-  const token = jwt.sign(payload, jwtSecret)
+  const token = jwt.sign(payload, jwtSecret);
 
   // 5. Retornar el token al cliente (solo se muestra una vez)
   return {
     token: token,
     id: apiKeyData.id,
     name: apiKeyData.name,
-    message: 'Guarda este token en un lugar seguro, no podrás verlo de nuevo.'
-  }
-})
-
+    message: "Guarda este token en un lugar seguro, no podrás verlo de nuevo.",
+  };
+});
 ```
 
 ### 3. Diferencias Clave con la Edge Function
@@ -364,20 +379,19 @@ En tu componente `.vue`:
 ```javascript
 const createToken = async () => {
   try {
-    const { data, error } = await useFetch('/api/tokens/generate', {
-      method: 'POST',
-      body: { name: 'Mi Script de Python' }
-    })
-    
+    const { data, error } = await useFetch("/api/tokens/generate", {
+      method: "POST",
+      body: { name: "Mi Script de Python" },
+    });
+
     if (data.value) {
-      console.log('Tu nuevo token:', data.value.token)
+      console.log("Tu nuevo token:", data.value.token);
       // Mostrar modal para que el usuario copie el token
     }
   } catch (e) {
-    console.error('Error generando token', e)
+    console.error("Error generando token", e);
   }
-}
-
+};
 ```
 
 ### 5. Recomendación para tu RLS (Recordatorio)
@@ -392,8 +406,8 @@ begin
   -- Si el token tiene type 'personal_access_token', verificamos que exista en la tabla
   if (auth.jwt() ->> 'type') = 'personal_access_token' then
     return exists (
-      select 1 from api_keys 
-      where id = (auth.jwt() ->> 'jti')::uuid 
+      select 1 from api_keys
+      where id = (auth.jwt() ->> 'jti')::uuid
       and is_active = true
     );
   end if;

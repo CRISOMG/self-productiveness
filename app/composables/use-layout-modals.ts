@@ -7,7 +7,7 @@ export interface LayoutModals {
   openProfile: () => void;
   openShortcuts: () => void;
   openWebhook: () => void;
-  openPersonalAccessToken: () => void;
+  openCredentials: () => void;
   openPushNotifications: () => void;
 }
 
@@ -27,7 +27,7 @@ export function useLayoutModals(): LayoutModals {
       openProfile: () => {},
       openShortcuts: () => {},
       openWebhook: () => {},
-      openPersonalAccessToken: () => {},
+      openCredentials: () => {},
       openPushNotifications: () => {},
     };
   }
