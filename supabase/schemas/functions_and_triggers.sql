@@ -1,6 +1,7 @@
 
 CREATE OR REPLACE FUNCTION "public"."auto_finish_expired_pomodoros"() RETURNS "void"
     LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
     UPDATE public.pomodoros
@@ -21,6 +22,7 @@ ALTER FUNCTION "public"."auto_finish_expired_pomodoros"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."calculate_pomodoro_timelapse_sql"("p_started_at" timestamp with time zone, "p_toggle_timeline" "jsonb", "p_expected_duration" integer, "p_now" timestamp with time zone DEFAULT "now"()) RETURNS double precision
     LANGUAGE "plpgsql" IMMUTABLE
+    SET "search_path" TO 'public'
     AS $$
 DECLARE
     v_elapsed_decimal double precision := 0;
@@ -59,8 +61,17 @@ $$ SET search_path = public;
 ALTER FUNCTION "public"."calculate_pomodoro_timelapse_sql"("p_started_at" timestamp with time zone, "p_toggle_timeline" "jsonb", "p_expected_duration" integer, "p_now" timestamp with time zone) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."supabase_url"() RETURNS "text"
+    LANGUAGE "sql" STABLE
+    SET "search_path" TO 'public'
+    AS $$
+SELECT current_setting('request.base_url', true);
+$$;
+
+
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
   INSERT INTO public.profiles (id, username, fullname, avatar_url, has_password)
@@ -99,6 +110,7 @@ ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."handle_user_password_update"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
   UPDATE public.profiles
@@ -114,6 +126,7 @@ ALTER FUNCTION "public"."handle_user_password_update"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."is_valid_personal_access_token"() RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
     AS $$
 declare
   token_id uuid;
@@ -147,6 +160,7 @@ ALTER FUNCTION "public"."is_valid_personal_access_token"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."sync_pomodoro_expected_end"() RETURNS "trigger"
     LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
     AS $$
     DECLARE
         v_duration integer;
@@ -187,6 +201,7 @@ ALTER FUNCTION "public"."sync_pomodoro_expected_end"() OWNER TO "postgres";
 
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
     LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
     AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -384,3 +399,43 @@ CREATE TRIGGER on_auth_user_password_update
 AFTER UPDATE OF encrypted_password ON auth.users
 FOR EACH ROW
 EXECUTE FUNCTION public.handle_user_password_update();
+-- #region New Functions
+CREATE OR REPLACE FUNCTION "public"."match_documents"("query_embedding" "extensions"."vector", "match_count" integer DEFAULT 10, "filter" "jsonb" DEFAULT '{}'::"jsonb") RETURNS TABLE("id" bigint, "content" "text", "metadata" "jsonb", "similarity" double precision)
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public', 'extensions'
+    AS $$
+BEGIN
+  RETURN QUERY
+  SELECT documents.id, documents.content, documents.metadata, 1 - (documents.embedding <=> query_embedding) AS similarity
+  FROM documents WHERE documents.metadata @> filter ORDER BY documents.embedding <=> query_embedding LIMIT match_count;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."handle_user_password_update"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER SET "search_path" TO 'public'
+    AS $$
+BEGIN
+  UPDATE public.profiles SET has_password = (NEW.encrypted_password IS NOT NULL) WHERE id = NEW.id;
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."trigger_send_push_on_pomodoro_finished"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER SET "search_path" TO 'public'
+    AS $$
+declare
+  service_key text;
+begin
+  if NEW.state = 'finished' and (OLD.state is null or OLD.state != 'finished') then
+    select decrypted_secret into service_key from vault.decrypted_secrets where name = 'service_role_key' limit 1;
+    if service_key is null then raise warning 'service_role_key not found in vault. Push notification not sent.'; return NEW; end if;
+    perform net.http_post(
+      url := supabase_url() || '/functions/v1/send-push',
+      headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || service_key),
+      body := jsonb_build_object('type', 'UPDATE', 'table', 'pomodoros', 'record', jsonb_build_object('id', NEW.id, 'user_id', NEW.user_id, 'state', NEW.state, 'expected_duration', NEW.expected_duration, 'type', NEW.type))
+    );
+  end if;
+  return NEW;
+end;
+$$;
+-- #endregion

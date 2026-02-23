@@ -1,12 +1,12 @@
 ALTER TABLE "public"."tags" ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Auth users and PAT can insert tags" ON "public"."tags";
-CREATE POLICY "Auth users and PAT can insert tags" ON "public"."tags" FOR INSERT TO "authenticated" WITH CHECK ((((select auth.uid()) = "user_id") AND "public"."is_valid_personal_access_token"()));
+-- Removed duplicate policy
 DROP POLICY IF EXISTS "Auth users and PAT can read tags" ON "public"."tags";
-CREATE POLICY "Auth users and PAT can read tags" ON "public"."tags" FOR SELECT TO "authenticated" USING ((((select auth.uid()) = "user_id") AND "public"."is_valid_personal_access_token"()));
+-- Removed duplicate policy
 CREATE POLICY "Enable delete for own tags" ON "public"."tags" FOR DELETE TO "authenticated" USING (((select auth.uid()) = "user_id"));
 -- Redundant policies removed: "Enable insert for own tags", "Enable read access for own tags"
-CREATE POLICY "Enable read access for system tags" ON "public"."tags" FOR SELECT USING (("user_id" IS NULL));
+-- Removed duplicate policy
 CREATE POLICY "Enable update for own tags" ON "public"."tags" FOR UPDATE TO "authenticated" USING (((select auth.uid()) = "user_id")) WITH CHECK (((select auth.uid()) = "user_id"));
 
 
@@ -37,7 +37,7 @@ CREATE POLICY "Enable users to edit their own data only" ON "public"."pomodoros"
 
 ALTER TABLE "public"."pomodoros_cycles" ENABLE ROW LEVEL SECURITY;
 -- Redundant policy removed: "Enable insert for authenticated users only"
-CREATE POLICY "Enable insert for users based on user_id" ON "public"."pomodoros_cycles" FOR INSERT WITH CHECK ((( SELECT "auth"."uid"()) = "user_id"));
+-- Removed duplicate policy
 
 DROP POLICY IF EXISTS "Enable users and personal access tokens to view their own data " ON "public"."pomodoros_cycles";
 DROP POLICY IF EXISTS "Enable users and PAT to view cycles" ON "public"."pomodoros_cycles";
@@ -111,7 +111,7 @@ on realtime.messages
 for all
 using (
   -- Check if the user is authenticated
-  auth.role() = 'authenticated' and
+  (select auth.role()) = 'authenticated' and
   -- Check if the topic ends with the user's ID (sub)
   realtime.topic() = 'pomodoro_sync:' || (select auth.uid())::text
 );
@@ -159,3 +159,24 @@ CREATE POLICY "Allow authenticated user to insert their avatar" ON "storage"."ob
 
 CREATE POLICY "Allow authenticated user to select their avatar" ON "storage"."objects" FOR SELECT TO "authenticated" USING ((("bucket_id" = 'avatars'::"text") AND (("auth"."uid"())::"text" = "split_part"("name", '/'::"text", 1))));
 CREATE POLICY "Avatars are viewable by everyone" ON "storage"."objects" FOR SELECT USING (("bucket_id" = 'avatars'::"text"));
+
+
+-- #region New Tables Policies
+-- documents
+ALTER TABLE "public"."documents" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Service role can manage documents" ON "public"."documents" TO service_role USING (true) WITH CHECK (true);
+
+-- n8n_chat_histories
+-- (No RLS needed/enabled for this internal table, or managed elsewhere)
+
+-- push_subscriptions
+ALTER TABLE "public"."push_subscriptions" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage their own push subscriptions" ON "public"."push_subscriptions" FOR ALL TO "authenticated" USING (("user_id" = (select auth.uid()))) WITH CHECK (("user_id" = (select auth.uid())));
+
+-- user_secrets
+ALTER TABLE "public"."user_secrets" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own or community secrets" ON "public"."user_secrets" FOR SELECT TO "authenticated" USING ((("user_id" = (select auth.uid())) OR ("user_id" IS NULL AND (select auth.role()) = 'authenticated')));
+CREATE POLICY "Users can insert own secrets" ON "public"."user_secrets" FOR INSERT TO "authenticated" WITH CHECK (("user_id" = (select auth.uid())));
+CREATE POLICY "Users can update own secrets" ON "public"."user_secrets" FOR UPDATE TO "authenticated" USING (("user_id" = (select auth.uid())));
+CREATE POLICY "Users can delete own secrets" ON "public"."user_secrets" FOR DELETE TO "authenticated" USING (("user_id" = (select auth.uid())));
+-- #endregion
