@@ -1,6 +1,6 @@
 <template>
   <UModal
-    :ui="{ content: ' sm:max-w-lg' }"
+    :ui="{ content: 'max-h-[calc(100vh-11rem)] sm:max-w-lg' }"
     :overlay="true"
     v-model:open="isOpen"
     :title="t('specialOffer.title')"
@@ -66,9 +66,6 @@
           </span>
         </label>
       </div>
-    </template>
-
-    <template #footer>
       <div class="flex w-full justify-end gap-2">
         <UButton
           color="primary"

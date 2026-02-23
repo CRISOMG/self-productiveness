@@ -6,6 +6,8 @@ const isLoggedIn = computed(() => !!user.value?.sub);
 
 import { breakpointsTailwind, useBreakpoints } from "@vueuse/core";
 
+const openSpecialOfferModal = useState("openSpecialOfferModal", () => false);
+
 const breakpoints = useBreakpoints(breakpointsTailwind);
 
 const smAndLarger = breakpoints.greaterOrEqual("sm"); // sm and larger
@@ -118,6 +120,30 @@ const items = ref<DropdownMenuItem[][]>([
       <p class="font-bold">Yourfocus</p>
     </NuxtLink>
 
+    <div v-if="!profileController.profile.value?.settings?.offerTermsAccepted">
+      <p
+        class="text-center cursor-pointer flex flex-col sm:flex-row items-center justify-center gap-2"
+        @click="openSpecialOfferModal = true"
+      >
+        <UBadge
+          color="success"
+          variant="subtle"
+          :ui="{ base: 'inline-flex items-center gap-1.5' }"
+        >
+          <span class="relative flex h-2 w-2">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
+            />
+            <span
+              class="relative inline-flex rounded-full h-2 w-2 bg-green-400"
+            />
+          </span>
+          <span class="text-xs whitespace-nowrap"
+            >Oferta Especial Early Access</span
+          >
+        </UBadge>
+      </p>
+    </div>
     <div class="flex self-end gap-2" v-if="isLoggedIn">
       <!-- Color Mode Toggle -->
       <UButton

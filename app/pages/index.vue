@@ -321,7 +321,7 @@ const user_id = computed(() => {
 });
 
 const openPasswordSetupModal = ref(false);
-const openSpecialOfferModal = ref(false);
+const openSpecialOfferModal = useState("openSpecialOfferModal", () => false);
 const route = useRoute();
 const router = useRouter();
 
