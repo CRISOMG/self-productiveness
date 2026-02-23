@@ -50,7 +50,7 @@ export default defineNuxtConfig({
     supabaseJwtSecret: process.env.SUPABASE_JWT_SECRET,
     public: {
       test_email: process.env.TEST_EMAIL || "",
-      head_app_name: process.env.HEAD_APP_NAME || "Pomodoro",
+      head_app_name: process.env.HEAD_APP_NAME || "Yourfocus",
       vapidPublicKey: process.env.VAPID_PUBLIC_KEY || "",
       n8nGoogleDriveInboxWebhookUrl:
         process.env.N8N_GOOGLE_DRIVE_INBOX_WEBHOOK_URL,

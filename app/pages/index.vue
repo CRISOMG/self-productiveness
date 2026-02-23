@@ -77,170 +77,183 @@
   />
 
   <!-- Mobile Bottom Navbar -->
-  <Teleport to="body">
-    <nav
-      v-if="!openChatDrawer && isMobile"
-      class="fixed bottom-0 left-0 right-0 z-90 sm:hidden pb-0!"
-    >
-      <!-- Mic reveal indicator (appears on long press, hidden during recording) -->
-      <Transition name="mic-reveal">
-        <div>
-          <div
-            v-if="isLongPressing && recorderStatus === 'idle'"
-            ref="micTargetRef"
-            class="absolute left-[calc(50%-6px)] -translate-x-1/2 bottom-32 flex flex-col items-center gap-1 pointer-events-none transition-all duration-200"
-            :class="[
-              isOverMic ? 'scale-125 text-peach-500' : 'scale-100 text-default',
-            ]"
-          >
+  <ClientOnly>
+    <Teleport to="body">
+      <nav
+        v-if="!openChatDrawer && !openSpecialOfferModal && isMobile"
+        class="fixed bottom-0 left-0 right-0 z-90 sm:hidden pb-0!"
+      >
+        <!-- Mic reveal indicator (appears on long press, hidden during recording) -->
+        <Transition name="mic-reveal">
+          <div>
             <div
-              class="w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-200"
+              v-if="isLongPressing && recorderStatus === 'idle'"
+              ref="micTargetRef"
+              class="absolute left-[calc(50%-6px)] -translate-x-1/2 bottom-32 flex flex-col items-center gap-1 pointer-events-none transition-all duration-200"
               :class="[
                 isOverMic
-                  ? 'bg-peach-500/30 ring-2 ring-peach-500 shadow-lg shadow-peach-500/30'
-                  : 'bg-(--ui-bg)/80 ring-1 ring-(--ui-text)/20',
+                  ? 'scale-125 text-peach-500'
+                  : 'scale-100 text-default',
               ]"
             >
-              <UIcon name="i-lucide-mic" class="w-7 h-7" />
+              <div
+                class="w-14 h-14 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-200"
+                :class="[
+                  isOverMic
+                    ? 'bg-peach-500/30 ring-2 ring-peach-500 shadow-lg shadow-peach-500/30'
+                    : 'bg-(--ui-bg)/80 ring-1 ring-(--ui-text)/20',
+                ]"
+              >
+                <UIcon name="i-lucide-mic" class="w-7 h-7" />
+              </div>
+              <span
+                class="text-xs font-medium transition-opacity duration-200"
+                :class="[
+                  isOverMic ? 'opacity-100' : 'opacity-70 animate-pulse',
+                ]"
+              >
+                {{ isOverMic ? "Soltar para activar" : "Desliza hacia arriba" }}
+              </span>
             </div>
-            <span
-              class="text-xs font-medium transition-opacity duration-200"
-              :class="[isOverMic ? 'opacity-100' : 'opacity-70 animate-pulse']"
-            >
-              {{ isOverMic ? "Soltar para activar" : "Desliza hacia arriba" }}
-            </span>
-          </div>
 
-          <div
-            v-if="
-              recorderStatus === 'recording' ||
-              recorderStatus === 'paused' ||
-              isUploading
-            "
-            ref="micTargetRef"
-            class="absolute left-[calc(50%-6px)] -translate-x-1/2 bottom-32 flex flex-col items-center gap-1 transition-all duration-200"
-            :class="[
-              isOverMic ? 'scale-125 text-peach-500' : 'scale-100 text-default',
-            ]"
-          >
-            <!-- Recording controls (shown when recording) -->
             <div
               v-if="
-                recorderStatus === 'recording' || recorderStatus === 'paused'
+                recorderStatus === 'recording' ||
+                recorderStatus === 'paused' ||
+                isUploading
               "
-              class="flex items-center gap-2 bg-default ring-2 ring-red-500/50 rounded-full px-3 py-2 shadow-lg"
+              ref="micTargetRef"
+              class="absolute left-[calc(50%-6px)] -translate-x-1/2 bottom-32 flex flex-col items-center gap-1 transition-all duration-200"
+              :class="[
+                isOverMic
+                  ? 'scale-125 text-peach-500'
+                  : 'scale-100 text-default',
+              ]"
             >
-              <!-- Recording indicator + duration -->
-              <div class="flex items-center gap-1.5">
-                <div
-                  class="w-2.5 h-2.5 rounded-full bg-red-500"
-                  :class="{ 'animate-pulse': recorderStatus === 'recording' }"
+              <!-- Recording controls (shown when recording) -->
+              <div
+                v-if="
+                  recorderStatus === 'recording' || recorderStatus === 'paused'
+                "
+                class="flex items-center gap-2 bg-default ring-2 ring-red-500/50 rounded-full px-3 py-2 shadow-lg"
+              >
+                <!-- Recording indicator + duration -->
+                <div class="flex items-center gap-1.5">
+                  <div
+                    class="w-2.5 h-2.5 rounded-full bg-red-500"
+                    :class="{ 'animate-pulse': recorderStatus === 'recording' }"
+                  />
+                  <span class="text-sm font-mono text-red-500 min-w-[3ch]">
+                    {{ formattedDuration }}
+                  </span>
+                </div>
+
+                <!-- Pause/Resume -->
+                <UButton
+                  v-if="recorderStatus === 'recording'"
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-pause"
+                  @click="pauseRecording"
                 />
-                <span class="text-sm font-mono text-red-500 min-w-[3ch]">
-                  {{ formattedDuration }}
-                </span>
+                <UButton
+                  v-else
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-play"
+                  @click="resumeRecording"
+                />
+
+                <!-- Stop & Send -->
+                <UButton
+                  size="xs"
+                  color="error"
+                  variant="solid"
+                  icon="i-lucide-square"
+                  :loading="isUploading"
+                  @click="handleStopAndSend"
+                />
               </div>
 
-              <!-- Pause/Resume -->
-              <UButton
-                v-if="recorderStatus === 'recording'"
-                size="xs"
-                color="neutral"
-                variant="ghost"
-                icon="i-lucide-pause"
-                @click="pauseRecording"
-              />
-              <UButton
-                v-else
-                size="xs"
-                color="neutral"
-                variant="ghost"
-                icon="i-lucide-play"
-                @click="resumeRecording"
-              />
-
-              <!-- Stop & Send -->
-              <UButton
-                size="xs"
-                color="error"
-                variant="solid"
-                icon="i-lucide-square"
-                :loading="isUploading"
-                @click="handleStopAndSend"
-              />
-            </div>
-
-            <!-- Upload indicator (shown while uploading after stop) -->
-            <div
-              v-else-if="isUploading"
-              class="w-16 h-16 rounded-full flex items-center justify-center bg-default text-default shadow-lg shadow-peach-500/40"
-            >
-              <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin" />
+              <!-- Upload indicator (shown while uploading after stop) -->
+              <div
+                v-else-if="isUploading"
+                class="w-16 h-16 rounded-full flex items-center justify-center bg-default text-default shadow-lg shadow-peach-500/40"
+              >
+                <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin" />
+              </div>
             </div>
           </div>
-        </div>
-      </Transition>
+        </Transition>
 
-      <!-- Navbar bar -->
-      <div
-        class="flex items-end justify-around px-4 pt-2 pb-6 bg-(--ui-bg)/90 backdrop-blur-xl border-t border-(--ui-text)/10"
-      >
-        <!-- Notes button -->
-        <button
-          class="flex flex-col items-center gap-1 text-(--ui-text)/60 hover:text-default transition-colors active:scale-95"
-          @click="layoutModals.openNotes()"
+        <!-- Navbar bar -->
+        <div
+          class="flex items-end justify-around px-4 pt-2 pb-6 bg-(--ui-bg)/90 backdrop-blur-xl border-t border-(--ui-text)/10"
         >
-          <UIcon name="i-lucide-file-text" class="w-6 h-6" />
-          <span class="text-[10px] font-medium">Notes</span>
-        </button>
-
-        <!-- Center area: Brain/Mic button OR Recording controls -->
-        <div class="relative -mt-5">
-          <!-- Default Brain/Mic button -->
+          <!-- Notes button -->
           <button
-            ref="brainButtonRef"
-            class="relative w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-200"
-            :class="[
-              isMicMode
-                ? 'bg-peach-500 text-white shadow-peach-500/40'
-                : 'bg-default text-default ring-2 ring-peach-500/50 shadow-peach-500/20',
-              isLongPressing ? 'scale-110 ring-peach-500' : '',
-            ]"
-            @click="handleCenterButtonClick"
-            @touchstart.prevent="handleTouchStart"
-            @touchmove.prevent="handleTouchMove"
-            @touchend.prevent="handleTouchEnd"
-            @contextmenu.prevent
+            class="flex flex-col items-center gap-1 text-(--ui-text)/60 hover:text-default transition-colors active:scale-95"
+            @click="layoutModals.openNotes()"
           >
-            <Transition name="icon-swap" mode="out-in">
-              <UIcon
-                v-if="isMicMode"
-                key="mic"
-                name="i-lucide-mic"
-                class="w-8 h-8"
-              />
-              <UIcon v-else key="brain" name="i-lucide-brain" class="w-8 h-8" />
-            </Transition>
+            <UIcon name="i-lucide-file-text" class="w-6 h-6" />
+            <span class="text-[10px] font-medium">Notes</span>
+          </button>
 
-            <!-- Pulse ring animation when mic is active -->
-            <span
-              v-if="isMicMode"
-              class="absolute inset-0 rounded-full bg-peach-500/30 animate-ping"
-            />
+          <!-- Center area: Brain/Mic button OR Recording controls -->
+          <div class="relative -mt-5">
+            <!-- Default Brain/Mic button -->
+            <button
+              ref="brainButtonRef"
+              class="relative w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-all duration-200"
+              :class="[
+                isMicMode
+                  ? 'bg-peach-500 text-white shadow-peach-500/40'
+                  : 'bg-default text-default ring-2 ring-peach-500/50 shadow-peach-500/20',
+                isLongPressing ? 'scale-110 ring-peach-500' : '',
+              ]"
+              @click="handleCenterButtonClick"
+              @touchstart.prevent="handleTouchStart"
+              @touchmove.prevent="handleTouchMove"
+              @touchend.prevent="handleTouchEnd"
+              @contextmenu.prevent
+            >
+              <Transition name="icon-swap" mode="out-in">
+                <UIcon
+                  v-if="isMicMode"
+                  key="mic"
+                  name="i-lucide-mic"
+                  class="w-8 h-8"
+                />
+                <UIcon
+                  v-else
+                  key="brain"
+                  name="i-lucide-brain"
+                  class="w-8 h-8"
+                />
+              </Transition>
+
+              <!-- Pulse ring animation when mic is active -->
+              <span
+                v-if="isMicMode"
+                class="absolute inset-0 rounded-full bg-peach-500/30 animate-ping"
+              />
+            </button>
+          </div>
+
+          <!-- Timeline button -->
+          <button
+            class="flex flex-col items-center gap-1 text-(--ui-text)/60 hover:text-default transition-colors active:scale-95"
+            @click="layoutModals.openTimeline()"
+          >
+            <UIcon name="i-lucide-chart-column" class="w-6 h-6" />
+            <span class="text-[10px] font-medium">Timeline</span>
           </button>
         </div>
-
-        <!-- Timeline button -->
-        <button
-          class="flex flex-col items-center gap-1 text-(--ui-text)/60 hover:text-default transition-colors active:scale-95"
-          @click="layoutModals.openTimeline()"
-        >
-          <UIcon name="i-lucide-chart-column" class="w-6 h-6" />
-          <span class="text-[10px] font-medium">Timeline</span>
-        </button>
-      </div>
-    </nav>
-  </Teleport>
+      </nav>
+    </Teleport>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">

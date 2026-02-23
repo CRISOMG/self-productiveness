@@ -1,8 +1,9 @@
 <template>
   <UModal
     :ui="{ content: 'max-h-[calc(100vh-11rem)] sm:max-w-lg' }"
-    :overlay="true"
+    :dismissible="false"
     v-model:open="isOpen"
+    :handle="false"
     :title="t('specialOffer.title')"
     prevent-close
   >
