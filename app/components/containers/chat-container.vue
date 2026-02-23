@@ -205,9 +205,11 @@ import type {
 import { useClipboard } from "@vueuse/core";
 import { getTextFromMessage } from "@nuxt/ui/utils/ai";
 import ProseStreamPre from "~/components/prose/PreStream.vue";
+import ProseA from "~/components/prose/ProseA.vue";
 import { useFileUploadWithStatus } from "~/composables/useFileUpload";
 const components = {
   pre: ProseStreamPre as unknown as DefineComponent,
+  a: ProseA as unknown as DefineComponent,
 };
 
 // Utility to parse mixed content (text + tool logs)

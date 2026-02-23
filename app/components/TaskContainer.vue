@@ -40,6 +40,25 @@
                 label="Show archived"
                 size="sm"
               />
+              <USeparator class="my-2" />
+              <UButton
+                label="Manage Templates"
+                icon="i-lucide-layout-template"
+                color="neutral"
+                variant="outline"
+                size="sm"
+                class="w-full justify-start mt-1"
+                @click="isManageTemplatesModalOpen = true"
+              />
+              <UButton
+                label="Create from Template"
+                icon="i-lucide-copy"
+                color="neutral"
+                variant="outline"
+                size="sm"
+                class="w-full justify-start mt-1"
+                @click="isCreateFromTemplateModalOpen = true"
+              />
             </div>
           </template>
         </UPopover>
@@ -317,6 +336,13 @@
         }
       "
     />
+
+    <TaskTemplatesManagerModal v-model:open="isManageTemplatesModalOpen" />
+
+    <CreateTaskFromTemplateModal
+      v-model:open="isCreateFromTemplateModalOpen"
+      @task-created="taskController.loadTasks()"
+    />
   </div>
 </template>
 
@@ -582,6 +608,9 @@ const sortedTasks = computed(() => {
 
 const createTaskModal = ref(false);
 const manageTagModal = ref(false);
+
+const isManageTemplatesModalOpen = ref(false);
+const isCreateFromTemplateModalOpen = ref(false);
 
 onMounted(() => {
   tagController.loadUserTags();

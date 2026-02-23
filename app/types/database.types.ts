@@ -304,6 +304,60 @@ export type Database = {
         };
         Relationships: [];
       };
+      task_templates: {
+        Row: {
+          created_at: string;
+          default_description: string | null;
+          id: string;
+          title: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          default_description?: string | null;
+          id?: string;
+          title: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          default_description?: string | null;
+          id?: string;
+          title?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      task_templates_tags: {
+        Row: {
+          tag_id: number;
+          template_id: string;
+        };
+        Insert: {
+          tag_id: number;
+          template_id: string;
+        };
+        Update: {
+          tag_id?: number;
+          template_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "task_templates_tags_tag_id_fkey";
+            columns: ["tag_id"];
+            isOneToOne: false;
+            referencedRelation: "tags";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "task_templates_tags_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "task_templates";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       tasks: {
         Row: {
           archived: boolean | null;
