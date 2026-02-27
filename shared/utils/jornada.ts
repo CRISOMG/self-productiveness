@@ -19,12 +19,16 @@ export const DIAS = [
   "Sábado",
 ];
 
-export function getJornadaInfo(date: Date): {
+export function getJornadaInfo(
+  date: Date,
+  timeZone: string = "America/Caracas",
+): {
   formatted_id: string;
   system_filename: string;
   dayFolder: string;
 } {
-  const hour = date.getHours();
+  const tzDate = new Date(date.toLocaleString("en-US", { timeZone }));
+  const hour = tzDate.getHours();
 
   // Encontrar jornada (nocturna si no se encuentra otra)
   const jornada =
@@ -53,14 +57,14 @@ export function getJornadaInfo(date: Date): {
     momento = hour >= jornada.inicio || hour < c1 ? "temprana" : "media";
   }
 
-  const diaSemana = DIAS[date.getDay()];
+  const diaSemana = DIAS[tzDate.getDay()];
 
   const pad = (n: number) => n.toString().padStart(2, "0");
-  const dateStr = `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const dateStr = `${pad(tzDate.getDate())}-${pad(tzDate.getMonth() + 1)}-${tzDate.getFullYear()} ${pad(tzDate.getHours())}:${pad(tzDate.getMinutes())}`;
 
   const formatted_id = `Bitacora ${jornada.nombre} ${momento}, ${diaSemana}, ${dateStr}`;
-  const system_filename = `${date.getFullYear()}_${pad(date.getMonth() + 1)}_${pad(date.getDate())}.${pad(date.getHours())}.${pad(date.getMinutes())}`;
-  const dayFolder = `${date.getFullYear()}_${pad(date.getMonth() + 1)}_${pad(date.getDate())}`;
+  const system_filename = `${tzDate.getFullYear()}_${pad(tzDate.getMonth() + 1)}_${pad(tzDate.getDate())}.${pad(tzDate.getHours())}.${pad(tzDate.getMinutes())}`;
+  const dayFolder = `${tzDate.getFullYear()}_${pad(tzDate.getMonth() + 1)}_${pad(tzDate.getDate())}`;
 
   return { formatted_id, system_filename, dayFolder };
 }
@@ -69,7 +73,8 @@ export function getAudioStoragePath(
   userId: string,
   filename: string,
   date: Date = new Date(),
+  timeZone: string = "America/Caracas",
 ) {
-  const { dayFolder } = getJornadaInfo(date);
+  const { dayFolder } = getJornadaInfo(date, timeZone);
   return `${userId}/bitacora/${dayFolder}/${filename}`;
 }

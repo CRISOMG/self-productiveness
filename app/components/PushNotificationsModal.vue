@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import ScheduledNotificationsTab from "~/components/notifications/ScheduledNotificationsTab.vue";
+
+const tabItems = [
+  { label: "Dispositivos", icon: "i-lucide-smartphone", slot: "devices" },
+  { label: "Programadas", icon: "i-lucide-calendar-clock", slot: "scheduled" },
+];
+
 const open = defineModel<boolean>({ default: false });
 
 const supabase = useSupabaseClient();
@@ -89,94 +96,104 @@ watch(open, (isOpen) => {
     :ui="{ content: 'sm:max-w-lg' }"
   >
     <template #body>
-      <div class="space-y-4">
-        <!-- Status -->
-        <div
-          v-if="!pushNotifications.isSupported.value"
-          class="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-600 text-sm"
-        >
-          ⚠️ Tu navegador no soporta Push Notifications
-        </div>
-
-        <div
-          v-else-if="pushNotifications.permissionState.value === 'denied'"
-          class="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm"
-        >
-          🚫 Has bloqueado las notificaciones. Habilítalas desde la
-          configuración del navegador.
-        </div>
-
-        <!-- Subscribe button -->
-        <div v-else class="flex items-center justify-between">
-          <div>
-            <p class="font-medium">Este dispositivo</p>
-            <p class="text-sm text-neutral-500">
-              {{
-                pushNotifications.isSubscribed.value
-                  ? "✅ Suscrito"
-                  : "Recibe alertas cuando termine tu Pomodoro"
-              }}
-            </p>
-          </div>
-          <UButton
-            v-if="!pushNotifications.isSubscribed.value"
-            @click="subscribeDevice"
-            :loading="pushNotifications.isLoading.value"
-            icon="i-lucide-bell"
-            color="primary"
-          >
-            Activar
-          </UButton>
-        </div>
-
-        <USeparator />
-
-        <!-- Subscriptions list -->
-        <div>
-          <p class="font-medium mb-2">Dispositivos suscritos</p>
-
-          <div v-if="loadingList" class="text-center py-4">
-            <UIcon name="i-lucide-loader-2" class="animate-spin" />
-          </div>
-
-          <div
-            v-else-if="subscriptions.length === 0"
-            class="text-neutral-500 text-sm py-4 text-center"
-          >
-            No hay dispositivos suscritos
-          </div>
-
-          <div v-else class="space-y-2">
+      <UTabs :items="tabItems" class="w-full">
+        <template #devices>
+          <div class="space-y-4 pt-4">
+            <!-- Status -->
             <div
-              v-for="sub in subscriptions"
-              :key="sub.id"
-              class="flex items-center justify-between p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg"
+              v-if="!pushNotifications.isSupported.value"
+              class="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-600 text-sm"
             >
+              ⚠️ Tu navegador no soporta Push Notifications
+            </div>
+
+            <div
+              v-else-if="pushNotifications.permissionState.value === 'denied'"
+              class="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm"
+            >
+              🚫 Has bloqueado las notificaciones. Habilítalas desde la
+              configuración del navegador.
+            </div>
+
+            <!-- Subscribe button -->
+            <div v-else class="flex items-center justify-between">
               <div>
-                <p class="font-medium">{{ formatDevice(sub.device_info) }}</p>
-                <p class="text-xs text-neutral-500">
-                  {{ formatDate(sub.created_at) }}
+                <p class="font-medium">Este dispositivo</p>
+                <p class="text-sm text-neutral-500">
+                  {{
+                    pushNotifications.isSubscribed.value
+                      ? "✅ Suscrito"
+                      : "Recibe alertas cuando termine tu Pomodoro"
+                  }}
                 </p>
               </div>
               <UButton
-                @click="deleteSubscription(sub.id)"
-                icon="i-lucide-trash-2"
-                color="error"
-                variant="ghost"
-                size="sm"
-              />
+                v-if="!pushNotifications.isSubscribed.value"
+                @click="subscribeDevice"
+                :loading="pushNotifications.isLoading.value"
+                icon="i-lucide-bell"
+                color="primary"
+              >
+                Activar
+              </UButton>
+            </div>
+
+            <USeparator />
+
+            <!-- Subscriptions list -->
+            <div>
+              <p class="font-medium mb-2">Dispositivos suscritos</p>
+
+              <div v-if="loadingList" class="text-center py-4">
+                <UIcon name="i-lucide-loader-2" class="animate-spin" />
+              </div>
+
+              <div
+                v-else-if="subscriptions.length === 0"
+                class="text-neutral-500 text-sm py-4 text-center"
+              >
+                No hay dispositivos suscritos
+              </div>
+
+              <div v-else class="space-y-2">
+                <div
+                  v-for="sub in subscriptions"
+                  :key="sub.id"
+                  class="flex items-center justify-between p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg"
+                >
+                  <div>
+                    <p class="font-medium">
+                      {{ formatDevice(sub.device_info) }}
+                    </p>
+                    <p class="text-xs text-neutral-500">
+                      {{ formatDate(sub.created_at) }}
+                    </p>
+                  </div>
+                  <UButton
+                    @click="deleteSubscription(sub.id)"
+                    icon="i-lucide-trash-2"
+                    color="error"
+                    variant="ghost"
+                    size="sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Error message -->
+            <div
+              v-if="pushNotifications.error.value"
+              class="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm"
+            >
+              {{ pushNotifications.error.value }}
             </div>
           </div>
-        </div>
+        </template>
 
-        <!-- Error message -->
-        <div
-          v-if="pushNotifications.error.value"
-          class="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm"
-        >
-          {{ pushNotifications.error.value }}
-        </div>
-      </div>
+        <template #scheduled>
+          <ScheduledNotificationsTab />
+        </template>
+      </UTabs>
     </template>
 
     <template #footer>

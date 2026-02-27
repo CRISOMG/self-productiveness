@@ -432,7 +432,18 @@ begin
     perform net.http_post(
       url := supabase_url() || '/functions/v1/send-push',
       headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || service_key),
-      body := jsonb_build_object('type', 'UPDATE', 'table', 'pomodoros', 'record', jsonb_build_object('id', NEW.id, 'user_id', NEW.user_id, 'state', NEW.state, 'expected_duration', NEW.expected_duration, 'type', NEW.type))
+      body := jsonb_build_object(
+        'type', 'POMODORO_COMPLETED',
+        'user_id', NEW.user_id,
+        'record', jsonb_build_object('id', NEW.id, 'user_id', NEW.user_id, 'state', NEW.state, 'expected_duration', NEW.expected_duration, 'type', NEW.type),
+        'notification', jsonb_build_object(
+            'title', '¡Pomodoro Completado!',
+            'body', 'Tu sesión de enfoque terminó. ¡Tómate un descanso!',
+            'icon', '/favicon.ico',
+            'badge', '/favicon.ico',
+            'url', '/'
+        )
+      )
     );
   end if;
   return NEW;

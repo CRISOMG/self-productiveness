@@ -7,6 +7,7 @@ import { createSupabaseTasksTools } from "./supabase-tasks";
 import { createSupabaseStorageTools } from "./supabase-storage";
 import { createSupabaseTagsTools } from "./supabase-tags";
 import { createSupabaseTaskTemplatesTools } from "./supabase-task-templates";
+import { createSupabaseScheduledNotificationsTools } from "./supabase-scheduled-notifications";
 
 export interface ToolsConfig {
   userId: string;
@@ -46,6 +47,12 @@ export function createTools(config: ToolsConfig) {
     config.supabase,
   );
 
+  // Supabase Scheduled Notifications tools
+  const scheduledNotificationsTools = createSupabaseScheduledNotificationsTools(
+    config.userId,
+    config.supabase,
+  );
+
   return {
     think: thinkTool,
     // Legacy Google Drive tools (for reading existing files)
@@ -55,6 +62,7 @@ export function createTools(config: ToolsConfig) {
     ...storageTools,
     ...tagTools,
     ...taskTemplateTools,
+    ...scheduledNotificationsTools,
   };
 }
 

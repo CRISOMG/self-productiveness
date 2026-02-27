@@ -8,42 +8,31 @@ const privateVapidKey = Deno.env.get("VAPID_PRIVATE_KEY")!;
 
 webpush.setVapidDetails(vapidEmail, publicVapidKey, privateVapidKey);
 
-interface PomodoroRecord {
-  id: number;
-  user_id: string;
-  state: string;
-  [key: string]: unknown;
+interface PushNotificationPayload {
+  title: string;
+  body: string;
+  icon?: string;
+  badge?: string;
+  url?: string;
 }
 
 interface WebhookPayload {
-  type: "INSERT" | "UPDATE" | "DELETE";
-  table: string;
-  record: PomodoroRecord;
-  old_record: PomodoroRecord | null;
+  type: string;
+  user_id: string; // The target user
+  notification?: PushNotificationPayload; // Dynamic content
+  // Allows flexibility for other arbitrary data (like record from table)
+  [key: string]: unknown;
 }
 
 Deno.serve(async (req) => {
   try {
-    // Parse the webhook payload from Database Webhooks
+    // Parse the payload from the trigger or direct invocation
     const payload: WebhookPayload = await req.json();
-    const record = payload.record;
 
-    // Only proceed if this is a pomodoro state change to 'finished'
-    if (
-      payload.type !== "UPDATE" ||
-      record.state !== "finished" ||
-      payload.old_record?.state === "finished"
-    ) {
-      return new Response(
-        JSON.stringify({ skipped: true, reason: "Not a finish event" }),
-        { headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    const userId = record.user_id;
+    const userId = payload.user_id;
 
     if (!userId) {
-      return new Response(JSON.stringify({ error: "No user_id in record" }), {
+      return new Response(JSON.stringify({ error: "No user_id in payload" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
@@ -77,13 +66,13 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Prepare notification payload
+    // Prepare notification payload from incoming request or use fallback
     const notificationPayload = JSON.stringify({
-      title: "¡Pomodoro Completado!",
-      body: "Tu sesión de enfoque terminó. ¡Tómate un descanso!",
-      icon: "/favicon.ico",
-      badge: "/favicon.ico",
-      url: "/",
+      title: payload.notification?.title || "Notificación de YourFocus",
+      body: payload.notification?.body || "Tienes una nueva actualización.",
+      icon: payload.notification?.icon || "/favicon.ico",
+      badge: payload.notification?.badge || "/favicon.ico",
+      url: payload.notification?.url || "/",
       timestamp: Date.now(),
     });
 
