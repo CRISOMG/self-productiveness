@@ -8,6 +8,7 @@ const openWebhookModal = ref(false);
 const openCredentialsModal = ref(false);
 const openNotesModal = ref(false);
 const openPushNotificationsModal = ref(false);
+const openInstallAppModal = ref(false);
 
 // Provide modal controls to child pages/components
 provideLayoutModals({
@@ -32,6 +33,9 @@ provideLayoutModals({
   openPushNotifications: () => {
     openPushNotificationsModal.value = true;
   },
+  openInstallApp: () => {
+    openInstallAppModal.value = true;
+  },
 });
 </script>
 
@@ -45,6 +49,7 @@ provideLayoutModals({
       @open-credentials="openCredentialsModal = true"
       @open-notes="openNotesModal = true"
       @open-push-notifications="openPushNotificationsModal = true"
+      @open-install-app="openInstallAppModal = true"
     />
     <USeparator />
 
@@ -62,5 +67,6 @@ provideLayoutModals({
     <CredentialsModal v-model="openCredentialsModal" />
     <NotesModal v-model="openNotesModal" />
     <PushNotificationsModal v-model="openPushNotificationsModal" />
+    <InstallAppModal v-model="openInstallAppModal" />
   </UContainer>
 </template>

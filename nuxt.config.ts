@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     "@nuxt/test-utils/module",
     "@nuxtjs/mdc",
     "@vueuse/nuxt",
+    "@vite-pwa/nuxt",
   ],
 
   i18n: {
@@ -43,6 +44,43 @@ export default defineNuxtConfig({
       "~/composables/*/index.{ts,js,mjs,mts}",
       "~/composables/**",
     ],
+  },
+
+  pwa: {
+    client: {
+      installPrompt: true,
+    },
+    // Añadimos configuración básica para que la PWA sea instalable
+    manifest: {
+      name: "Yourfocus",
+      short_name: "Yourfocus",
+      description: "App para gestionar tu tiempo",
+      theme_color: "#DB6C03",
+      background_color: "#0D222D",
+      display: "standalone",
+      start_url: "/",
+      icons: [
+        {
+          src: "favicon.ico",
+          sizes: "64x64 32x32 24x24 16x16",
+          type: "image/x-icon",
+        },
+        {
+          src: "favicon.png",
+          sizes: "192x192",
+          type: "image/png",
+        },
+        {
+          src: "favicon.png",
+          sizes: "512x512",
+          type: "image/png",
+        },
+      ],
+    },
+    devOptions: {
+      enabled: true,
+      type: "module",
+    },
   },
 
   runtimeConfig: {

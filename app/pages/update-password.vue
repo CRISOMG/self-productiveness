@@ -8,17 +8,26 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
 
-const schema = z.object({
-  password: z.string().min(8, "Must be at least 8 characters"),
-});
+const schema = z
+  .object({
+    password: z.string().min(8, "Must be at least 8 characters"),
+    confirmPassword: z.string().min(8, "Must be at least 8 characters"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type Schema = z.output<typeof schema>;
 
 const state = reactive({
   password: "",
+  confirmPassword: "",
 });
 
 const loading = ref(false);
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 onMounted(async () => {
   // If we have a hash, we are in the reset password flow
@@ -77,19 +86,62 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <UForm
           :schema="schema"
           :state="state"
-          class="space-y-4 flex flex-col items-center justify-center"
+          class="space-y-4 flex flex-col w-full"
           @submit="onSubmit"
         >
-          <UFormField class="w-fit" label="New Password" name="password">
+          <UFormField class="w-full" label="New Password" name="password">
             <UInput
               v-model="state.password"
-              type="password"
+              :type="showPassword ? 'text' : 'password'"
               placeholder="Enter new password"
               icon="i-lucide-lock"
-            />
+              :ui="{ trailing: 'pe-1' }"
+              class="w-full"
+            >
+              <template #trailing>
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  size="sm"
+                  :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                  aria-label="Toggle password visibility"
+                  :padded="false"
+                  @click="showPassword = !showPassword"
+                />
+              </template>
+            </UInput>
           </UFormField>
 
-          <UButton class="w-fit" type="submit" block :loading="loading">
+          <UFormField
+            class="w-full"
+            label="Confirm Password"
+            name="confirmPassword"
+          >
+            <UInput
+              v-model="state.confirmPassword"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              placeholder="Confirm new password"
+              icon="i-lucide-lock"
+              :ui="{ trailing: 'pe-1' }"
+              class="w-full"
+            >
+              <template #trailing>
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  size="sm"
+                  :icon="
+                    showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'
+                  "
+                  aria-label="Toggle confirm password visibility"
+                  :padded="false"
+                  @click="showConfirmPassword = !showConfirmPassword"
+                />
+              </template>
+            </UInput>
+          </UFormField>
+
+          <UButton class="w-full mt-2" type="submit" block :loading="loading">
             Update Password
           </UButton>
         </UForm>

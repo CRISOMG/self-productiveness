@@ -50,62 +50,76 @@ const emit = defineEmits<{
 
 const profileController = useProfileController();
 const supabase = useSupabaseClient();
+const { $pwa } = useNuxtApp();
 
-const items = ref<DropdownMenuItem[][]>([
-  [
-    {
-      label: "Profile",
-      icon: "i-lucide-user",
-      onSelect: () => {
-        emit("openProfile");
+const items = computed<DropdownMenuItem[][]>(() => {
+  const dropdownItems: DropdownMenuItem[][] = [
+    [
+      {
+        label: "Profile",
+        icon: "i-lucide-user",
+        onSelect: () => {
+          emit("openProfile");
+        },
       },
-    },
+      {
+        label: "Keyboard shortcuts",
+        icon: "i-lucide-monitor",
+        onSelect: () => {
+          emit("openShortcuts");
+        },
+      },
+      {
+        label: "Credentials",
+        icon: "i-lucide-shield-check",
+        onSelect: () => {
+          emit("openCredentials");
+        },
+      },
+      {
+        label: "Webhook",
+        icon: "i-lucide-webhook",
+        onSelect: () => {
+          emit("openWebhook");
+        },
+      },
+      {
+        label: "Push Notifications",
+        icon: "i-lucide-bell",
+        onSelect: () => {
+          emit("openPushNotifications");
+        },
+      },
+    ],
+  ];
 
-    {
-      label: "Keyboard shortcuts",
-      icon: "i-lucide-monitor",
-      onSelect: () => {
-        emit("openShortcuts");
-      },
-    },
+  console.log($pwa);
 
-    {
-      label: "Credentials",
-      icon: "i-lucide-shield-check",
+  if ($pwa?.showInstallPrompt) {
+    dropdownItems[0]?.push({
+      label: "Install App",
+      icon: "i-lucide-download",
       onSelect: () => {
-        emit("openCredentials");
+        emit("openInstallApp");
       },
-    },
+    });
+  }
 
-    {
-      label: "Webhook",
-      icon: "i-lucide-webhook",
-      onSelect: () => {
-        emit("openWebhook");
+  return dropdownItems.concat([
+    [
+      {
+        label: "Logout",
+        icon: "i-lucide-log-out",
+        kbds: ["shift", "meta", "q"],
+        onSelect() {
+          supabase.auth.signOut().then(() => {
+            navigateTo("/login");
+          });
+        },
       },
-    },
-    {
-      label: "Push Notifications",
-      icon: "i-lucide-bell",
-      onSelect: () => {
-        emit("openPushNotifications");
-      },
-    },
-  ],
-
-  [
-    {
-      label: "Logout",
-      icon: "i-lucide-log-out",
-      kbds: ["shift", "meta", "q"],
-      onSelect() {
-        supabase.auth.signOut().then(() => {
-          navigateTo("/login");
-        });
-      },
-    },
-  ],
-]);
+    ],
+  ]);
+});
 </script>
 
 <template>
