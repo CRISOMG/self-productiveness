@@ -9,6 +9,7 @@ const openCredentialsModal = ref(false);
 const openNotesModal = ref(false);
 const openPushNotificationsModal = ref(false);
 const openInstallAppModal = ref(false);
+const openOfflineQueueModal = ref(false);
 
 // Provide modal controls to child pages/components
 provideLayoutModals({
@@ -36,6 +37,9 @@ provideLayoutModals({
   openInstallApp: () => {
     openInstallAppModal.value = true;
   },
+  openOfflineQueue: () => {
+    openOfflineQueueModal.value = true;
+  },
 });
 </script>
 
@@ -50,6 +54,7 @@ provideLayoutModals({
       @open-notes="openNotesModal = true"
       @open-push-notifications="openPushNotificationsModal = true"
       @open-install-app="openInstallAppModal = true"
+      @open-offline-queue="openOfflineQueueModal = true"
     />
     <USeparator />
 
@@ -68,5 +73,6 @@ provideLayoutModals({
     <NotesModal v-model="openNotesModal" />
     <PushNotificationsModal v-model="openPushNotificationsModal" />
     <InstallAppModal v-model="openInstallAppModal" />
+    <OfflineQueueModal v-model="openOfflineQueueModal" />
   </UContainer>
 </template>

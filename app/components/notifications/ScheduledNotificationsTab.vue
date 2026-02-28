@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watchEffect } from "vue";
-import { JORNADAS } from "~~/shared/utils/jornada.v2";
+import * as J from "~~/shared/utils/v2/jornada";
 import { useSupabaseClient } from "#imports";
 import { useAuthStore } from "~/stores/auth";
 
@@ -67,7 +67,7 @@ const daysOfWeekOptions = [
 
 // Generate Jornada presets based on the 16-Hour Active Model
 const jornadaOptions = computed(() => {
-  return JORNADAS.map((j) => {
+  return J.JORNADAS.map((j) => {
     const nombreCap = j.nombre.charAt(0).toUpperCase() + j.nombre.slice(1);
 
     // Format hour and minute for UI display

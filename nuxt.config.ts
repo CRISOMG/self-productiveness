@@ -46,6 +46,12 @@ export default defineNuxtConfig({
     ],
   },
 
+  icon: {
+    clientBundle: {
+      icons: ["lucide:wifi-off"],
+    },
+  },
+
   pwa: {
     client: {
       installPrompt: true,
@@ -80,6 +86,88 @@ export default defineNuxtConfig({
     devOptions: {
       enabled: true,
       type: "module",
+    },
+    workbox: {
+      runtimeCaching: [
+        {
+          urlPattern: /\/rest\/v1\/pomodoros/i,
+          handler: "NetworkOnly",
+          method: "POST",
+          options: {
+            backgroundSync: {
+              name: "pomodoro-sync-queue",
+              options: {
+                maxRetentionTime: 24 * 60, // 24 hours
+              },
+            },
+          },
+        },
+        {
+          urlPattern: /\/rest\/v1\/pomodoros/i,
+          handler: "NetworkOnly",
+          method: "PATCH",
+          options: {
+            backgroundSync: {
+              name: "pomodoro-sync-queue",
+              options: {
+                maxRetentionTime: 24 * 60,
+              },
+            },
+          },
+        },
+        {
+          urlPattern: /\/rest\/v1\/pomodoros/i,
+          handler: "NetworkOnly",
+          method: "DELETE",
+          options: {
+            backgroundSync: {
+              name: "pomodoro-sync-queue",
+              options: {
+                maxRetentionTime: 24 * 60,
+              },
+            },
+          },
+        },
+        {
+          urlPattern: /\/rest\/v1\/pomodoros_cycles/i,
+          handler: "NetworkOnly",
+          method: "POST",
+          options: {
+            backgroundSync: {
+              name: "pomodoro-sync-queue",
+              options: {
+                maxRetentionTime: 24 * 60,
+              },
+            },
+          },
+        },
+        {
+          urlPattern: /\/rest\/v1\/pomodoros_cycles/i,
+          handler: "NetworkOnly",
+          method: "PATCH",
+          options: {
+            backgroundSync: {
+              name: "pomodoro-sync-queue",
+              options: {
+                maxRetentionTime: 24 * 60,
+              },
+            },
+          },
+        },
+        {
+          urlPattern: /\/rest\/v1\/pomodoros_cycles/i,
+          handler: "NetworkOnly",
+          method: "DELETE",
+          options: {
+            backgroundSync: {
+              name: "pomodoro-sync-queue",
+              options: {
+                maxRetentionTime: 24 * 60,
+              },
+            },
+          },
+        },
+      ],
     },
   },
 

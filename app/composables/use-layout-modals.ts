@@ -9,6 +9,8 @@ export interface LayoutModals {
   openWebhook: () => void;
   openCredentials: () => void;
   openPushNotifications: () => void;
+  openInstallApp: () => void;
+  openOfflineQueue: () => void;
 }
 
 const LAYOUT_MODALS_KEY = "layout-modals" as const;
@@ -29,6 +31,8 @@ export function useLayoutModals(): LayoutModals {
       openWebhook: () => {},
       openCredentials: () => {},
       openPushNotifications: () => {},
+      openInstallApp: () => {},
+      openOfflineQueue: () => {},
     };
   }
   return modals;

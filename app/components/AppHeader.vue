@@ -46,11 +46,14 @@ const emit = defineEmits<{
   (e: "openCredentials"): void;
   (e: "openNotes"): void;
   (e: "openPushNotifications"): void;
+  (e: "openInstallApp"): void;
+  (e: "openOfflineQueue"): void;
 }>();
 
 const profileController = useProfileController();
 const supabase = useSupabaseClient();
 const { $pwa } = useNuxtApp();
+const { isOnline, pendingOperations } = useOfflineSync();
 
 const items = computed<DropdownMenuItem[][]>(() => {
   const dropdownItems: DropdownMenuItem[][] = [
@@ -92,8 +95,6 @@ const items = computed<DropdownMenuItem[][]>(() => {
       },
     ],
   ];
-
-  console.log($pwa);
 
   if ($pwa?.showInstallPrompt) {
     dropdownItems[0]?.push({
@@ -165,6 +166,25 @@ const items = computed<DropdownMenuItem[][]>(() => {
         @click="isDark = !isDark"
         aria-label="Toggle color mode"
       />
+
+      <div
+        v-if="!isOnline || pendingOperations.length > 0"
+        class="relative flex items-center"
+      >
+        <UButton
+          icon="i-lucide-wifi-off"
+          :color="!isOnline ? 'error' : 'neutral'"
+          variant="ghost"
+          @click="emit('openOfflineQueue')"
+          aria-label="Offline Queue"
+        />
+        <span
+          v-if="pendingOperations.length > 0"
+          class="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-600 rounded-full pointer-events-none"
+        >
+          {{ pendingOperations.length }}
+        </span>
+      </div>
 
       <UButton
         v-if="showNotes"
