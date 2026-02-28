@@ -23,6 +23,14 @@ export const useBroadcastPomodoro = (handlers: TBroadcastEvents) => {
     "pomodoro_is_main_handler",
     () => false,
   );
+  const connectionStatus = useState<"idle" | "connected" | "error">(
+    "pomodoro_broadcast_status",
+    () => "idle",
+  );
+  const connectionError = useState<string | null>(
+    "pomodoro_broadcast_error",
+    () => null,
+  );
 
   const broadcastEvent = async (event: string, payload: any) => {
     if (channel.value) {
@@ -68,16 +76,21 @@ export const useBroadcastPomodoro = (handlers: TBroadcastEvents) => {
       .on("presence", { event: "sync" }, handlePresenceSync)
       .subscribe(async (status, err) => {
         if (status === "SUBSCRIBED") {
-          console.log("✅ Suscrito exitosamente");
-        }
-        if (status === "CHANNEL_ERROR") {
-          console.error("❌ Error en el canal:", err);
-        }
-        if (status === "SUBSCRIBED") {
+          connectionStatus.value = "connected";
+          connectionError.value = null;
           await channel.value?.track({
             deviceId: deviceId.value,
             online_at: new Date().toISOString(),
           });
+        }
+        if (status === "CHANNEL_ERROR") {
+          console.error("❌ Error en el canal de broadcast:", err);
+          connectionStatus.value = "error";
+          connectionError.value =
+            err?.message || "Error de conexión en el canal de sincronización";
+          // Asegurar que isMainHandler sea true cuando falla el canal
+          // para que el flujo de crear siguiente pomodoro no se bloquee
+          isMainHandler.value = true;
         }
       });
   };
@@ -107,6 +120,8 @@ export const useBroadcastPomodoro = (handlers: TBroadcastEvents) => {
   return {
     broadcastEvent,
     isMainHandler,
+    connectionStatus,
+    connectionError,
     disconnect,
     channel,
   };

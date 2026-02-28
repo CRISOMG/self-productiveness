@@ -6,7 +6,8 @@ CREATE TYPE "public"."pomodoro_state" AS ENUM (
     'current',
     'paused',
     'finished',
-    'skipped'
+    'skipped',
+    'idle'
 );
 
 ALTER TYPE "public"."pomodoro_state" OWNER TO "postgres";
@@ -14,7 +15,7 @@ ALTER TYPE "public"."pomodoro_state" OWNER TO "postgres";
 CREATE TYPE "public"."pomodoro_type" AS ENUM (
     'focus',
     'break',
-    'long-break'
+    'long_break'
 );
 
 ALTER TYPE "public"."pomodoro_type" OWNER TO "postgres";
@@ -27,7 +28,7 @@ CREATE TABLE IF NOT EXISTS "public"."pomodoros" (
     "expected_end" timestamp with time zone,
     "timelapse" integer DEFAULT 0 NOT NULL,
     "user_id" "uuid" NOT NULL,
-    "state" "public"."pomodoro_state" DEFAULT 'paused'::"public"."pomodoro_state" NOT NULL,
+    "state" "public"."pomodoro_state" DEFAULT 'idle'::"public"."pomodoro_state" NOT NULL,
     "finished_at" timestamp with time zone,
     "toggle_timeline" "jsonb",
     "cycle" bigint,
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS "public"."pomodoros_cycles" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "state" "public"."pomodoro_state",
     "user_id" "uuid",
-    "required_tags" "text"[] DEFAULT '{focus,break,focus,long-break}'::"text"[]
+    "required_tags" "text"[] DEFAULT '{focus,break,focus,long_break}'::"text"[]
 );
 
 ALTER TABLE "public"."pomodoros_cycles" OWNER TO "postgres";

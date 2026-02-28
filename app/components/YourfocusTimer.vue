@@ -1,22 +1,19 @@
 <template>
   <section class="flex flex-col items-center justify-center mt-8">
     <div
-      class="flex flex-col items-center max-w-sm sm:max-w-full w-full justify-center border border-gray-200 dark:border-white/10 rounded-xl p-2 sm:p-4 sm:px-8"
+      class="flex flex-col items-center max-w-sm sm:max-w-full w-full justify-center border rounded-xl p-2 sm:p-4 sm:px-8 transition-colors duration-300 relative bg-inherit"
+      :class="[
+        isPomodoroLoading
+          ? 'border-transparent before:absolute before:inset-0 before:rounded-xl before:-z-20 before:bg-gradient-to-r gap-transparent before:from-primary-500 before:via-orange-500 before:to-primary-500 before:bg-[length:200%_auto] before:animate-[gradient_2s_linear_infinite] after:absolute after:inset-[1px] after:rounded-xl after:-z-10 after:bg-[var(--ui-bg)]'
+          : 'border-gray-200 dark:border-white/10',
+      ]"
     >
       <div class="flex flex-col">
         <div class="flex flex-wrap items-center justify-center gap-2 mb-4">
           <UButton
             @click="handlePomodoroTypeChange(PomodoroType.FOCUS)"
-            :variant="
-              pomodoroController?.currPomodoro?.type === PomodoroType.FOCUS
-                ? 'solid'
-                : 'ghost'
-            "
-            :color="
-              pomodoroController?.currPomodoro?.type === PomodoroType.FOCUS
-                ? 'primary'
-                : 'neutral'
-            "
+            :variant="isTypeOfFocus ? 'solid' : 'ghost'"
+            :color="isTypeOfFocus ? 'primary' : 'neutral'"
             class="min-w-[100px] justify-center font-title"
             size="sm"
           >
@@ -24,16 +21,8 @@
           </UButton>
           <UButton
             @click="handlePomodoroTypeChange(PomodoroType.BREAK)"
-            :variant="
-              pomodoroController?.currPomodoro?.type === PomodoroType.BREAK
-                ? 'solid'
-                : 'ghost'
-            "
-            :color="
-              pomodoroController?.currPomodoro?.type === PomodoroType.BREAK
-                ? 'primary'
-                : 'neutral'
-            "
+            :variant="isTypeOfBreak ? 'solid' : 'ghost'"
+            :color="isTypeOfBreak ? 'primary' : 'neutral'"
             class="min-w-[110px] justify-center font-title"
             size="sm"
           >
@@ -41,16 +30,8 @@
           </UButton>
           <UButton
             @click="handlePomodoroTypeChange(PomodoroType.LONG_BREAK)"
-            :variant="
-              pomodoroController?.currPomodoro?.type === PomodoroType.LONG_BREAK
-                ? 'solid'
-                : 'ghost'
-            "
-            :color="
-              pomodoroController?.currPomodoro?.type === PomodoroType.LONG_BREAK
-                ? 'primary'
-                : 'neutral'
-            "
+            :variant="isTypeOfLongBreak ? 'solid' : 'ghost'"
+            :color="isTypeOfLongBreak ? 'primary' : 'neutral'"
             class="min-w-[110px] justify-center font-title"
             size="sm"
           >
@@ -62,7 +43,7 @@
           <h1
             class="w-82 text-center text-8xl sm:text-9xl font-title text-primary-500 overflow-hidden"
           >
-            {{ timeController.clockInMinutes }}
+            {{ isPomodoroLoading ? "..." : timeController.clockInMinutes }}
           </h1>
         </div>
         <div class="relative flex items-center justify-center p-4">
@@ -144,6 +125,19 @@
     <div class="flex justify-center mt-4">
       <p>Today Completed #{{ pomodoroFocusCompletedToday }}</p>
     </div>
+    <div
+      v-if="pomodoroController?.broadcastStatus === 'error'"
+      class="flex items-center justify-center mt-2 gap-1 text-xs text-yellow-500"
+    >
+      <UIcon name="i-lucide-triangle-alert" class="size-3.5" />
+      <UTooltip
+        :text="pomodoroController?.broadcastError || 'Error de sincronización'"
+      >
+        <span class="cursor-help"
+          >Sincronización entre pestañas no disponible</span
+        >
+      </UTooltip>
+    </div>
     <ManageTagsModal v-model:open="manageTagModal" multiple />
     <TimeIntervalsModal v-model:open="openTimeIntervalsModal" />
   </section>
@@ -189,6 +183,7 @@ const handlePomodoroTypeChange = async (type: PomodoroType) => {
   if (pomodoroController?.currPomodoro?.type === type) {
     return alert("You are already in " + type);
   }
+  debugger;
   await handleSkipPomodoro();
   await handleSelectPomodoro(props.user_id, type);
 };
@@ -207,6 +202,16 @@ const handlePlayPausePomodoro = () => {
   }
 };
 
+const isPomodoroLoading = computed(() => pomodoroController?.loadingPomodoro);
+const isTypeOfFocus = computed(
+  () => pomodoroController?.currPomodoro?.type === PomodoroType.FOCUS,
+);
+const isTypeOfBreak = computed(
+  () => pomodoroController?.currPomodoro?.type === PomodoroType.BREAK,
+);
+const isTypeOfLongBreak = computed(
+  () => pomodoroController?.currPomodoro?.type === PomodoroType.LONG_BREAK,
+);
 defineShortcuts({
   " ": () => {
     handlePlayPausePomodoro();

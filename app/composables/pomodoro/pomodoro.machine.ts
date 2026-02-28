@@ -1,30 +1,97 @@
 import { setup, assign, fromPromise, fromCallback } from "xstate";
-import { calculatePomodoroTimelapse } from "~/utils/pomodoro-domain";
+import {
+  computeExpectedEnd,
+  updatePomodoroTimelapse,
+  createTimelineEntry,
+  DEFAULT_DURATION_SECONDS,
+} from "~/utils/pomodoro-domain";
 import type { TPomodoro } from "../types";
+
+export enum PomodoroMachineEvent {
+  INIT = "INIT",
+  START = "START",
+  PAUSE = "PAUSE",
+  RESUME = "RESUME",
+  FINISH = "FINISH",
+  RESET = "RESET",
+  SKIP = "SKIP",
+  SYNC = "SYNC",
+  BROADCAST_PLAY = "BROADCAST.PLAY",
+  BROADCAST_PAUSE = "BROADCAST.PAUSE",
+  BROADCAST_FINISH = "BROADCAST.FINISH",
+  BROADCAST_NEXT = "BROADCAST.NEXT",
+  TIMER_FINISH = "TIMER.FINISH",
+  TAGS_UPDATE = "TAGS.UPDATE",
+}
+
+export enum PomodoroMachineState {
+  IDLE = "idle",
+  FETCHING = "fetching",
+  STARTING = "starting",
+  RUNNING = "running",
+  PAUSING = "pausing",
+  PAUSED = "paused",
+  RESUMING = "resuming",
+  FINISHING = "finishing",
+  SKIPPING = "skipping",
+  CREATING_NEXT = "creatingNext",
+}
+
+export const MachineActors = {
+  FETCH_CURRENT: "fetchCurrent",
+  CREATE_OR_RESUME: "createOrResume",
+  TOGGLE_PLAY: "togglePlay",
+  START_TIMER: "startTimerActor",
+  FINISH_POMODORO: "finishPomodoro",
+  SKIP_POMODORO: "skipPomodoro",
+  CREATE_NEXT: "createNextPomodoro",
+} as const;
+
+export const MachineActions = {
+  ASSIGN_POMODORO: "assignPomodoro",
+  UPDATE_TIME_ON_PAUSE: "updateTimeOnPause",
+  UPDATE_TIME_ON_NEXT: "updateTimeOnNext",
+  OPTIMISTIC_PAUSE: "optimisticPause",
+  OPTIMISTIC_PLAY: "optimisticPlay",
+  BROADCAST_PLAY: "broadcastPlay",
+  BROADCAST_PAUSE: "broadcastPause",
+  BROADCAST_FINISH: "broadcastFinish",
+  BROADCAST_SKIP: "broadcastSkip",
+  BROADCAST_NEXT: "broadcastNext",
+  NOTIFY_FINISH: "notifyFinish",
+  REFRESH_LIST: "refreshList",
+  HANDLE_ERROR: "handleError",
+} as const;
 
 type MachineEvents =
   | { type: string; output?: any; actorId?: string }
   | TPomodoro
-  | { type: "INIT" }
+  | { type: PomodoroMachineEvent.INIT }
   | {
-      type: "START";
+      type: PomodoroMachineEvent.START;
       inputs: {
         user_id: string;
         type?: string;
         state?: "current" | "paused";
+        existingIdleId?: number;
       };
     }
-  | { type: "PAUSE" }
-  | { type: "RESUME" }
-  | { type: "FINISH"; withNext?: boolean; broadcast?: boolean }
-  | { type: "RESET" }
-  | { type: "SKIP"; withNext?: boolean }
-  | { type: "SYNC"; pomodoro: TPomodoro }
-  | { type: "BROADCAST.PLAY"; payload: any }
-  | { type: "BROADCAST.PAUSE"; payload: any }
-  | { type: "BROADCAST.FINISH"; payload: any }
-  | { type: "BROADCAST.NEXT"; payload: any }
-  | { type: "TAGS.UPDATE"; pomodoro: TPomodoro };
+  | { type: PomodoroMachineEvent.PAUSE }
+  | { type: PomodoroMachineEvent.RESUME }
+  | {
+      type: PomodoroMachineEvent.FINISH;
+      withNext?: boolean;
+      broadcast?: boolean;
+    }
+  | { type: PomodoroMachineEvent.RESET }
+  | { type: PomodoroMachineEvent.SKIP; withNext?: boolean }
+  | { type: PomodoroMachineEvent.SYNC; pomodoro: TPomodoro }
+  | { type: PomodoroMachineEvent.BROADCAST_PLAY; payload: any }
+  | { type: PomodoroMachineEvent.BROADCAST_PAUSE; payload: any }
+  | { type: PomodoroMachineEvent.BROADCAST_FINISH; payload: any }
+  | { type: PomodoroMachineEvent.BROADCAST_NEXT; payload: any }
+  | { type: PomodoroMachineEvent.TAGS_UPDATE; pomodoro: TPomodoro }
+  | { type: PomodoroMachineEvent.TIMER_FINISH };
 
 export interface PomodoroMachineDeps {
   pomodoroService: ReturnType<typeof usePomodoroService>;
@@ -35,24 +102,6 @@ export interface PomodoroMachineDeps {
   handleListPomodoros: () => Promise<any>;
   toast: ReturnType<typeof useSuccessErrorToast>;
 }
-
-const computeExpectedEnd = (pomodoro: TPomodoro) => {
-  const duration = (pomodoro as any).expected_duration || 25 * 60;
-  const timelapse = calculatePomodoroTimelapse(
-    pomodoro.toggle_timeline,
-    duration,
-  );
-  return new Date(Date.now() + (duration - timelapse) * 1000).toISOString();
-};
-
-const updateLocalState = (pomodoro: TPomodoro) => {
-  if (!pomodoro.id) return;
-  const duration = (pomodoro as any).expected_duration || 25 * 60;
-  pomodoro.timelapse = calculatePomodoroTimelapse(
-    pomodoro.toggle_timeline,
-    duration,
-  );
-};
 
 export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
   const {
@@ -71,20 +120,26 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
       events: {} as MachineEvents,
     },
     actors: {
-      fetchCurrent: fromPromise(async () => {
+      [MachineActors.FETCH_CURRENT]: fromPromise(async () => {
         return await pomodoroService.getCurrentPomodoro();
       }),
-      createOrResume: fromPromise(
+      [MachineActors.CREATE_OR_RESUME]: fromPromise(
         async ({
           input,
         }: {
           input: {
             user_id: string;
             type?: string;
-            state?: "current" | "paused";
+            state?: "current" | "paused" | "idle";
+            existingIdleId?: number;
           } | null;
         }) => {
           if (input) {
+            if (input.existingIdleId) {
+              return await pomodoroService.activateIdlePomodoro(
+                input.existingIdleId,
+              );
+            }
             return await pomodoroService.startPomodoro({
               user_id: input.user_id,
               type: input.type as any,
@@ -94,7 +149,7 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
           throw new Error("Invalid Input");
         },
       ),
-      togglePlay: fromPromise(
+      [MachineActors.TOGGLE_PLAY]: fromPromise(
         async ({
           input,
         }: {
@@ -106,56 +161,65 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
           );
         },
       ),
-      startTimerActor: fromCallback(({ sendBack, receive, input }) => {
-        const pomodoro = (input as any).pomodoro as TPomodoro;
-        if (!pomodoro) return;
+      [MachineActors.START_TIMER]: fromCallback(
+        ({ sendBack, receive, input }) => {
+          const pomodoro = (input as any).pomodoro as TPomodoro;
+          if (!pomodoro) return;
 
-        timeController.startTimer({
-          expected_end: computeExpectedEnd(pomodoro),
-          clockStartInMinute:
-            (((pomodoro as any).expected_duration || 1500) -
-              pomodoro.timelapse) /
-            60,
-          onTick: (remaining) => {
-            if (remaining % 5 === 0) {
-              // Trigger sync check if needed?
-            }
-          },
-          onFinish: () => {
-            sendBack({ type: "TIMER.FINISH" });
-          },
-        });
+          timeController.startTimer({
+            expected_end: computeExpectedEnd(pomodoro),
+            clockStartInMinute:
+              ((pomodoro.expected_duration || DEFAULT_DURATION_SECONDS) -
+                pomodoro.timelapse) /
+              60,
+            onTick: (remaining) => {
+              if (remaining % 5 === 0) {
+                // Trigger sync check if needed?
+              }
+            },
+            onFinish: () => {
+              sendBack({ type: PomodoroMachineEvent.TIMER_FINISH });
+            },
+          });
 
-        return () => {
-          timeController.clearTimer();
-        };
-      }),
-      finishPomodoro: fromPromise(
+          return () => {
+            timeController.clearTimer();
+          };
+        },
+      ),
+      [MachineActors.FINISH_POMODORO]: fromPromise(
         async ({ input }: { input: { pomodoro: TPomodoro } }) => {
           await pomodoroService.finishCurrentPomodoro({
             timelapse: input.pomodoro.timelapse,
           });
-          if (await pomodoroService.checkIsCurrentCycleEnd()) {
+          const cycleEnded = await pomodoroService.checkIsCurrentCycleEnd();
+          if (cycleEnded) {
             await pomodoroService.finishCurrentCycle();
           }
-          return true;
+          return { cycleEnded };
         },
       ),
-      skipPomodoro: fromPromise(
+      [MachineActors.SKIP_POMODORO]: fromPromise(
         async ({ input }: { input: { pomodoro: TPomodoro } }) => {
           await pomodoroService.skipCurrentPomodoro({
             timelapse: input.pomodoro.timelapse,
           });
-          if (await pomodoroService.checkIsCurrentCycleEnd()) {
+          const cycleEnded = await pomodoroService.checkIsCurrentCycleEnd();
+          if (cycleEnded) {
             await pomodoroService.finishCurrentCycle();
           }
-          return true;
+          return { cycleEnded };
         },
       ),
-      createNextPomodoro: fromPromise(
-        async ({ input }: { input: { user_id: string; tags: any[] } }) => {
+      [MachineActors.CREATE_NEXT]: fromPromise(
+        async ({
+          input,
+        }: {
+          input: { user_id: string; tags: any[]; forceIdle?: boolean };
+        }) => {
           const next = await pomodoroService.createNextPomodoro({
             user_id: input.user_id,
+            forceIdle: input.forceIdle,
           });
           if (keepTags.value && input.tags.length) {
             for (const tag of input.tags) {
@@ -171,102 +235,102 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
       ),
     },
     actions: {
-      assignPomodoro: assign({
+      [MachineActions.ASSIGN_POMODORO]: assign({
         pomodoro: (params: any) => {
           const { context, event } = params;
           const e = event as any;
           const p = e.output || e.pomodoro || e.payload;
-          if (p) updateLocalState(p);
+          if (p) updatePomodoroTimelapse(p);
           return p;
         },
       }),
-      updateTimeOnPause: ({ context }: any) => {
+      [MachineActions.UPDATE_TIME_ON_PAUSE]: ({ context }: any) => {
         if (!context.pomodoro) return;
         timeController.clearTimer();
         const remaining =
-          ((context.pomodoro as any).expected_duration || 25 * 60) -
+          (context.pomodoro.expected_duration || DEFAULT_DURATION_SECONDS) -
           context.pomodoro.timelapse;
         timeController.setClockInSeconds(remaining);
       },
-      updateTimeOnNext: ({ context }: any) => {
+      [MachineActions.UPDATE_TIME_ON_NEXT]: ({ context }: any) => {
         if (!context.pomodoro) return;
         timeController.setClockInSeconds(
-          (context.pomodoro as any).expected_duration || 1500,
+          context.pomodoro.expected_duration || DEFAULT_DURATION_SECONDS,
         );
       },
-      optimisticPause: assign({
+      [MachineActions.OPTIMISTIC_PAUSE]: assign({
         pomodoro: ({ context }: any) => {
           if (!context.pomodoro) return null;
           const newTimeline = [
             ...(context.pomodoro.toggle_timeline || []),
-            { at: new Date().toISOString(), type: "pause" as const },
+            createTimelineEntry("pause"),
           ];
           const updated = {
             ...context.pomodoro,
             state: "paused" as const,
             toggle_timeline: newTimeline,
           };
-          updateLocalState(updated);
-          return updated;
+          updatePomodoroTimelapse(updated);
+          return updated as unknown as TPomodoro;
         },
       }),
-      optimisticPlay: assign({
+      [MachineActions.OPTIMISTIC_PLAY]: assign({
         pomodoro: ({ context }: any) => {
           if (!context.pomodoro) return null;
           const newTimeline = [
             ...(context.pomodoro.toggle_timeline || []),
-            { at: new Date().toISOString(), type: "play" as const },
+            createTimelineEntry("play"),
           ];
           const updated = {
             ...context.pomodoro,
             state: "current" as const,
             toggle_timeline: newTimeline,
           };
-          updateLocalState(updated);
-          return updated;
+          updatePomodoroTimelapse(updated);
+          return updated as unknown as TPomodoro;
         },
       }),
-      broadcastPlay: ({ context }: any) => {
+      [MachineActions.BROADCAST_PLAY]: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:play", {
             id: context.pomodoro.id,
             toggle_timeline: context.pomodoro.toggle_timeline,
           });
       },
-      broadcastPause: ({ context }: any) => {
+      [MachineActions.BROADCAST_PAUSE]: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:pause", {
             id: context.pomodoro.id,
             toggle_timeline: context.pomodoro.toggle_timeline,
           });
       },
-      broadcastFinish: ({ context }: any) => {
+      [MachineActions.BROADCAST_FINISH]: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:finish", {
             id: context.pomodoro.id,
           });
       },
-      broadcastSkip: ({ context }: any) => {
+      [MachineActions.BROADCAST_SKIP]: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:skip", {
             id: context.pomodoro.id,
           });
       },
-      broadcastNext: ({ context }: any) => {
+      [MachineActions.BROADCAST_NEXT]: ({ context }: any) => {
         if (context.pomodoro)
           broadcastPomodoroController.broadcastEvent("pomodoro:next", {
             id: context.pomodoro.id,
           });
       },
-      notifyFinish: () => {
+      [MachineActions.NOTIFY_FINISH]: () => {
         // notificationController.notify("Pomodoro finished!", {
         //   body: "Time to take a break!",
         //   icon: "/favicon.ico",
         //   requireInteraction: true,
         // });
       },
-      refreshList: () => handleListPomodoros(),
-      handleError: ({ event }: any) => {
+      [MachineActions.REFRESH_LIST]: () => handleListPomodoros(),
+      [MachineActions.HANDLE_ERROR]: ({ event }: any) => {
         console.error("Pomodoro Machine Error:", event.error);
         toast.addErrorToast({
           title: "Error de Pomodoro",
@@ -281,165 +345,233 @@ export const createPomodoroMachine = (deps: PomodoroMachineDeps) => {
   const _machine = _setup.createMachine({
     id: "pomodoro",
     context: { pomodoro: null },
-    initial: "idle",
+    initial: PomodoroMachineState.IDLE,
     on: {
-      INIT: ".fetching",
-      SYNC: { actions: "assignPomodoro" },
-      "TAGS.UPDATE": { actions: "assignPomodoro" },
+      [PomodoroMachineEvent.INIT]: `.${PomodoroMachineState.FETCHING}`,
+      [PomodoroMachineEvent.SYNC]: { actions: MachineActions.ASSIGN_POMODORO },
+      [PomodoroMachineEvent.TAGS_UPDATE]: {
+        actions: MachineActions.ASSIGN_POMODORO,
+      },
     },
     states: {
-      idle: {
-        entry: assign({ pomodoro: null }),
+      [PomodoroMachineState.IDLE]: {
+        entry: ({ context }: any) => {
+          if (context.pomodoro) {
+            timeController.setClockInSeconds(
+              context.pomodoro.expected_duration || DEFAULT_DURATION_SECONDS,
+            );
+          }
+        },
         on: {
-          START: "starting",
+          [PomodoroMachineEvent.START]: PomodoroMachineState.STARTING,
         },
       },
-      fetching: {
+      [PomodoroMachineState.FETCHING]: {
         invoke: {
-          src: "fetchCurrent",
+          src: MachineActors.FETCH_CURRENT,
           onDone: [
             {
               guard: ({ event }: any) => event.output?.state === "current",
-              target: "running",
-              actions: "assignPomodoro",
+              target: PomodoroMachineState.RUNNING,
+              actions: MachineActions.ASSIGN_POMODORO,
             },
             {
               guard: ({ event }: any) => event.output?.state === "paused",
-              target: "paused",
-              actions: "assignPomodoro",
+              target: PomodoroMachineState.PAUSED,
+              actions: MachineActions.ASSIGN_POMODORO,
             },
-            { target: "idle", actions: "assignPomodoro" },
+            {
+              guard: ({ event }: any) => event.output?.state === "idle",
+              target: PomodoroMachineState.IDLE,
+              actions: MachineActions.ASSIGN_POMODORO,
+            },
+            {
+              target: PomodoroMachineState.IDLE,
+            },
           ],
           onError: {
-            target: "idle",
-            actions: "handleError",
+            target: PomodoroMachineState.IDLE,
+            actions: MachineActions.HANDLE_ERROR,
           },
         },
       },
-      starting: {
+      [PomodoroMachineState.STARTING]: {
         invoke: {
-          src: "createOrResume",
+          src: MachineActors.CREATE_OR_RESUME,
           input: ({ event }: any) => (event as any).inputs,
           onDone: {
-            target: "running",
-            actions: ["assignPomodoro", "broadcastPlay", "refreshList"],
+            target: PomodoroMachineState.RUNNING,
+            actions: [
+              MachineActions.ASSIGN_POMODORO,
+              MachineActions.BROADCAST_PLAY,
+              MachineActions.REFRESH_LIST,
+            ],
           },
           onError: {
-            target: "idle",
-            actions: "handleError",
+            target: PomodoroMachineState.IDLE,
+            actions: MachineActions.HANDLE_ERROR,
           },
         },
       },
-      running: {
-        entry: "assignPomodoro",
+      [PomodoroMachineState.RUNNING]: {
+        entry: MachineActions.ASSIGN_POMODORO,
         invoke: {
-          src: "startTimerActor",
+          src: MachineActors.START_TIMER,
           input: ({ context }: any) => ({ pomodoro: context.pomodoro }),
-          onDone: { target: "finishing" },
+          onDone: { target: PomodoroMachineState.FINISHING },
         },
         on: {
-          PAUSE: { target: "pausing", actions: "optimisticPause" },
-          FINISH: "finishing",
-          SKIP: "skipping",
-          "TIMER.FINISH": "finishing",
-          "BROADCAST.PAUSE": {
-            target: "paused",
-            actions: ["assignPomodoro", "updateTimeOnPause"],
+          [PomodoroMachineEvent.PAUSE]: {
+            target: PomodoroMachineState.PAUSING,
+            actions: MachineActions.OPTIMISTIC_PAUSE,
           },
-          "BROADCAST.FINISH": { target: "idle", actions: ["refreshList"] },
+          [PomodoroMachineEvent.FINISH]: PomodoroMachineState.FINISHING,
+          [PomodoroMachineEvent.SKIP]: PomodoroMachineState.SKIPPING,
+          [PomodoroMachineEvent.TIMER_FINISH]: PomodoroMachineState.FINISHING,
+          [PomodoroMachineEvent.BROADCAST_PAUSE]: {
+            target: PomodoroMachineState.PAUSED,
+            actions: [
+              MachineActions.ASSIGN_POMODORO,
+              MachineActions.UPDATE_TIME_ON_PAUSE,
+            ],
+          },
+          [PomodoroMachineEvent.BROADCAST_FINISH]: {
+            target: PomodoroMachineState.IDLE,
+            actions: [MachineActions.REFRESH_LIST],
+          },
         },
       },
-      pausing: {
+      [PomodoroMachineState.PAUSING]: {
         invoke: {
-          src: "togglePlay",
+          src: MachineActors.TOGGLE_PLAY,
           input: ({ context }: any) => ({
             id: context.pomodoro!.id,
             type: "pause",
           }),
           onDone: {
-            target: "paused",
-            actions: ["assignPomodoro", "broadcastPause"],
+            target: PomodoroMachineState.PAUSED,
+            actions: [
+              MachineActions.ASSIGN_POMODORO,
+              MachineActions.BROADCAST_PAUSE,
+            ],
           },
-          onError: { target: "running", actions: "handleError" },
+          onError: {
+            target: PomodoroMachineState.RUNNING,
+            actions: MachineActions.HANDLE_ERROR,
+          },
         },
       },
-      paused: {
-        entry: "updateTimeOnPause",
+      [PomodoroMachineState.PAUSED]: {
+        entry: MachineActions.UPDATE_TIME_ON_PAUSE,
         on: {
-          RESUME: { target: "resuming", actions: "optimisticPlay" },
-          FINISH: "finishing",
-          SKIP: "skipping",
-          "BROADCAST.PLAY": { target: "running", actions: "assignPomodoro" },
-          "BROADCAST.FINISH": { target: "idle", actions: ["refreshList"] },
+          [PomodoroMachineEvent.RESUME]: {
+            target: PomodoroMachineState.RESUMING,
+            actions: MachineActions.OPTIMISTIC_PLAY,
+          },
+          [PomodoroMachineEvent.FINISH]: PomodoroMachineState.FINISHING,
+          [PomodoroMachineEvent.SKIP]: PomodoroMachineState.SKIPPING,
+          [PomodoroMachineEvent.BROADCAST_PLAY]: {
+            target: PomodoroMachineState.RUNNING,
+            actions: MachineActions.ASSIGN_POMODORO,
+          },
+          [PomodoroMachineEvent.BROADCAST_FINISH]: {
+            target: PomodoroMachineState.IDLE,
+            actions: [MachineActions.REFRESH_LIST],
+          },
         },
       },
-      resuming: {
+      [PomodoroMachineState.RESUMING]: {
         invoke: {
-          src: "togglePlay",
+          src: MachineActors.TOGGLE_PLAY,
           input: ({ context }: any) => ({
             id: context.pomodoro!.id,
             type: "play",
           }),
           onDone: {
-            target: "running",
-            actions: ["assignPomodoro", "broadcastPlay"],
-          },
-          onError: { target: "paused", actions: "handleError" },
-        },
-      },
-      finishing: {
-        invoke: {
-          src: "finishPomodoro",
-          input: ({ context }: any) => ({ pomodoro: context.pomodoro! }),
-          onDone: [
-            {
-              guard: ({ event }: any) => {
-                return broadcastPomodoroController.isMainHandler.value || false;
-              },
-              target: "creatingNext",
-            },
-            {
-              target: "idle",
-              actions: ["notifyFinish", "broadcastFinish", "refreshList"],
-            },
-          ],
-        },
-      },
-      skipping: {
-        invoke: {
-          src: "skipPomodoro",
-          input: ({ context }: any) => ({ pomodoro: context.pomodoro! }),
-          onDone: [
-            {
-              guard: ({ event }: any) => {
-                return broadcastPomodoroController.isMainHandler.value || false;
-              },
-              target: "creatingNext",
-            },
-            {
-              target: "idle",
-              actions: ["broadcastSkip", "refreshList"],
-            },
-          ],
-        },
-      },
-      creatingNext: {
-        entry: ["notifyFinish", "broadcastFinish"],
-        invoke: {
-          src: "createNextPomodoro",
-          input: ({ context }: any) => ({
-            user_id: context.pomodoro!.user_id,
-            tags: context.pomodoro?.tags || [],
-          }),
-          onDone: {
-            target: "paused",
+            target: PomodoroMachineState.RUNNING,
             actions: [
-              "assignPomodoro",
-              "broadcastNext",
-              "updateTimeOnNext",
-              "refreshList",
+              MachineActions.ASSIGN_POMODORO,
+              MachineActions.BROADCAST_PLAY,
             ],
           },
+          onError: {
+            target: PomodoroMachineState.PAUSED,
+            actions: MachineActions.HANDLE_ERROR,
+          },
+        },
+      },
+      [PomodoroMachineState.FINISHING]: {
+        invoke: {
+          src: MachineActors.FINISH_POMODORO,
+          input: ({ context }: any) => ({ pomodoro: context.pomodoro! }),
+          onDone: [
+            {
+              guard: ({ event }: any) => {
+                return broadcastPomodoroController.isMainHandler.value || false;
+              },
+              target: PomodoroMachineState.CREATING_NEXT,
+            },
+            {
+              target: PomodoroMachineState.IDLE,
+              actions: [
+                MachineActions.NOTIFY_FINISH,
+                MachineActions.BROADCAST_FINISH,
+                MachineActions.REFRESH_LIST,
+              ],
+            },
+          ],
+        },
+      },
+      [PomodoroMachineState.SKIPPING]: {
+        invoke: {
+          src: MachineActors.SKIP_POMODORO,
+          input: ({ context }: any) => ({ pomodoro: context.pomodoro! }),
+          onDone: [
+            {
+              guard: ({ event }: any) => {
+                return broadcastPomodoroController.isMainHandler.value || false;
+              },
+              target: PomodoroMachineState.CREATING_NEXT,
+            },
+            {
+              target: PomodoroMachineState.IDLE,
+              actions: [
+                MachineActions.BROADCAST_SKIP,
+                MachineActions.REFRESH_LIST,
+              ],
+            },
+          ],
+        },
+      },
+      [PomodoroMachineState.CREATING_NEXT]: {
+        entry: [MachineActions.NOTIFY_FINISH, MachineActions.BROADCAST_FINISH],
+        invoke: {
+          src: MachineActors.CREATE_NEXT,
+          input: ({ context, event }: any) => ({
+            user_id: context.pomodoro!.user_id,
+            tags: context.pomodoro?.tags || [],
+            forceIdle: event?.output?.cycleEnded || false,
+          }),
+          onDone: [
+            {
+              guard: ({ event }: any) => event.output?.state === "current",
+              target: PomodoroMachineState.RUNNING,
+              actions: [
+                MachineActions.ASSIGN_POMODORO,
+                MachineActions.BROADCAST_NEXT,
+                MachineActions.REFRESH_LIST,
+              ],
+            },
+            {
+              target: PomodoroMachineState.IDLE,
+              actions: [
+                MachineActions.ASSIGN_POMODORO,
+                MachineActions.BROADCAST_NEXT,
+                MachineActions.UPDATE_TIME_ON_NEXT,
+                MachineActions.REFRESH_LIST,
+              ],
+            },
+          ],
         },
       },
     },

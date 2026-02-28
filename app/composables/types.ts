@@ -12,8 +12,8 @@ export type TagUpdate = TablesUpdate<"tags">;
 
 export type PomodoroInsert = TablesInsert<"pomodoros">;
 export type PomodoroUpdate = TablesUpdate<"pomodoros">;
-export type PomodoroType = Enums<"pomodoro-type">;
-export type PomodoroState = Enums<"pomodoro-state">;
+export type PomodoroType = Enums<"pomodoro_type">;
+export type PomodoroState = Enums<"pomodoro_state">;
 export type TimelineEvent = {
   at: string;
   type: "start" | "play" | "pause" | "finish" | "skip";
@@ -21,6 +21,7 @@ export type TimelineEvent = {
 
 export type TPomodoro = Omit<Pomodoro, "toggle_timeline"> & {
   toggle_timeline: TimelineEvent[];
+  expected_duration: number;
   tags?: Tag[];
 };
 

@@ -8,7 +8,11 @@ import {
 } from "~/utils/pomodoro-domain";
 import { useBroadcastPomodoro } from "./use-broadcast-pomodoro";
 import type { TPomodoro } from "../types";
-import { createPomodoroMachine } from "./pomodoro.machine";
+import {
+  createPomodoroMachine,
+  PomodoroMachineEvent,
+  PomodoroMachineState,
+} from "./pomodoro.machine";
 
 export const usePomodoroController = defineStore("pomodoro", () => {
   //#region DEPENDENCIES
@@ -23,6 +27,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
   //#region STATE
   const pomodorosListToday = ref<TPomodoro[]>([]);
   const loadingPomodoros = ref<boolean>(false);
+  const loadingPomodoro = ref<boolean>(false);
   //#endregion
 
   //#region HELPER FUNCTIONS
@@ -44,37 +49,49 @@ export const usePomodoroController = defineStore("pomodoro", () => {
       // Only if ID matches or we are idle?
       if (
         snapshot.value.context.pomodoro?.id === payload.payload.id ||
-        !snapshot.value.context.pomodoro
+        !snapshot.value.context.pomodoro?.id
       ) {
-        send({ type: "BROADCAST.PLAY", payload: payload.payload });
+        send({
+          type: PomodoroMachineEvent.BROADCAST_PLAY,
+          payload: payload.payload,
+        });
       } else {
-        send({ type: "INIT" });
+        send({ type: PomodoroMachineEvent.INIT });
       }
     },
     onPause: (payload) => {
       if (snapshot.value.context.pomodoro?.id === payload.payload.id) {
-        send({ type: "BROADCAST.PAUSE", payload: payload.payload });
+        send({
+          type: PomodoroMachineEvent.BROADCAST_PAUSE,
+          payload: payload.payload,
+        });
       } else {
-        send({ type: "INIT" });
+        send({ type: PomodoroMachineEvent.INIT });
       }
     },
     onFinish: (payload) => {
       // If we are handling the same pomodoro
       if (snapshot.value.context.pomodoro?.id === payload.payload.id) {
-        send({ type: "BROADCAST.FINISH", payload: payload.payload });
+        send({
+          type: PomodoroMachineEvent.BROADCAST_FINISH,
+          payload: payload.payload,
+        });
       } else {
-        send({ type: "INIT" });
+        send({ type: PomodoroMachineEvent.INIT });
       }
     },
     onSkip: (payload) => {
       if (snapshot.value.context.pomodoro?.id === payload.payload.id) {
-        send({ type: "BROADCAST.FINISH", payload: payload.payload }); // We reuse FINISH logic for skip in the machine redirecting to idle
+        send({
+          type: PomodoroMachineEvent.BROADCAST_FINISH,
+          payload: payload.payload,
+        }); // We reuse FINISH logic for skip in the machine redirecting to idle
       } else {
-        send({ type: "INIT" });
+        send({ type: PomodoroMachineEvent.INIT });
       }
     },
     onNext: () => {
-      send({ type: "INIT" }); // Just re-fetch
+      send({ type: PomodoroMachineEvent.INIT }); // Just re-fetch
     },
   });
   //#endregion
@@ -92,9 +109,31 @@ export const usePomodoroController = defineStore("pomodoro", () => {
 
   const { snapshot, send } = useMachine(pomodoroMachine);
 
-  // Initialize immediately
-  send({ type: "INIT" });
-  handleListPomodoros();
+  // Initialize once profile is available
+  watch(
+    () => profile.value?.id,
+    async (id) => {
+      if (id) {
+        const current = await pomodoroService.getCurrentPomodoro();
+        if (!current) {
+          try {
+            loadingPomodoro.value = true;
+            await pomodoroService.startPomodoro({
+              user_id: id,
+              state: "idle",
+            });
+          } catch (e) {
+            console.error(e);
+          } finally {
+            loadingPomodoro.value = false;
+          }
+        }
+        send({ type: PomodoroMachineEvent.INIT });
+        handleListPomodoros();
+      }
+    },
+    { immediate: true },
+  );
   //#endregion
 
   //#region EXPOSED FUNCTIONS (ACTIONS)
@@ -103,22 +142,37 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     type?: string,
     state?: "current" | "paused",
   ) {
-    if (snapshot.value.context.pomodoro) {
-      send({ type: "RESUME" });
+    const pomodoro = snapshot.value.context.pomodoro;
+    if (pomodoro && pomodoro.state === PomodoroMachineState.IDLE) {
+      // Activate existing idle pomodoro
+      send({
+        type: PomodoroMachineEvent.START,
+        inputs: {
+          user_id,
+          type: type || pomodoro.type,
+          state,
+          existingIdleId: pomodoro.id,
+        },
+      });
+    } else if (pomodoro && pomodoro.state !== PomodoroMachineState.IDLE) {
+      send({ type: PomodoroMachineEvent.RESUME });
     } else {
-      send({ type: "START", inputs: { user_id, type, state } });
+      send({
+        type: PomodoroMachineEvent.START,
+        inputs: { user_id, type: type || pomodoro?.type, state },
+      });
     }
   }
 
   async function handlePausePomodoro() {
-    send({ type: "PAUSE" });
+    send({ type: PomodoroMachineEvent.PAUSE });
   }
 
   async function handleFinishPomodoro({
     withNext = false,
     broadcast = true,
   } = {}) {
-    send({ type: "FINISH", withNext, broadcast });
+    send({ type: PomodoroMachineEvent.FINISH, withNext, broadcast });
   }
 
   async function handleResetPomodoro() {
@@ -130,7 +184,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
       return;
 
     timeController.clearTimer();
-    if (snapshot.value.context.pomodoro) {
+    if (snapshot.value.context.pomodoro?.id) {
       await pomodoroService.finishCurrentPomodoro({
         timelapse: snapshot.value.context.pomodoro.timelapse,
       });
@@ -143,17 +197,17 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     timeController.setClockInSeconds(
       buildDurationMap(configs)[TagIdByType.FOCUS],
     );
-    send({ type: "RESET" });
+    send({ type: PomodoroMachineEvent.RESET });
     localStorage.removeItem("currPomodoro.value");
   }
 
   async function handleSkipPomodoro() {
-    send({ type: "SKIP", withNext: true });
+    send({ type: PomodoroMachineEvent.SKIP });
   }
 
   // Tags
   async function handleAddTag(tagId: number) {
-    if (!snapshot.value.context.pomodoro) return;
+    if (!snapshot.value.context.pomodoro?.id) return;
     await pomodoroService.addTagToPomodoro(
       snapshot.value.context.pomodoro.id,
       tagId,
@@ -162,11 +216,11 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     const fresh = await pomodoroService.getOne(
       snapshot.value.context.pomodoro.id,
     );
-    send({ type: "TAGS.UPDATE", pomodoro: fresh });
+    send({ type: PomodoroMachineEvent.TAGS_UPDATE, pomodoro: fresh });
   }
 
   async function handleRemoveTag(tagId: number) {
-    if (!snapshot.value.context.pomodoro) return;
+    if (!snapshot.value.context.pomodoro?.id) return;
     await pomodoroService.removeTagFromPomodoro(
       snapshot.value.context.pomodoro.id,
       tagId,
@@ -174,12 +228,15 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     const fresh = await pomodoroService.getOne(
       snapshot.value.context.pomodoro.id,
     );
-    send({ type: "TAGS.UPDATE", pomodoro: fresh });
+    send({ type: PomodoroMachineEvent.TAGS_UPDATE, pomodoro: fresh });
   }
 
   // Select/Tasks
   async function handleSelectPomodoro(user_id: string, type: PomodoroType) {
-    send({ type: "START", inputs: { user_id, type, state: "current" } });
+    send({
+      type: PomodoroMachineEvent.START,
+      inputs: { user_id, type, state: "current" },
+    });
   }
 
   // Sync
@@ -188,24 +245,11 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     if (!currentId) return;
     try {
       const remote = await pomodoroService.getOne(currentId);
-      if (remote) send({ type: "SYNC", pomodoro: remote });
+      if (remote) send({ type: PomodoroMachineEvent.SYNC, pomodoro: remote });
     } catch (e) {
       console.error(e);
     }
   }
-
-  // Watch for persistence
-  watch(
-    () => snapshot.value.context.pomodoro,
-    (newVal) => {
-      if (newVal) {
-        localStorage.setItem("currPomodoro.value", JSON.stringify(newVal));
-      } else {
-        localStorage.removeItem("currPomodoro.value");
-      }
-    },
-    { deep: true },
-  );
 
   //#endregion
   return {
@@ -213,7 +257,10 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     currPomodoro: computed(() => snapshot.value.context.pomodoro),
     pomodorosListToday,
     loadingPomodoros,
-    getCurrentPomodoro: () => send({ type: "INIT" }),
+    loadingPomodoro,
+    broadcastStatus: broadcastPomodoroController.connectionStatus,
+    broadcastError: broadcastPomodoroController.connectionError,
+    getCurrentPomodoro: () => send({ type: PomodoroMachineEvent.INIT }),
     handleStartPomodoro,
     handlePausePomodoro,
     handleFinishPomodoro,
@@ -225,13 +272,13 @@ export const usePomodoroController = defineStore("pomodoro", () => {
     handleAddTag,
     handleRemoveTag,
     getTaskIdsForCurrentPomodoro: async () => {
-      if (!snapshot.value.context.pomodoro) return [];
+      if (!snapshot.value.context.pomodoro?.id) return [];
       return await pomodoroService.getTaskIdsFromPomodoro(
         snapshot.value.context.pomodoro.id,
       );
     },
     addTaskToCurrentPomodoro: async (taskId: string) => {
-      if (!snapshot.value.context.pomodoro) return;
+      if (!snapshot.value.context.pomodoro?.id) return;
       return await pomodoroService.addTaskToPomodoro(
         snapshot.value.context.pomodoro.id,
         taskId,
@@ -239,7 +286,7 @@ export const usePomodoroController = defineStore("pomodoro", () => {
       );
     },
     removeTaskFromCurrentPomodoro: async (taskId: string) => {
-      if (!snapshot.value.context.pomodoro) return;
+      if (!snapshot.value.context.pomodoro?.id) return;
       return await pomodoroService.removeTaskFromPomodoro(
         snapshot.value.context.pomodoro.id,
         taskId,

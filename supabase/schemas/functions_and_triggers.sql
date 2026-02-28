@@ -421,31 +421,53 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION "public"."trigger_send_push_on_pomodoro_finished"() RETURNS "trigger"
-    LANGUAGE "plpgsql" SECURITY DEFINER SET "search_path" TO 'public'
+    LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
 declare
   service_key text;
 begin
+  -- Solo disparar cuando el estado cambia a 'finished'
   if NEW.state = 'finished' and (OLD.state is null or OLD.state != 'finished') then
-    select decrypted_secret into service_key from vault.decrypted_secrets where name = 'service_role_key' limit 1;
-    if service_key is null then raise warning 'service_role_key not found in vault. Push notification not sent.'; return NEW; end if;
+    
+    -- Obtener service_role_key del vault
+    select decrypted_secret into service_key
+    from vault.decrypted_secrets
+    where name = 'service_role_key'
+    limit 1;
+    
+    -- Si no hay key configurada, salir silenciosamente
+    if service_key is null then
+      raise warning 'service_role_key not found in vault. Push notification not sent.';
+      return NEW;
+    end if;
+    
     perform net.http_post(
       url := supabase_url() || '/functions/v1/send-push',
-      headers := jsonb_build_object('Content-Type', 'application/json', 'Authorization', 'Bearer ' || service_key),
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || service_key
+      ),
       body := jsonb_build_object(
-        'type', 'POMODORO_COMPLETED',
+        'type', 'UPDATE',
         'user_id', NEW.user_id,
-        'record', jsonb_build_object('id', NEW.id, 'user_id', NEW.user_id, 'state', NEW.state, 'expected_duration', NEW.expected_duration, 'type', NEW.type),
+        'table', 'pomodoros',
         'notification', jsonb_build_object(
-            'title', '¡Pomodoro Completado!',
-            'body', 'Tu sesión de enfoque terminó. ¡Tómate un descanso!',
-            'icon', '/favicon.ico',
-            'badge', '/favicon.ico',
-            'url', '/'
+          'title', '🍅 Pomodoro terminado!',
+          'body', 'Tu sesión de ' || NEW.type || ' ha finalizado.',
+          'icon', '/favicon.ico',
+          'url', '/'
+        ),
+        'record', jsonb_build_object(
+          'id', NEW.id,
+          'user_id', NEW.user_id,
+          'state', NEW.state,
+          'expected_duration', NEW.expected_duration,
+          'type', NEW.type
         )
       )
     );
   end if;
+  
   return NEW;
 end;
 $$;

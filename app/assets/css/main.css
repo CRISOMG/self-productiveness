@@ -54,6 +54,12 @@
   --color-denim-500: #5E86A6;
 }
 
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
 .custom-scrollbar {
   @apply [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent;
   
@@ -61,6 +67,7 @@
     @apply rounded-full bg-peach-500/50 hover:bg-peach-400/80 transition-colors;
   }
 }
+
 
 .dark .custom-scrollbar {
   &::-webkit-scrollbar-thumb {

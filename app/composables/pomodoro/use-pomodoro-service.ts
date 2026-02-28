@@ -1,11 +1,12 @@
 import {
   hasCycleFinished,
   calculateTimelineFromNow,
-  DEFAULT_POMODORO_DURATION_IN_MINUTES,
   PomodoroType,
   buildDurationMap,
   DEFAULT_TIME_INTERVAL_CONFIGS,
+  createTimelineEntry,
 } from "~/utils/pomodoro-domain";
+import type { TimelineEvent } from "~/composables/types";
 import {
   usePomodoroRepository,
   usePomodoroCycleRepository,
@@ -67,8 +68,8 @@ export const usePomodoroService = () => {
 
   type TStartPomodoroProps = {
     user_id: string;
-    state?: "current" | "paused";
-    type?: "focus" | "break" | "long-break";
+    state?: "current" | "paused" | "idle";
+    type?: "focus" | "break" | "long_break";
   };
   async function startPomodoro({
     user_id,
@@ -78,29 +79,27 @@ export const usePomodoroService = () => {
     const cycle = await getOrCreateCurrentCycle(user_id);
 
     const _type: PomodoroType =
-      type || (await getTagByCycleSecuense(cycle)) || PomodoroType.FOCUS;
+      (type as PomodoroType) ||
+      (await getTagByCycleSecuense(cycle)) ||
+      PomodoroType.FOCUS;
     const defaultDurationBytag = durationMap.value[_type];
 
     const isStarting = state === "current";
+    const isIdle = state === "idle";
     const { started_at, expected_end } = isStarting
       ? calculateTimelineFromNow(defaultDurationBytag)
       : {};
 
     const expected_duration = defaultDurationBytag;
 
-    const toggle_timeline: { at: string; type: string }[] = [];
-
-    if (isStarting) {
-      toggle_timeline.push({
-        at: new Date().toISOString(),
-        type: "start",
-      });
-    }
+    const toggle_timeline: TimelineEvent[] = isStarting
+      ? [createTimelineEntry("start")]
+      : [];
 
     const result = await pomodoroRepository.insert({
       user_id,
       started_at: isStarting ? new Date().toISOString() : undefined,
-      expected_end,
+      expected_end: isIdle ? undefined : expected_end,
       timelapse: 0,
       toggle_timeline,
       created_at: new Date().toISOString(),
@@ -187,11 +186,8 @@ export const usePomodoroService = () => {
       started_at,
       state: type == "play" ? "current" : "paused",
       toggle_timeline: [
-        ...(toggle_timeline as []),
-        {
-          at: new Date().toISOString(),
-          type: type,
-        },
+        ...(toggle_timeline as TimelineEvent[]),
+        createTimelineEntry(type),
       ],
     });
 
@@ -214,18 +210,14 @@ export const usePomodoroService = () => {
       return;
     }
 
-    const { toggle_timeline, ...restPomodoro } = pomodoro;
-
-    toggle_timeline.push({
-      at: new Date().toISOString(),
-      type: "finish",
-    });
+    const { toggle_timeline } = pomodoro;
+    const updatedTimeline = [...toggle_timeline, createTimelineEntry("finish")];
 
     return await pomodoroRepository.update(pomodoro.id, {
       timelapse,
       state: "finished",
       finished_at: new Date().toISOString(),
-      toggle_timeline,
+      toggle_timeline: updatedTimeline,
     });
   }
 
@@ -236,17 +228,13 @@ export const usePomodoroService = () => {
     }
 
     const { toggle_timeline } = pomodoro;
-
-    toggle_timeline.push({
-      at: new Date().toISOString(),
-      type: "skip",
-    });
+    const updatedTimeline = [...toggle_timeline, createTimelineEntry("skip")];
 
     return await pomodoroRepository.update(pomodoro.id, {
       timelapse,
       state: "skipped",
       finished_at: new Date().toISOString(),
-      toggle_timeline,
+      toggle_timeline: updatedTimeline,
     });
   }
 
@@ -286,11 +274,14 @@ export const usePomodoroService = () => {
   }
   async function createNextPomodoro({
     user_id,
-    state = "paused",
+    forceIdle,
   }: {
     user_id: string;
-    state?: "current" | "paused";
+    forceIdle?: boolean;
   }) {
+    const autoplay =
+      (profile.value?.settings as any)?.time_interval_configs?.autoplay ?? true;
+    const state = autoplay && !forceIdle ? "current" : "idle";
     return await startPomodoro({ user_id, state });
   }
 
@@ -338,11 +329,30 @@ export const usePomodoroService = () => {
     return await pomodoroRepository.getOne(id);
   }
 
+  async function activateIdlePomodoro(id: number) {
+    const pomodoro = await pomodoroRepository.getOne(id);
+    if (!pomodoro || pomodoro.state !== "idle") {
+      throw new Error("Pomodoro is not in idle state");
+    }
+
+    const duration = pomodoro.expected_duration;
+    const { started_at, expected_end } = calculateTimelineFromNow(duration);
+    const toggle_timeline: TimelineEvent[] = [createTimelineEntry("start")];
+
+    return await pomodoroRepository.update(id, {
+      state: "current",
+      started_at: new Date().toISOString(),
+      expected_end,
+      toggle_timeline,
+    } as any);
+  }
+
   return {
     checkIsCurrentCycleEnd,
     finishCurrentCycle,
     registToggleTimelinePomodoro,
     startPomodoro,
+    activateIdlePomodoro,
     getOrCreateCurrentCycle,
     finishCurrentPomodoro,
     skipCurrentPomodoro,
@@ -358,5 +368,6 @@ export const usePomodoroService = () => {
     addTaskToPomodoro,
     removeTaskFromPomodoro,
     getTaskIdsFromPomodoro,
+    durationMap,
   };
 };

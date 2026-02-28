@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       api_keys: {
@@ -667,12 +642,13 @@ export type Database = {
           similarity: number
         }[]
       }
+      process_notifications_worker: { Args: never; Returns: undefined }
       process_webhooks: { Args: never; Returns: undefined }
       supabase_url: { Args: never; Returns: string }
     }
     Enums: {
-      pomodoro_state: "current" | "paused" | "finished" | "skipped"
-      pomodoro_type: "focus" | "break" | "long-break"
+      pomodoro_state: "current" | "paused" | "finished" | "skipped" | "idle"
+      pomodoro_type: "focus" | "break" | "long_break"
       task_stage: "backlog" | "to_do" | "in_progress" | "done" | "archived"
     }
     CompositeTypes: {
@@ -799,13 +775,10 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
-      pomodoro_state: ["current", "paused", "finished", "skipped"],
-      pomodoro_type: ["focus", "break", "long-break"],
+      pomodoro_state: ["current", "paused", "finished", "skipped", "idle"],
+      pomodoro_type: ["focus", "break", "long_break"],
       task_stage: ["backlog", "to_do", "in_progress", "done", "archived"],
     },
   },

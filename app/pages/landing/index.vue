@@ -158,12 +158,8 @@ onMounted(() => {
           <span class="text-xs whitespace-nowrap"> IN DEVELOPMENT</span>
         </UBadge>
 
-        <a
-          href="https://platzi.com/blog/reto-developer-foundations/"
-          target="_blank"
-          class="text-md whitespace-nowrap underline"
-        >
-          Open Beta for Platzi Developers Foundation Challenge!
+        <a class="text-md whitespace-nowrap underline">
+          Open Beta!
           <UIcon name="i-lucide-external-link" class="size-4" />
         </a>
       </p>

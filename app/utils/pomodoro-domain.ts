@@ -2,23 +2,26 @@ export const DEFAULT_REQUIRED_TAGS_FOR_FINISH_CYCLE = [
   "focus",
   "break",
   "focus",
-  "long-break",
+  "long_break",
 ];
 
 export const DEFAULT_POMODORO_DURATION_IN_MINUTES = 25;
 export const DEFAULT_BREAK_DURATION_IN_MINUTES = 5;
 export const DEFAULT_LONG_BREAK_DURATION_IN_MINUTES = 15;
 
+export const DEFAULT_DURATION_SECONDS =
+  DEFAULT_POMODORO_DURATION_IN_MINUTES * 60;
+
 export enum TagIdByType {
   FOCUS = "focus",
   BREAK = "break",
-  LONG_BREAK = "long-break",
+  LONG_BREAK = "long_break",
 }
 
 export enum PomodoroType {
   FOCUS = "focus",
   BREAK = "break",
-  LONG_BREAK = "long-break",
+  LONG_BREAK = "long_break",
 }
 
 export enum PomodoroState {
@@ -31,13 +34,13 @@ export enum PomodoroState {
 export const TagEnumByType = {
   ["focus"]: TagIdByType.FOCUS,
   ["break"]: TagIdByType.BREAK,
-  ["long-break"]: TagIdByType.LONG_BREAK,
+  ["long_break"]: TagIdByType.LONG_BREAK,
 };
 
 export const TagTypeById = {
   [TagIdByType.FOCUS]: "focus",
   [TagIdByType.BREAK]: "break",
-  [TagIdByType.LONG_BREAK]: "long-break",
+  [TagIdByType.LONG_BREAK]: "long_break",
 };
 
 export const PomodoroDurationInSecondsByDefaultCycleConfiguration = {
@@ -197,3 +200,26 @@ export function calculatePomodoroTimelapse(
 
   return Math.min(Math.floor(elapsed / 1000), expectedDuration);
 }
+
+export function createTimelineEntry(
+  type: TimelineEvent["type"],
+): TimelineEvent {
+  return { at: new Date().toISOString(), type };
+}
+
+export const computeExpectedEnd = (pomodoro: TPomodoro): string => {
+  const duration = pomodoro.expected_duration || DEFAULT_DURATION_SECONDS;
+  const timelapse = calculatePomodoroTimelapse(
+    pomodoro.toggle_timeline,
+    duration,
+  );
+  return new Date(Date.now() + (duration - timelapse) * 1000).toISOString();
+};
+
+export const updatePomodoroTimelapse = (pomodoro: TPomodoro): void => {
+  const duration = pomodoro.expected_duration || DEFAULT_DURATION_SECONDS;
+  pomodoro.timelapse = calculatePomodoroTimelapse(
+    pomodoro.toggle_timeline,
+    duration,
+  );
+};
